@@ -181,61 +181,58 @@
         }
 
         // 1. LOAD PROFILE DATA
-        function loadProfile() {
-            showToast('🔄 Loading profile...', 'info');
+function loadProfile() {
+  console.log("🚀 [STEP 1] Memulakan loadProfile...");
+  
+  fetch(API_URL + '?action=getProfile')
+    .then(response => {
+      console.log("🚀 [STEP 2] Status Response:", response.status, response.statusText);
+      return response.text(); // Baca sebagai text dulu untuk elak error JSON parsing
+    })
+    .then(text => {
+      console.log("🚀 [STEP 3] RAW Text dari Server:", text); // PENTING: Lihat apa server betul-betul hantar
+      
+      const result = JSON.parse(text);
+      console.log("🚀 [STEP 4] Parsed JSON:", result);
+
+      if (result.success && result.user) {
+        console.log("✅ [STEP 5] Data user ditemui!");
+        document.getElementById('userName').value = result.user.name || 'User';
+        document.getElementById('userNoKad').value = result.user.noKad || '-';
+        document.getElementById('userRole').value = result.user.role || 'Role';
+        document.getElementById('userEmail').value = result.user.email || 'Email';
+
+        if (result.user.pictureFileId && result.user.pictureFileId.trim() !== "") {
+          console.log("🖼️ [STEP 6] pictureFileId ditemui:", result.user.pictureFileId);
+          
+          // Fetch gambar
+          fetch(API_URL + '?action=getImage&fileId=' + encodeURIComponent(result.user.pictureFileId))
+            .then(res => res.text())
+            .then(imgText => {
+              console.log("🖼️ [STEP 7] RAW Image Response dari Server:", imgText);
+              
+              const imgResult = JSON.parse(imgText);
+              console.log("🖼️ [STEP 8] Parsed Image JSON:", imgResult);
+
+              if (imgResult.success && imgResult.base64 && imgResult.base64.length > 100) {
+                console.log("✅ [STEP 9] BERJAYA! Base64 diterima. Panjang string:", imgResult.base64.length);
+                document.getElementById('profilePic').innerHTML = `<img src="${imgResult.base64}" alt="Profile" style="width:100%; height:100%; object-fit:cover;">`;
+              } else {
+                console.error("❌ [STEP 9] GAGAL: Server tidak pulang base64 yang sah. Mungkin fail tiada atau tiada permission.", imgResult);
+                document.getElementById('profilePic').innerHTML = `<div style="width:100%;height:100%;background:#ddd;display:flex;align-items:center;justify-content:center;">No Img</div>`;
+              }
+            })
+            .catch(err => console.error("❌ [STEP 10] Network Error semasa fetch gambar:", err));
             
-            fetch(API_URL + '?action=getProfile')
-                .then(res => res.json())
-                .then(result => {
-                    console.log('Profile result:', result); // DEBUG
-                    
-                    if (result.success && result.user) {
-                        const user = result.user;
-                        document.getElementById('userName').value = user.name || 'User';
-                        document.getElementById('userNoKad').value = user.noKad || '-';
-                        document.getElementById('userRole').value = user.role || 'Role';
-                        document.getElementById('userEmail').value = user.email || 'Email';
-                        
-                        // Check if user has picture
-                        if (user.pictureFileId && user.pictureFileId.toString().trim() !== '') {
-                            console.log('Loading image with fileId:', user.pictureFileId); // DEBUG
-                            showToast('📷 Loading profile picture...', 'info');
-                            
-                            fetch(API_URL + '?action=getImage&fileId=' + encodeURIComponent(user.pictureFileId))
-                                .then(res => res.json())
-                                .then(imgResult => {
-                                    console.log('Image result:', imgResult); // DEBUG
-                                    
-                                    if (imgResult.success && imgResult.base64 && imgResult.base64.length > 100) {
-                                        document.getElementById('profilePic').innerHTML = `<img src="${imgResult.base64}" alt="Profile">`;
-                                        showToast('✅ Profile loaded successfully', 'success');
-                                    } else {
-                                        // Show default icon
-                                        document.getElementById('profilePic').innerHTML = `<div class="profile-pic-default"><i class="fas fa-user"></i></div>`;
-                                        showToast('⚠️ No profile picture found', 'warning');
-                                    }
-                                })
-                                .catch(err => {
-                                    console.error('Image fetch error:', err);
-                                    document.getElementById('profilePic').innerHTML = `<div class="profile-pic-default"><i class="fas fa-user"></i></div>`;
-                                    showToast('❌ Failed to load image', 'error');
-                                });
-                        } else {
-                            console.log('No pictureFileId found'); // DEBUG
-                            document.getElementById('profilePic').innerHTML = `<div class="profile-pic-default"><i class="fas fa-user"></i></div>`;
-                            showToast('ℹ️ No profile picture set', 'info');
-                        }
-                    } else {
-                        showToast('❌ ' + (result.message || 'Failed to load data'), 'error');
-                        document.getElementById('profilePic').innerHTML = `<div class="profile-pic-default"><i class="fas fa-user"></i></div>`;
-                    }
-                })
-                .catch(err => {
-                    console.error('Profile fetch error:', err);
-                    showToast('❌ Connection error: ' + err.message, 'error');
-                    document.getElementById('profilePic').innerHTML = `<div class="profile-pic-default"><i class="fas fa-user"></i></div>`;
-                });
+        } else {
+          console.warn("⚠️ [STEP 6] AMARAN: Tiada pictureFileId dalam data user.");
         }
+      } else {
+        console.error("❌ [STEP 5] GAGAL: result.success adalah false atau data user tiada.", result);
+      }
+    })
+    .catch(error => console.error("❌ [STEP 11] Network Error utama:", error));
+}
 
         function previewPhoto(input) {
             if (input.files && input.files[0]) {
