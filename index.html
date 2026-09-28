@@ -12,7 +12,7 @@
     
     <style>
         :root {
-            --primary-blue: #1a73e8; /* Biru cerah moden */
+            --primary-blue: #1a73e8;
             --primary-blue-dark: #1557b0;
             --bg-light: #f0f4f8;
         }
@@ -25,7 +25,6 @@
             overflow-x: hidden;
         }
 
-        /* HEADER DENGAN CURVE MODERN - WARNA BIRU CERAH */
         .app-header {
             background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
             color: white;
@@ -38,21 +37,17 @@
             border-bottom-right-radius: 30px;
             box-shadow: 0 6px 15px rgba(26,115,232,0.3);
             margin-bottom: 10px;
-            position: relative;
         }
 
-        /* PROFILE SECTION - Help & Logout Lebih Rapat Dengan Header */
         .profile-section {
             background: white;
-            padding: 10px 20px 20px; /* Kurangkan padding atas */
+            padding: 10px 20px 20px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start; /* Align ke atas */
+            align-items: flex-start;
             border-bottom: 1px solid #e0e0e0;
-            position: relative;
         }
         
-        /* Round Icon untuk Help & Logout */
         .round-icon-btn {
             width: 40px;
             height: 40px;
@@ -62,7 +57,7 @@
             justify-content: center;
             cursor: pointer;
             transition: transform 0.2s;
-            margin-top: 5px; /* Naikkan sedikit */
+            margin-top: 5px;
         }
         .round-icon-btn:active { transform: scale(0.9); }
         
@@ -82,7 +77,6 @@
             height: 90px;
         }
         
-        /* FIX: Profile Image Bulat Sempurna */
         .profile-img {
             width: 90px !important;
             height: 90px !important;
@@ -90,6 +84,7 @@
             object-fit: cover !important;
             border: 3px solid var(--primary-blue) !important;
             display: block !important;
+            background-color: #e0e0e0; /* Fallback color */
         }
         
         .edit-badge {
@@ -106,12 +101,14 @@
             justify-content: center;
             font-size: 11px;
             border: 2px solid white;
+            cursor: pointer; /* Penting: Tunjuk ia boleh diklik */
+            transition: transform 0.2s;
         }
+        .edit-badge:active { transform: scale(0.9); }
 
         .profile-name { font-weight: bold; font-size: 1.15rem; margin-top: 12px; margin-bottom: 3px; }
         .profile-role { font-size: 0.9rem; color: #666; }
 
-        /* GRID MENU - CARD VIEW */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -141,7 +138,6 @@
             box-shadow: 0 1px 4px rgba(0,0,0,0.1);
         }
 
-        /* Round Icon Container */
         .icon-circle {
             width: 52px;
             height: 52px;
@@ -152,12 +148,8 @@
             margin-bottom: 10px;
         }
 
-        .icon-circle i {
-            font-size: 1.5rem;
-            color: white;
-        }
+        .icon-circle i { font-size: 1.5rem; color: white; }
 
-        /* Warna Berbeza Untuk Setiap Kategori */
         .bg-scan { background: linear-gradient(135deg, #198754, #146c43); }
         .bg-confirm { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
         .bg-history { background: linear-gradient(135deg, #6f42c1, #5a32a3); }
@@ -171,190 +163,113 @@
         .bg-receive { background: linear-gradient(135deg, #198754, #146c43); }
         .bg-setting { background: linear-gradient(135deg, #495057, #343a40); }
 
-        .menu-label {
-            font-size: 0.72rem;
-            font-weight: 600;
-            line-height: 1.2;
-            color: #333;
-        }
+        .menu-label { font-size: 0.72rem; font-weight: 600; line-height: 1.2; color: #333; }
 
-        /* Badge "New" */
         .badge-new {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #dc3545;
-            color: white;
-            font-size: 0.6rem;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-weight: bold;
+            position: absolute; top: -5px; right: -5px; background: #dc3545; color: white;
+            font-size: 0.6rem; padding: 3px 8px; border-radius: 10px; font-weight: bold;
             box-shadow: 0 2px 4px rgba(220,53,69,0.3);
         }
 
-        /* BOTTOM NAVIGATION DENGAN CURVE - WARNA BIRU CERAH */
         .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
+            position: fixed; bottom: 0; left: 0; width: 100%;
             background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
-            height: 75px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            box-shadow: 0 -4px 15px rgba(26,115,232,0.3);
-            border-top-left-radius: 30px; /* Curve di atas */
-            border-top-right-radius: 30px; /* Curve di atas */
+            height: 75px; display: flex; justify-content: center; align-items: center;
+            z-index: 1000; box-shadow: 0 -4px 15px rgba(26,115,232,0.3);
+            border-top-left-radius: 30px; border-top-right-radius: 30px;
         }
 
         .fab-scan {
-            position: absolute;
-            bottom: 20px;
-            background: white;
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            text-decoration: none;
-            color: var(--primary-blue);
-            border: 4px solid var(--primary-blue);
+            position: absolute; bottom: 20px; background: white; width: 65px; height: 65px;
+            border-radius: 50%; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            text-decoration: none; color: var(--primary-blue); border: 4px solid var(--primary-blue);
         }
-
         .fab-scan i { font-size: 1.6rem; margin-bottom: 2px; }
         .fab-scan span { font-size: 0.6rem; font-weight: bold; }
-
     </style>
 </head>
 <body>
 
-    <!-- HEADER DENGAN CURVE - BIRU CERAH -->
-    <div class="app-header">
-        MA INVENTORY SYSTEM
-    </div>
+    <div class="app-header">MA INVENTORY SYSTEM</div>
 
-    <!-- PROFILE SECTION - Help & Logout Lebih Rapat -->
     <div class="profile-section">
-        <!-- Help Button -->
-        <div class="round-icon-btn help-btn">
+        <div class="round-icon-btn help-btn" onclick="alert('Halaman Bantuan akan datang!')">
             <i class="fas fa-question"></i>
         </div>
         
         <div class="profile-center">
             <div class="profile-img-container">
-                <img src="https://ui-avatars.com/api/?name=Mohd+Khairul&background=1a73e8&color=fff&size=150" alt="Profile" class="profile-img">
-                <div class="edit-badge"><i class="fas fa-pen"></i></div>
+                <!-- TAMBAH: id="profileImage" untuk JavaScript update gambar -->
+                <img id="profileImage" src="https://ui-avatars.com/api/?name=User&background=1a73e8&color=fff&size=150" alt="Profile" class="profile-img">
+                
+                <!-- TAMBAH: onclick untuk pergi ke halaman edit profile -->
+                <div class="edit-badge" onclick="window.location.href='edit-profile.html'" title="Edit Profile">
+                    <i class="fas fa-pen"></i>
+                </div>
             </div>
-            <div class="profile-name">Mohd Khairul Nizzam</div>
-            <div class="profile-role">Admin</div>
+            <!-- TAMBAH: id untuk JavaScript update nama dan role -->
+            <div id="profileName" class="profile-name">Loading...</div>
+            <div id="profileRole" class="profile-role">Loading...</div>
         </div>
 
-        <!-- Logout Button -->
-        <div class="round-icon-btn logout-btn" onclick="alert('Log keluar akan dibuat di sini')">
+        <div class="round-icon-btn logout-btn" onclick="window.location.href='index.html'">
             <i class="fas fa-power-off"></i>
         </div>
     </div>
 
-    <!-- GRID MENU - CARD VIEW -->
     <div class="dashboard-grid">
-        
-        <!-- Row 1 -->
         <a href="scanner.html" class="menu-card">
-            <div class="icon-circle bg-scan">
-                <i class="fas fa-qrcode"></i>
-            </div>
+            <div class="icon-circle bg-scan"><i class="fas fa-qrcode"></i></div>
             <span class="menu-label">Stock Take<br>Scan</span>
         </a>
-        
         <a href="confirmation.html" class="menu-card">
             <span class="badge-new">New</span>
-            <div class="icon-circle bg-confirm">
-                <i class="fas fa-clipboard-check"></i>
-            </div>
+            <div class="icon-circle bg-confirm"><i class="fas fa-clipboard-check"></i></div>
             <span class="menu-label">Confirmation<br>Stock Take</span>
         </a>
-
         <a href="history.html" class="menu-card">
-            <div class="icon-circle bg-history">
-                <i class="fas fa-clock-rotate-left"></i>
-            </div>
+            <div class="icon-circle bg-history"><i class="fas fa-clock-rotate-left"></i></div>
             <span class="menu-label">Stock Take<br>History</span>
         </a>
-
-        <!-- Row 2 -->
         <a href="add-product.html" class="menu-card">
-            <div class="icon-circle bg-add">
-                <i class="fas fa-box-open"></i>
-            </div>
+            <div class="icon-circle bg-add"><i class="fas fa-box-open"></i></div>
             <span class="menu-label">Add New<br>Product</span>
         </a>
-
         <a href="register.html" class="menu-card">
-            <div class="icon-circle bg-register">
-                <i class="fas fa-user-pen"></i>
-            </div>
+            <div class="icon-circle bg-register"><i class="fas fa-user-pen"></i></div>
             <span class="menu-label">Registration<br>Panel</span>
         </a>
-
         <a href="export.html" class="menu-card">
-            <div class="icon-circle bg-export">
-                <i class="fas fa-file-export"></i>
-            </div>
+            <div class="icon-circle bg-export"><i class="fas fa-file-export"></i></div>
             <span class="menu-label">Export Report<br>(CSV)</span>
         </a>
-
-        <!-- Row 3 -->
         <a href="print-qr.html" class="menu-card">
-            <div class="icon-circle bg-print">
-                <i class="fas fa-print"></i>
-            </div>
+            <div class="icon-circle bg-print"><i class="fas fa-print"></i></div>
             <span class="menu-label">Print QR<br>Code</span>
         </a>
-
         <a href="product-list.html" class="menu-card">
-            <div class="icon-circle bg-product">
-                <i class="fas fa-boxes-stacked"></i>
-            </div>
+            <div class="icon-circle bg-product"><i class="fas fa-boxes-stacked"></i></div>
             <span class="menu-label">Product</span>
         </a>
-
         <a href="order.html" class="menu-card">
-            <div class="icon-circle bg-order">
-                <i class="fas fa-cart-shopping"></i>
-            </div>
+            <div class="icon-circle bg-order"><i class="fas fa-cart-shopping"></i></div>
             <span class="menu-label">Order</span>
         </a>
-
-        <!-- Row 4 -->
         <a href="out.html" class="menu-card">
-            <div class="icon-circle bg-out">
-                <i class="fas fa-arrow-up-from-bracket"></i>
-            </div>
+            <div class="icon-circle bg-out"><i class="fas fa-arrow-up-from-bracket"></i></div>
             <span class="menu-label">Out</span>
         </a>
-
         <a href="receive.html" class="menu-card">
-            <div class="icon-circle bg-receive">
-                <i class="fas fa-truck-loading"></i>
-            </div>
+            <div class="icon-circle bg-receive"><i class="fas fa-truck-loading"></i></div>
             <span class="menu-label">Receive</span>
         </a>
-
         <a href="settings.html" class="menu-card">
-            <div class="icon-circle bg-setting">
-                <i class="fas fa-gear"></i>
-            </div>
+            <div class="icon-circle bg-setting"><i class="fas fa-gear"></i></div>
             <span class="menu-label">Setting</span>
         </a>
-
     </div>
 
-    <!-- BOTTOM NAVIGATION DENGAN CURVE - BIRU CERAH -->
     <div class="bottom-nav">
         <a href="scanner.html" class="fab-scan">
             <i class="fas fa-qrcode"></i>
@@ -364,5 +279,53 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT UNTUK MUATKAN DATA PROFIL -->
+    <!-- ========================================== -->
+    <script>
+        // PENTING: Gantikan URL ini dengan URL Web App GAS anda yang terkini!
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxBLu9PfZ5qLgGvzsOWGsSl9zY9a3eIBI8clPTWZ1bU5Sfox28YGLFOYSZtxLFCpTfV/exec';
+
+        // Jalankan fungsi ini sebaik sahaja halaman selesai dimuatkan
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserProfile();
+        });
+
+        function loadUserProfile() {
+            // Langkah 1: Dapatkan maklumat asas profil (Nama, Role, PictureFileId)
+            fetch(API_URL + '?action=getProfile')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.user) {
+                        const user = data.user;
+                        
+                        // Update Nama dan Role di HTML
+                        document.getElementById('profileName').textContent = user.name || 'User';
+                        document.getElementById('profileRole').textContent = user.role || 'Role';
+
+                        // Langkah 2: Jika user ada gambar, dapatkan base64 gambar tersebut
+                        if (user.pictureFileId && user.pictureFileId.trim() !== '') {
+                            fetch(API_URL + '?action=getImage&fileId=' + encodeURIComponent(user.pictureFileId))
+                                .then(imgResponse => imgResponse.json())
+                                .then(imgData => {
+                                    if (imgData.success && imgData.base64) {
+                                        // Update src gambar dengan data base64 dari Google Drive
+                                        document.getElementById('profileImage').src = imgData.base64;
+                                    }
+                                })
+                                .catch(err => console.error('Error loading image:', err));
+                        }
+                    } else {
+                        console.error('Gagal memuatkan profil:', data.message);
+                        document.getElementById('profileName').textContent = 'Guest';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching profile:', error);
+                    document.getElementById('profileName').textContent = 'Error';
+                });
+        }
+    </script>
 </body>
 </html>
