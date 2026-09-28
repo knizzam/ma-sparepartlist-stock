@@ -169,7 +169,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // PERBAIKAN: Gunakan URL dari config.js, bukan hardcoded
+        // Guna CONFIG (bukan APP_CONFIG)
         const API_URL = CONFIG.API_URL;
 
         let tempPhotoBase64 = '';
@@ -186,47 +186,81 @@
         }
 
         function loadProfile() {
+            // Set semua field kepada "Loading..." dulu
+            document.getElementById('userName').value = 'Loading...';
+            document.getElementById('userNoKad').value = 'Loading...';
+            document.getElementById('userRole').value = 'Loading...';
+            document.getElementById('userEmail').value = 'Loading...';
+            
+            // Cuba load dari cache dulu
+            const cachedProfile = CacheManager.get(CONFIG.PROFILE_CACHE_KEY);
+            const cachedImage = CacheManager.get(CONFIG.IMAGE_CACHE_KEY);
+            
+            if (cachedProfile) {
+                // Load dari cache serta-merta
+                document.getElementById('userName').value = cachedProfile.name || '-';
+                document.getElementById('userNoKad').value = cachedProfile.noKad || '-';
+                document.getElementById('userRole').value = cachedProfile.role || '-';
+                document.getElementById('userEmail').value = cachedProfile.email || '-';
+                
+                if (cachedImage && cachedProfile.pictureFileId) {
+                    document.getElementById('profilePic').innerHTML = `<img src="${cachedImage}" alt="Profile" style="width:100%; height:100%; object-fit:cover;">`;
+                }
+            }
+            
+            // Load dari server (background)
             fetch(API_URL + '?action=getProfile')
                 .then(response => response.text())
                 .then(text => {
                     try {
                         const result = JSON.parse(text);
                         if (result.success && result.user) {
-                            document.getElementById('userName').value = result.user.name || '-';
-                            document.getElementById('userNoKad').value = result.user.noKad || '-';
-                            document.getElementById('userRole').value = result.user.role || '-';
-                            document.getElementById('userEmail').value = result.user.email || '-';
-
-                            if (result.user.pictureFileId && result.user.pictureFileId.trim() !== "") {
-                                fetch(API_URL + '?action=getImage&fileId=' + encodeURIComponent(result.user.pictureFileId))
+                            const user = result.user;
+                            
+                            // Update fields
+                            document.getElementById('userName').value = user.name || '-';
+                            document.getElementById('userNoKad').value = user.noKad || '-';
+                            document.getElementById('userRole').value = user.role || '-';
+                            document.getElementById('userEmail').value = user.email || '-';
+                            
+                            // Save ke cache
+                            CacheManager.set(CONFIG.PROFILE_CACHE_KEY, user);
+                            
+                            // Load image jika ada
+                            if (user.pictureFileId && user.pictureFileId.trim() !== "") {
+                                fetch(API_URL + '?action=getImage&fileId=' + encodeURIComponent(user.pictureFileId))
                                     .then(res => res.text())
                                     .then(imgText => {
-                                        const imgResult = JSON.parse(imgText);
-                                        if (imgResult.success && imgResult.base64 && imgResult.base64.length > 100) {
-                                            document.getElementById('profilePic').innerHTML = `<img src="${imgResult.base64}" alt="Profile" style="width:100%; height:100%; object-fit:cover;">`;
-                                        } else {
-                                            document.getElementById('profilePic').innerHTML = `<div class="profile-pic-default"><i class="fas fa-user"></i></div>`;
+                                        try {
+                                            const imgResult = JSON.parse(imgText);
+                                            if (imgResult.success && imgResult.base64 && imgResult.base64.length > 100) {
+                                                document.getElementById('profilePic').innerHTML = `<img src="${imgResult.base64}" alt="Profile" style="width:100%; height:100%; object-fit:cover;">`;
+                                                // Save image ke cache
+                                                CacheManager.set(CONFIG.IMAGE_CACHE_KEY, imgResult.base64);
+                                            }
+                                        } catch(e) {
+                                            console.error("Image parse error:", e);
                                         }
                                     })
                                     .catch(err => {
                                         console.error("Error loading image:", err);
-                                        document.getElementById('profilePic').innerHTML = `<div class="profile-pic-default"><i class="fas fa-user"></i></div>`;
                                     });
-                            } else {
-                                document.getElementById('profilePic').innerHTML = `<div class="profile-pic-default"><i class="fas fa-user"></i></div>`;
                             }
-                        } else {
-                            console.error("Gagal dapat data:", result);
-                            showToast('❌ Gagal memuatkan data profil', 'error');
                         }
                     } catch (e) {
                         console.error("JSON Parse Error:", e, text);
-                        showToast('❌ Ralat format data', 'error');
+                        // Kekalkan nilai dari cache jika ada
+                        if (!cachedProfile) {
+                            showToast('❌ Gagal memuatkan data profil', 'error');
+                        }
                     }
                 })
                 .catch(error => {
                     console.error("Network Error:", error);
-                    showToast('❌ Ralat sambungan rangkaian', 'error');
+                    // Kekalkan nilai dari cache jika ada
+                    if (!cachedProfile) {
+                        showToast('❌ Ralat sambungan rangkaian', 'error');
+                    }
                 });
         }
 
