@@ -1,6 +1,6 @@
 // config.js - Configuration File
-const CONFIG = {
-    // Google Apps Script API URL
+const APP_CONFIG = {
+    // Google Apps Script API URL (Ganti dengan URL Web App anda yang sebenar nanti)
     API_URL: 'https://script.google.com/macros/s/AKfycbxMZ-ipbF6vc1zVzPFNY6pcX30T33-nDDvH3edq20ilqLTkagLCOAeR6WP4FG-BIbuk/exec',
     
     // Cache Settings
@@ -58,8 +58,8 @@ const CacheManager = {
     
     // Clear all app cache
     clearAll: function() {
-        localStorage.removeItem(CONFIG.PROFILE_CACHE_KEY);
-        localStorage.removeItem(CONFIG.IMAGE_CACHE_KEY);
+        localStorage.removeItem(APP_CONFIG.PROFILE_CACHE_KEY);
+        localStorage.removeItem(APP_CONFIG.IMAGE_CACHE_KEY);
     }
 };
 
@@ -67,7 +67,8 @@ const CacheManager = {
 const APIHelper = {
     async fetchProfile() {
         try {
-            const response = await fetch(CONFIG.API_URL + '?action=getProfile');
+            // Nota: Pastikan backend GAS anda handle parameter '?action=getProfile'
+            const response = await fetch(APP_CONFIG.API_URL + '?action=getProfile');
             return await response.json();
         } catch (error) {
             console.error('Error fetching profile:', error);
@@ -79,7 +80,7 @@ const APIHelper = {
         if (!fileId) return null;
         
         try {
-            const response = await fetch(CONFIG.API_URL + '?action=getImage&fileId=' + encodeURIComponent(fileId));
+            const response = await fetch(APP_CONFIG.API_URL + '?action=getImage&fileId=' + encodeURIComponent(fileId));
             return await response.json();
         } catch (error) {
             console.error('Error fetching image:', error);
