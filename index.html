@@ -2,62 +2,136 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MA Stock Take System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MA Inventory System</title>
     
-    <!-- Bootstrap 5 CSS (Untuk Design Cantik) -->
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome (Untuk Icon Cantik) -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body { background-color: #f8f9fa; padding-top: 20px; }
-        .main-card { max-width: 600px; margin: 0 auto; }
-        .scanner-box { 
-            width: 100%; height: 300px; background: #000; 
-            border-radius: 15px; display: flex; align-items: center; 
-            justify-content: center; color: white; margin-bottom: 20px; 
+        body { 
+            background-color: #f4f6f9; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            padding-bottom: 80px; /* Ruang untuk bottom nav jika perlu */
+        }
+        
+        /* Header Style */
+        .app-header {
+            background: linear-gradient(135deg, #0d6efd, #0a58ca);
+            color: white;
+            padding: 30px 20px 40px;
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+            margin-bottom: -20px;
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+        }
+        .app-header h4 { margin: 0; font-weight: 700; }
+        .app-header p { margin: 5px 0 0; opacity: 0.8; font-size: 14px; }
+
+        /* Grid Navigation Style */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 lajur */
+            gap: 15px;
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .nav-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px 15px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 130px;
+        }
+
+        .nav-card:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .nav-card i {
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+            color: #0d6efd;
+        }
+
+        /* Warna Ikon Berbeza Untuk Setiap Menu */
+        .nav-card.scan i { color: #198754; } /* Hijau */
+        .nav-card.list i { color: #0d6efd; } /* Biru */
+        .nav-card.add i { color: #fd7e14; } /* Oren */
+        .nav-card.history i { color: #6f42c1; } /* Ungu */
+        .nav-card.profile i { color: #d63384; } /* Pink */
+        .nav-card.settings i { color: #6c757d; } /* Kelabu */
+
+        .nav-card span {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.2;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="card main-card shadow">
-            <div class="card-header bg-primary text-white text-center">
-                <h4><i class="fas fa-boxes-stacked"></i> MA Stock Take</h4>
-            </div>
-            <div class="card-body">
-                <h5 class="card-title text-center mb-4">Dashboard Scanner</h5>
-                
-                <!-- Kawasan Kamera Akan Muncul Di Sini Nanti -->
-                <div id="reader" class="scanner-box">
-                    <p><i class="fas fa-camera fa-2x"></i><br>Kamera akan aktif di sini</p>
-                </div>
+    <!-- Header -->
+    <div class="app-header">
+        <h4><i class="fas fa-warehouse me-2"></i>MA Inventory</h4>
+        <p>Selamat Datang, Staff</p>
+    </div>
 
-                <div class="d-grid gap-2">
-                    <button class="btn btn-success btn-lg" id="startScanBtn">
-                        <i class="fas fa-qrcode"></i> Mula Scan QR
-                    </button>
-                    <button class="btn btn-outline-secondary">
-                        <i class="fas fa-list"></i> Senarai Produk
-                    </button>
-                </div>
-            </div>
-            <div class="card-footer text-center text-muted">
-                <small>Dibina dengan Bootstrap & Vercel</small>
-            </div>
-        </div>
+    <!-- Grid Menu Navigasi -->
+    <div class="nav-grid">
+        
+        <!-- 1. Scanner -->
+        <a href="scanner.html" class="nav-card scan">
+            <i class="fas fa-qrcode"></i>
+            <span>Scan QR Code</span>
+        </a>
+
+        <!-- 2. Senarai Produk -->
+        <a href="products.html" class="nav-card list">
+            <i class="fas fa-boxes-stacked"></i>
+            <span>Senarai Produk</span>
+        </a>
+
+        <!-- 3. Tambah Produk -->
+        <a href="add-product.html" class="nav-card add">
+            <i class="fas fa-plus-circle"></i>
+            <span>Tambah Produk</span>
+        </a>
+
+        <!-- 4. Sejarah / History -->
+        <a href="history.html" class="nav-card history">
+            <i class="fas fa-clock-rotate-left"></i>
+            <span>Sejarah Stok</span>
+        </a>
+
+        <!-- 5. Profil User -->
+        <a href="profile.html" class="nav-card profile">
+            <i class="fas fa-user-circle"></i>
+            <span>Profil Saya</span>
+        </a>
+
+        <!-- 6. Tetapan / Logout -->
+        <a href="#" class="nav-card settings" onclick="alert('Log out akan dibuat di sini')">
+            <i class="fas fa-right-from-bracket"></i>
+            <span>Log Keluar</span>
+        </a>
+
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        // Kita akan tulis kod JavaScript untuk kamera dan fetch data di sini nanti
-        document.getElementById('startScanBtn').addEventListener('click', function() {
-            alert('Butang scan ditekan! Kita akan aktifkan kamera di sini nanti.');
-        });
-    </script>
 </body>
 </html>
