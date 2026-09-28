@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Edit Profile - MA Inventory</title>
+    
+    <!-- Bootstrap 5 & FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary-blue: #1a73e8; --bg-light: #f0f4f8; }
+        body { background: var(--bg-light); font-family: 'Segoe UI', sans-serif; padding-bottom: 40px; }
+
+        /* Header Ringkas dengan Butang Back */
+        .page-header {
+            background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(26,115,232,0.2);
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .back-btn:active { background: rgba(255,255,255,0.4); }
+        .page-title { font-size: 1.2rem; font-weight: 700; margin: 0; }
+
+        /* Form Cards */
+        .form-container { padding: 20px 15px; max-width: 600px; margin: 0 auto; }
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+        }
+        .form-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f8ff;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px; text-transform: uppercase; }
+        .form-input { 
+            width: 100%; padding: 12px 15px; background: #f8f9fa; border: 1px solid transparent; 
+            border-radius: 10px; font-size: 15px; color: #333; transition: all 0.2s; 
+        }
+        .form-input:focus { background: white; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(26,115,232,0.1); outline: none; }
+        .form-input:disabled { background: #f0f0f0; color: #888; cursor: not-allowed; }
+
+        /* Photo Upload */
+        .photo-upload-wrapper { position: relative; width: 120px; height: 120px; margin: 0 auto 15px auto; }
+        .profile-pic-outer {
+            width: 120px; height: 120px; border-radius: 50%; background: #e0e0e0; 
+            display: flex; align-items: center; justify-content: center; overflow: hidden; 
+            border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .profile-pic-outer img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-pic-default { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 48px; color: #999; }
+        .edit-icon-float { 
+            position: absolute; bottom: 0; right: 0; width: 36px; height: 36px; 
+            background: var(--primary-blue); color: white; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2); border: 3px solid white; 
+        }
+        #photoInput { display: none; }
+
+        /* Submit Button */
+        .submit-btn { 
+            width: 100%; padding: 16px; background: linear-gradient(to right, #1a73e8, #1557b0); 
+            color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; 
+            cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(26,115,232,0.3);
+        }
+        .submit-btn:active { transform: scale(0.98); }
+        .submit-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+        /* Toast Notification */
+        .toast { 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            padding: 12px 24px; border-radius: 8px; color: white; font-size: 14px; font-weight: 500; 
+            z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideUp 0.3s ease; 
+        }
+        .toast.success { background: #28a745; } 
+        .toast.error { background: #dc3545; } 
+        .toast.warning { background: #ffc107; color: #000; }
+        @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="page-header">
+        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="page-title">Edit Profile</h>
+    </div>
+
+    <div class="form-container">
+        <!-- Photo Card -->
+        <div class="form-card" style="text-align: center;">
+            <div class="form-section-title" style="text-align: left;">Profile Photo</div>
+            <div class="photo-upload-wrapper">
+                <div class="profile-pic-outer" id="profilePic">
+                    <div class="profile-pic-default"><i class="fas fa-user"></i></div>
+                </div>
+                <div class="edit-icon-float" onclick="document.getElementById('photoInput').click()">
+                    <i class="fas fa-camera"></i>
+                </div>
+            </div>
+            <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto(this)">
+            <p style="font-size: 13px; color: #888;">Tap camera icon to update picture</p>
+        </div>
+
+        <!-- Info Card -->
+        <div class="form-card">
+            <div class="form-section-title">Account Information</div>
+            
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-input" id="userName" placeholder="Loading...">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">ID Number (No. K/T)</label>
+                <input type="text" class="form-input" id="userNoKad" placeholder="Loading...">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Role</label>
+                <input type="text" class="form-input" id="userRole" disabled>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-input" id="userEmail" disabled>
+            </div>
+        </div>
+
+        <button class="submit-btn" id="saveBtn" onclick="saveProfilePicture()">
+            <i class="fas fa-save me-2"></i> Save Changes
+        </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ⚠️ PENTING: Gantikan URL ini dengan URL Web App GAS anda nanti
+        const API_URL = 'https://script.google.com/macros/s/AKfycbx.../exec'; 
+
+        let tempPhotoBase64 = '';
+        let hasNewPhoto = false;
+
+        function showToast(message, type = 'info') {
+            const oldToast = document.querySelector('.toast');
+            if (oldToast) oldToast.remove();
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // 1. LOAD PROFILE DATA
+        function loadProfile() {
+            // Kita guna fetch ke API GAS
+            fetch(API_URL + '?action=getProfile')
+                .then(res => res.json())
+                .then(result => {
+                    if (result.success && result.user) {
+                        const user = result.user;
+                        document.getElementById('userName').value = user.name || 'User';
+                        document.getElementById('userNoKad').value = user.noKad || '-';
+                        document.getElementById('userRole').value = user.role || 'Role';
+                        document.getElementById('userEmail').value = user.email || 'Email';
+                        
+                        if (user.pictureFileId) {
+                            fetch(API_URL + '?action=getImage&fileId=' + user.pictureFileId)
+                                .then(res => res.json())
+                                .then(imgResult => {
+                                    if (imgResult.success && imgResult.base64) {
+                                        document.getElementById('profilePic').innerHTML = `<img src="${imgResult.base64}" alt="Profile">`;
+                                    }
+                                });
+                        }
+                    } else {
+                        showToast('❌ Gagal memuatkan data', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('❌ Ralat sambungan', 'error');
+                });
+        }
+
+        // 2. PREVIEW PHOTO
+        function previewPhoto(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempPhotoBase64 = e.target.result;
+                    hasNewPhoto = true;
+                    document.getElementById('profilePic').innerHTML = `<img src="${tempPhotoBase64}" alt="Preview">`;
+                    showToast('📷 Gambar dipilih. Klik "Save Changes"', 'warning');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // 3. SAVE PROFILE (CORS-PROOF FETCH)
+        function saveProfilePicture() {
+            if (!hasNewPhoto || !tempPhotoBase64) {
+                showToast('⚠️ Sila pilih gambar baru dahulu!', 'warning');
+                return;
+            }
+            
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Saving...';
+            saveBtn.disabled = true;
+
+            const payload = {
+                action: 'updateProfilePicture',
+                base64: tempPhotoBase64,
+                fileName: 'profile.jpg'
+            };
+
+            // Teknik khas untuk elak CORS error dengan Google Apps Script
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'text/plain' }, 
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                // Kerana 'no-cors', kita anggap berjaya jika tiada network error
+                showToast('✅ Profil berjaya dikemaskini!', 'success');
+                hasNewPhoto = false;
+                tempPhotoBase64 = '';
+                document.getElementById('photoInput').value = '';
+                saveBtn.innerHTML = '<i class="fas fa-save me-2"></i> Save Changes';
+                saveBtn.disabled = false;
+                
+                // Reload data untuk pastikan gambar baru muncul
+                setTimeout(loadProfile, 1000);
+            })
+            .catch(err => {
+                showToast('❌ Ralat semasa menyimpan', 'error');
+                saveBtn.innerHTML = '<i class="fas fa-save me-2"></i> Save Changes';
+                saveBtn.disabled = false;
+            });
+        }
+        
+        window.onload = loadProfile;
+    </script>
+</body>
+</html>
