@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MA - Sparepart System</title>
+    <title>MA Inventory System</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -12,42 +12,42 @@
     
     <style>
         :root {
-            --primary-blue: #002b5c; /* Warna biru gelap header/footer */
-            --bg-light: #eef2ff;     /* Warna latar belakang grid */
+            --primary-blue: #002b5c;
+            --bg-light: #f0f4f8;
         }
 
         body {
             background-color: var(--bg-light);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding-bottom: 90px; /* Ruang untuk bottom nav */
+            padding-bottom: 100px;
             overflow-x: hidden;
         }
 
-        /* 1. HEADER */
+        /* HEADER */
         .app-header {
-            background-color: var(--primary-blue);
+            background: linear-gradient(135deg, #002b5c 0%, #004080 100%);
             color: white;
             text-align: center;
-            padding: 15px 0;
-            font-size: 1.2rem;
+            padding: 18px 0;
+            font-size: 1.3rem;
             font-weight: 800;
-            letter-spacing: 1px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            letter-spacing: 1.5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
-        /* 2. PROFILE SECTION */
+        /* PROFILE SECTION */
         .profile-section {
             background: white;
-            padding: 20px;
+            padding: 25px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #e0e0e0;
         }
         
-        .profile-icon { font-size: 1.5rem; color: #333; cursor: pointer; }
-        .logout-icon { color: #dc3545; font-size: 1.5rem; cursor: pointer; }
+        .profile-icon { font-size: 1.8rem; color: #333; cursor: pointer; }
+        .logout-icon { color: #dc3545; font-size: 1.8rem; cursor: pointer; }
         
         .profile-center {
             display: flex;
@@ -58,8 +58,8 @@
         
         .profile-img-container {
             position: relative;
-            width: 80px;
-            height: 80px;
+            width: 85px;
+            height: 85px;
         }
         
         .profile-img {
@@ -67,7 +67,7 @@
             height: 100%;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #000;
+            border: 3px solid #002b5c;
         }
         
         .edit-badge {
@@ -77,8 +77,8 @@
             background: #ffc107;
             color: black;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -86,106 +86,141 @@
             border: 2px solid white;
         }
 
-        .profile-name { font-weight: bold; font-size: 1.1rem; margin-top: 10px; margin-bottom: 2px; }
+        .profile-name { font-weight: bold; font-size: 1.15rem; margin-top: 12px; margin-bottom: 3px; }
         .profile-role { font-size: 0.9rem; color: #666; }
 
-        /* 3. GRID MENU */
+        /* GRID MENU - CARD VIEW */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3 Lajur seperti dalam gambar */
-            gap: 15px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
             padding: 20px 15px;
             max-width: 600px;
             margin: 0 auto;
         }
 
-        .menu-item {
+        .menu-card {
+            background: white;
+            border-radius: 16px;
+            padding: 15px 10px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-align: center;
-            text-decoration: none;
-            color: #000;
             position: relative;
         }
 
-        .menu-icon-box {
-            font-size: 2.5rem;
-            margin-bottom: 8px;
-            color: #000; /* Ikon hitam seperti dalam gambar */
+        .menu-card:active {
+            transform: scale(0.95);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
         }
 
+        /* Round Icon Container */
+        .icon-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .icon-circle i {
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        /* Warna Berbeza Untuk Setiap Kategori */
+        .bg-scan { background: linear-gradient(135deg, #198754, #146c43); }
+        .bg-confirm { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
+        .bg-history { background: linear-gradient(135deg, #6f42c1, #5a32a3); }
+        .bg-add { background: linear-gradient(135deg, #fd7e14, #e8590c); }
+        .bg-register { background: linear-gradient(135deg, #d63384, #b52a6f); }
+        .bg-export { background: linear-gradient(135deg, #20c997, #17a085); }
+        .bg-print { background: linear-gradient(135deg, #6c757d, #565e64); }
+        .bg-product { background: linear-gradient(135deg, #0dcaf0, #0aa2c0); }
+        .bg-order { background: linear-gradient(135deg, #ffc107, #e0a800); }
+        .bg-out { background: linear-gradient(135deg, #dc3545, #b02a37); }
+        .bg-receive { background: linear-gradient(135deg, #198754, #146c43); }
+        .bg-setting { background: linear-gradient(135deg, #495057, #343a40); }
+
         .menu-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
             line-height: 1.2;
+            color: #333;
         }
 
         /* Badge "New" */
         .badge-new {
             position: absolute;
             top: -5px;
-            right: 20%;
+            right: -5px;
             background: #dc3545;
             color: white;
             font-size: 0.6rem;
-            padding: 2px 6px;
+            padding: 3px 7px;
             border-radius: 10px;
             font-weight: bold;
+            box-shadow: 0 2px 4px rgba(220,53,69,0.3);
         }
 
-        /* 4. BOTTOM NAVIGATION */
+        /* BOTTOM NAVIGATION */
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
             background-color: var(--primary-blue);
-            height: 70px;
+            height: 75px;
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
         }
 
         .fab-scan {
             position: absolute;
             bottom: 20px;
             background: white;
-            width: 60px;
-            height: 60px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             text-decoration: none;
             color: var(--primary-blue);
             border: 4px solid var(--primary-blue);
         }
 
-        .fab-scan i { font-size: 1.5rem; margin-bottom: 2px; }
+        .fab-scan i { font-size: 1.6rem; margin-bottom: 2px; }
         .fab-scan span { font-size: 0.6rem; font-weight: bold; }
 
     </style>
 </head>
 <body>
 
-    <!-- 1. HEADER -->
+    <!-- HEADER -->
     <div class="app-header">
-        MA - SPAREPART
+        MA INVENTORY SYSTEM
     </div>
 
-    <!-- 2. PROFILE SECTION -->
+    <!-- PROFILE SECTION -->
     <div class="profile-section">
         <i class="fas fa-question-circle profile-icon"></i>
         
         <div class="profile-center">
             <div class="profile-img-container">
-                <!-- Gantikan src dengan URL gambar profil anda nanti -->
-                <img src="https://via.placeholder.com/80" alt="Profile" class="profile-img">
+                <img src="https://via.placeholder.com/85" alt="Profile" class="profile-img">
                 <div class="edit-badge"><i class="fas fa-pen"></i></div>
             </div>
             <div class="profile-name">Mohd Khairul Nizzam</div>
@@ -195,77 +230,101 @@
         <i class="fas fa-power-off logout-icon"></i>
     </div>
 
-    <!-- 3. GRID MENU -->
+    <!-- GRID MENU - CARD VIEW -->
     <div class="dashboard-grid">
         
         <!-- Row 1 -->
-        <a href="scanner.html" class="menu-item">
-            <i class="fas fa-qrcode menu-icon-box"></i>
+        <a href="scanner.html" class="menu-card">
+            <div class="icon-circle bg-scan">
+                <i class="fas fa-qrcode"></i>
+            </div>
             <span class="menu-label">Stock Take<br>Scan</span>
         </a>
         
-        <a href="confirmation.html" class="menu-item">
+        <a href="confirmation.html" class="menu-card">
             <span class="badge-new">New</span>
-            <i class="fas fa-clipboard-check menu-icon-box"></i>
+            <div class="icon-circle bg-confirm">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
             <span class="menu-label">Confirmation<br>Stock Take</span>
         </a>
 
-        <a href="history.html" class="menu-item">
-            <i class="fas fa-clock-rotate-left menu-icon-box"></i>
+        <a href="history.html" class="menu-card">
+            <div class="icon-circle bg-history">
+                <i class="fas fa-clock-rotate-left"></i>
+            </div>
             <span class="menu-label">Stock Take<br>History</span>
         </a>
 
         <!-- Row 2 -->
-        <a href="add-product.html" class="menu-item">
-            <i class="fas fa-box-open menu-icon-box"></i>
+        <a href="add-product.html" class="menu-card">
+            <div class="icon-circle bg-add">
+                <i class="fas fa-box-open"></i>
+            </div>
             <span class="menu-label">Add New<br>Product</span>
         </a>
 
-        <a href="register.html" class="menu-item">
-            <i class="fas fa-user-pen menu-icon-box"></i>
+        <a href="register.html" class="menu-card">
+            <div class="icon-circle bg-register">
+                <i class="fas fa-user-pen"></i>
+            </div>
             <span class="menu-label">Registration<br>Panel</span>
         </a>
 
-        <a href="export.html" class="menu-item">
-            <i class="fas fa-file-export menu-icon-box"></i>
+        <a href="export.html" class="menu-card">
+            <div class="icon-circle bg-export">
+                <i class="fas fa-file-export"></i>
+            </div>
             <span class="menu-label">Export Report<br>(CSV)</span>
         </a>
 
         <!-- Row 3 -->
-        <a href="print-qr.html" class="menu-item">
-            <i class="fas fa-print menu-icon-box"></i>
+        <a href="print-qr.html" class="menu-card">
+            <div class="icon-circle bg-print">
+                <i class="fas fa-print"></i>
+            </div>
             <span class="menu-label">Print QR<br>Code</span>
         </a>
 
-        <a href="product-list.html" class="menu-item">
-            <i class="fas fa-boxes-stacked menu-icon-box"></i>
+        <a href="product-list.html" class="menu-card">
+            <div class="icon-circle bg-product">
+                <i class="fas fa-boxes-stacked"></i>
+            </div>
             <span class="menu-label">Product</span>
         </a>
 
-        <a href="order.html" class="menu-item">
-            <i class="fas fa-cart-shopping menu-icon-box"></i>
+        <a href="order.html" class="menu-card">
+            <div class="icon-circle bg-order">
+                <i class="fas fa-cart-shopping"></i>
+            </div>
             <span class="menu-label">Order</span>
         </a>
 
         <!-- Row 4 -->
-        <a href="out.html" class="menu-item">
-            <i class="fas fa-box-arrow-up menu-icon-box"></i>
+        <a href="out.html" class="menu-card">
+            <div class="icon-circle bg-out">
+                <i class="fas fa-box-arrow-up"></i>
+            </div>
             <span class="menu-label">Out</span>
         </a>
 
-        <a href="receive.html" class="menu-item">
-            <i class="fas fa-box-arrow-down menu-icon-box"></i>
+        <a href="receive.html" class="menu-card">
+            <div class="icon-circle bg-receive">
+                <i class="fas fa-box-arrow-down"></i>
+            </div>
             <span class="menu-label">Receive</span>
         </a>
 
-        <a href="settings.html" class="menu-item">
-            <i class="fas fa-gear menu-icon-box"></i>
+        <a href="settings.html" class="menu-card">
+            <div class="icon-circle bg-setting">
+                <i class="fas fa-gear"></i>
+            </div>
             <span class="menu-label">Setting</span>
         </a>
 
     </div>
 
-    <!-- 4. BOTTOM NAVIGATION (FAB SCAN) -->
+    <!-- BOTTOM NAVIGATION (FAB SCAN) -->
     <div class="bottom-nav">
         <a href="scanner.html" class="fab-scan">
             <i class="fas fa-qrcode"></i>
