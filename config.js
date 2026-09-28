@@ -1,7 +1,7 @@
 // config.js - Configuration File
 const CONFIG = {
     // Google Apps Script API URL
-    API_URL: 'https://script.google.com/macros/s/AKfycbzK39T5Nc0kvlcPGy7naL7Twj-XMNP3jMs6fmJodlgTKakF3qF_kKP-JzAjj-8BCSHS/exec',
+    API_URL: 'https://script.google.com/macros/s/AKfycbxMZ-ipbF6vc1zVzPFNY6pcX30T33-nDDvH3edq20ilqLTkagLCOAeR6WP4FG-BIbuk/exec',
     
     // Cache Settings
     CACHE_EXPIRY: 5 * 60 * 1000, // 5 minutes in milliseconds
