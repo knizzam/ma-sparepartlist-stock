@@ -42,7 +42,7 @@
             border-radius: 10px; font-size: 15px; color: #333; transition: all 0.2s; 
         }
         .form-input:focus { background: white; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(26,115,232,0.1); outline: none; }
-        .form-input:disabled { background: #e9ecef; color: #495057; cursor: not-allowed; }
+        /* PERBAIKAN: Email kini boleh di-edit, jadi tiada style disabled */
 
         .photo-upload-card {
             border: 2px dashed #ddd; border-radius: 12px; padding: 20px; text-align: center;
@@ -84,7 +84,6 @@
         .user-card.inactive { border-left-color: #ccc; opacity: 0.7; }
         .user-card.editing { border-left-color: #ffc107; background: #fffbeb; }
         
-        /* PERBAIKAN: User Avatar kini boleh hold text (initials) ATAU image */
         .user-avatar {
             width: 45px; height: 45px; border-radius: 50%; background: #e0e0e0;
             display: flex; align-items: center; justify-content: center;
@@ -126,27 +125,24 @@
         <div class="form-card">
             <div class="form-section-title">Account Details</div>
             
-            <!-- 1. FULL NAME -->
             <div class="form-group">
                 <label class="form-label">Full Name</label>
                 <input type="text" class="form-input" id="userName" placeholder="e.g., Mohd Khairul Nizzam">
             </div>
             
-            <!-- 2. ID NUMBER -->
             <div class="form-group">
                 <label class="form-label">ID Number (No. K/T)</label>
                 <input type="text" class="form-input" id="userNoKad" placeholder="e.g., K572">
             </div>
             
-            <!-- 3. ROLE -->
             <div class="form-group">
                 <label class="form-label">Role</label>
                 <input type="text" class="form-input" id="userRole" placeholder="e.g., Admin, Staff">
             </div>
             
-            <!-- 4. EMAIL -->
             <div class="form-group">
                 <label class="form-label">Email Address</label>
+                <!-- PERBAIKAN: Tiada atribut 'disabled', email boleh di-edit -->
                 <input type="email" class="form-input" id="userEmail" placeholder="e.g., user@company.com">
             </div>
         </div>
@@ -184,7 +180,7 @@
             <div class="list-title">Registered Users <span class="list-badge" id="userCount">0</span></div>
         </div>
         <div class="user-list" id="userList">
-            <div style="text-align:center; padding: 20px; color: #888;"><i class="fas fa-spinner fa-spin"></i> Loading users...</div>
+            <!-- PERBAIKAN: Tiada spinner loading. Akan load dari cache serta-merta -->
         </div>
     </div>
 
@@ -193,6 +189,8 @@
         let tempPhotoBase64 = '';
         let editingEmail = null;
         let allUsers = [];
+        const USER_LIST_CACHE_KEY = 'ma_inventory_user_list';
+        const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minit
 
         function showToast(message, type = 'info') {
             const oldToast = document.querySelector('.toast');
@@ -218,20 +216,37 @@
         }
 
         async function loadUserList() {
+            // 1. INSTANT LOAD: Cuba dapatkan dari cache dulu
+            const cachedData = localStorage.getItem(USER_LIST_CACHE_KEY);
+            if (cachedData) {
+                try {
+                    const parsed = JSON.parse(cachedData);
+                    if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
+                        allUsers = parsed.data;
+                        renderUserList(allUsers); // Papar serta-merta!
+                    }
+                } catch(e) { console.error("Cache parse error", e); }
+            }
+
+            // 2. BACKGROUND FETCH: Dapatkan data terkini dari server
             try {
                 const res = await fetch(CONFIG.API_URL + '?action=getAllUsers');
                 const result = await res.json();
                 
                 if (result.success && result.users) {
                     allUsers = result.users;
-                    renderUserList(allUsers);
-                } else {
-                    document.getElementById('userList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tiada pengguna dijumpai</div>';
-                    document.getElementById('userCount').textContent = '0';
+                    // Simpan ke cache untuk lawatan seterusnya
+                    localStorage.setItem(USER_LIST_CACHE_KEY, JSON.stringify({
+                        data: allUsers,
+                        timestamp: new Date().getTime()
+                    }));
+                    renderUserList(allUsers); // Update UI dengan data fresh
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showToast('❌ Gagal memuatkan senarai pengguna', 'error');
+                if (!allUsers.length) { // Hanya tunjuk error jika tiada cache langsung
+                    document.getElementById('userList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Gagal memuatkan data</div>';
+                }
             }
         }
 
@@ -252,7 +267,7 @@
                 const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
                 const safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, '');
                 
-                // PERBAIKAN: Default kepada inisial (contoh: "M"). TIADA <img src=""> yang kosong!
+                // PERBAIKAN: Default kepada inisial. TIADA <img> kosong yang menyebabkan "crack"
                 let avatarHTML = initial;
 
                 html += `
@@ -269,7 +284,7 @@
             });
             userList.innerHTML = html;
 
-            // PERBAIKAN: Load gambar secara background, dan REPLACE inisial hanya bila gambar siap
+            // 3. BACKGROUND IMAGE LOAD: Ganti inisial dengan gambar HANYA bila gambar siap load
             users.forEach(user => {
                 if (user.pictureFileId) {
                     const safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, '');
@@ -278,7 +293,7 @@
                     if (avatarBox) {
                         APIHelper.fetchImage(user.pictureFileId).then(imgResult => {
                             if (imgResult.success && imgResult.base64) {
-                                // Gantikan teks inisial dengan tag <img> yang cantik
+                                // Smooth replacement
                                 avatarBox.innerHTML = `<img src="${imgResult.base64}" alt="${user.name}" style="width:100%; height:100%; object-fit:cover;">`;
                             }
                         });
@@ -288,14 +303,14 @@
         }
 
         function editUser(email, role, name, noKad, active, pictureFileId) {
-            editingEmail = email;
+            editingEmail = email; // Simpan email asal untuk backend
             
             // Isi form mengikut susunan baru
             document.getElementById('userName').value = name;
             document.getElementById('userNoKad').value = noKad;
             document.getElementById('userRole').value = role;
             document.getElementById('userEmail').value = email;
-            document.getElementById('userEmail').disabled = true; // Email tidak boleh diubah semasa edit
+            // PERBAIKAN: TIDAK disable email, supaya ia boleh di-edit jika perlu
             document.getElementById('userActive').checked = active;
             
             document.getElementById('saveBtn').innerText = 'Update User';
@@ -358,7 +373,7 @@
                 if (tempPhotoBase64) {
                     const imgPayload = {
                         action: 'uploadUserPicture',
-                        data: { base64: tempPhotoBase64, email: email }
+                        data: { base64: tempPhotoBase64, email: email } // Guna email baru jika diubah
                     };
                     await fetch(CONFIG.API_URL, {
                         method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
@@ -368,7 +383,7 @@
 
                 showToast('✅ Pengguna berjaya disimpan!', 'success');
                 resetForm();
-                loadUserList();
+                loadUserList(); // Ini akan update cache serta-merta
             } catch (error) {
                 showToast('❌ Ralat semasa menyimpan', 'error');
                 btn.innerText = editingEmail ? 'Update User' : 'Add User';
@@ -385,7 +400,7 @@
                     body: JSON.stringify({ action: 'deleteUser', data: { email: email } })
                 });
                 showToast('✅ Pengguna berjaya dipadam', 'success');
-                loadUserList();
+                loadUserList(); // Update cache serta-merta
             } catch (error) {
                 showToast('❌ Gagal memadam pengguna', 'error');
             }
@@ -396,7 +411,6 @@
             document.getElementById('userNoKad').value = '';
             document.getElementById('userRole').value = '';
             document.getElementById('userEmail').value = '';
-            document.getElementById('userEmail').disabled = false;
             document.getElementById('userActive').checked = true;
             document.getElementById('photoInput').value = '';
             document.getElementById('photoPreview').style.display = 'none';
