@@ -42,6 +42,7 @@
             margin-bottom: 10px;
         }
 
+        /* PERBAIKAN: Smooth Fade-In Effect */
         .profile-section {
             background: white;
             padding: 10px 20px 20px;
@@ -49,6 +50,11 @@
             justify-content: space-between;
             align-items: flex-start;
             border-bottom: 1px solid #e0e0e0;
+            opacity: 0; /* Sembunyi pada mulanya */
+            transition: opacity 0.4s ease-in-out;
+        }
+        .profile-section.loaded {
+            opacity: 1; /* Muncul bila data siap */
         }
         
         .round-icon-btn {
@@ -63,94 +69,41 @@
             margin-top: 5px;
         }
         .round-icon-btn:active { transform: scale(0.9); }
-        
         .help-btn { background: #e9ecef; color: #333; }
         .logout-btn { background: #ffe0e3; color: #dc3545; }
         
-        .profile-center {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex-grow: 1;
-        }
-        
-        .profile-img-container {
-            position: relative;
-            width: 90px;
-            height: 90px;
-        }
+        .profile-center { display: flex; flex-direction: column; align-items: center; flex-grow: 1; }
+        .profile-img-container { position: relative; width: 90px; height: 90px; }
         
         .profile-img {
-            width: 90px !important;
-            height: 90px !important;
-            border-radius: 50% !important;
-            object-fit: cover !important;
-            border: 3px solid var(--primary-blue) !important;
-            display: block !important;
-            background-color: #e0e0e0;
+            width: 90px !important; height: 90px !important; border-radius: 50% !important;
+            object-fit: cover !important; border: 3px solid var(--primary-blue) !important;
+            display: block !important; background-color: #e0e0e0;
         }
         
         .edit-badge {
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
-            background: #ffc107;
-            color: black;
-            border-radius: 50%;
-            width: 26px;
-            height: 26px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            border: 2px solid white;
-            cursor: pointer;
-            transition: transform 0.2s;
+            position: absolute; bottom: 2px; right: 2px; background: #ffc107; color: black;
+            border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center;
+            justify-content: center; font-size: 11px; border: 2px solid white; cursor: pointer;
         }
-        .edit-badge:active { transform: scale(0.9); }
 
         .profile-name { font-weight: bold; font-size: 1.15rem; margin-top: 12px; margin-bottom: 3px; }
         .profile-role { font-size: 0.9rem; color: #666; }
 
         .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            padding: 20px 15px;
-            max-width: 600px;
-            margin: 0 auto;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+            padding: 20px 15px; max-width: 600px; margin: 0 auto;
         }
-
         .menu-card {
-            background: white;
-            border-radius: 16px;
-            padding: 15px 10px;
-            text-align: center;
-            text-decoration: none;
-            color: #333;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
+            background: white; border-radius: 16px; padding: 15px 10px; text-align: center;
+            text-decoration: none; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex; flex-direction: column; align-items: center; position: relative;
         }
-
-        .menu-card:active {
-            transform: scale(0.95);
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-        }
-
+        .menu-card:active { transform: scale(0.95); }
         .icon-circle {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
+            width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; margin-bottom: 10px;
         }
-
         .icon-circle i { font-size: 1.5rem; color: white; }
 
         .bg-scan { background: linear-gradient(135deg, #198754, #146c43); }
@@ -167,11 +120,9 @@
         .bg-setting { background: linear-gradient(135deg, #495057, #343a40); }
 
         .menu-label { font-size: 0.72rem; font-weight: 600; line-height: 1.2; color: #333; }
-
         .badge-new {
             position: absolute; top: -5px; right: -5px; background: #dc3545; color: white;
             font-size: 0.6rem; padding: 3px 8px; border-radius: 10px; font-weight: bold;
-            box-shadow: 0 2px 4px rgba(220,53,69,0.3);
         }
 
         .bottom-nav {
@@ -181,7 +132,6 @@
             z-index: 1000; box-shadow: 0 -4px 15px rgba(26,115,232,0.3);
             border-top-left-radius: 30px; border-top-right-radius: 30px;
         }
-
         .fab-scan {
             position: absolute; bottom: 20px; background: white; width: 65px; height: 65px;
             border-radius: 50%; display: flex; flex-direction: column; align-items: center;
@@ -190,38 +140,29 @@
         }
         .fab-scan i { font-size: 1.6rem; margin-bottom: 2px; }
         .fab-scan span { font-size: 0.6rem; font-weight: bold; }
-        
-        /* Loading indicator */
-        .loading-skeleton {
-            animation: pulse 1.5s infinite;
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-        }
-        
-        @keyframes pulse {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
     </style>
 </head>
 <body>
 
     <div class="app-header">MA INVENTORY SYSTEM</div>
 
-    <div class="profile-section">
+    <!-- PERBAIKAN: Tambah id="profileSection" untuk efek fade-in -->
+    <div id="profileSection" class="profile-section">
         <div class="round-icon-btn help-btn" onclick="alert('Halaman Bantuan akan datang!')">
             <i class="fas fa-question"></i>
         </div>
         
         <div class="profile-center">
             <div class="profile-img-container">
-                <img id="profileImage" src="" alt="Profile" class="profile-img">
+                <!-- PERBAIKAN: Letak default avatar untuk elak ikon 'crack' -->
+                <img id="profileImage" src="https://ui-avatars.com/api/?name=User&background=1a73e8&color=fff&size=150" alt="Profile" class="profile-img">
                 <div class="edit-badge" onclick="window.location.href='edit-profile.html'" title="Edit Profile">
                     <i class="fas fa-pen"></i>
                 </div>
             </div>
-            <div id="profileName" class="profile-name">Loading...</div>
-            <div id="profileRole" class="profile-role">Loading...</div>
+            <!-- PERBAIKAN: Default text supaya tak nampak 'Loading...' -->
+            <div id="profileName" class="profile-name">User</div>
+            <div id="profileRole" class="profile-role">Role</div>
         </div>
 
         <div class="round-icon-btn logout-btn" onclick="handleLogout()">
@@ -288,7 +229,6 @@
         </a>
     </div>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
@@ -297,76 +237,44 @@
         });
 
         async function loadProfileWithCache() {
-            // STEP 1: Set default dulu (elak "Loading...")
-            document.getElementById('profileName').textContent = 'User';
-            document.getElementById('profileRole').textContent = 'Role';
+            const profileSection = document.getElementById('profileSection');
             
-            // STEP 2: Load dari cache (INSTANT!)
+            // 1. Cuba load dari cache dulu (INSTANT)
             const cachedProfile = CacheManager.get(CONFIG.PROFILE_CACHE_KEY);
             const cachedImage = CacheManager.get(CONFIG.IMAGE_CACHE_KEY);
             
             if (cachedProfile) {
-                // Update UI dengan data cache serta-merta
                 updateProfileUI(cachedProfile);
-                
                 if (cachedImage && cachedProfile.pictureFileId) {
-                    // Set image dari cache serta-merta
-                    const img = new Image();
-                    img.onload = function() {
-                        document.getElementById('profileImage').src = cachedImage;
-                    };
-                    img.src = cachedImage;
-                } else if (!cachedProfile.pictureFileId || cachedProfile.pictureFileId.trim() === '') {
-                    // Set default avatar jika tiada gambar
-                    document.getElementById('profileImage').src = CONFIG.DEFAULT_AVATAR;
+                    document.getElementById('profileImage').src = cachedImage;
                 }
-            } else {
-                // Tiada cache, set default
-                document.getElementById('profileImage').src = CONFIG.DEFAULT_AVATAR;
             }
             
-            // STEP 3: Fetch data baru dari server (background)
+            // 2. Fetch data baru dari server (background)
             try {
                 const data = await APIHelper.fetchProfile();
-                
                 if (data.success && data.user) {
                     const user = data.user;
-                    
-                    // Save ke cache
                     CacheManager.set(CONFIG.PROFILE_CACHE_KEY, user);
-                    
-                    // Update UI dengan data fresh
                     updateProfileUI(user);
                     
-                    // Load image jika ada
                     if (user.pictureFileId && user.pictureFileId.trim() !== '') {
-                        // Check cache image dulu
                         if (!cachedImage || cachedProfile?.pictureFileId !== user.pictureFileId) {
                             const imgData = await APIHelper.fetchImage(user.pictureFileId);
                             if (imgData.success && imgData.base64) {
-                                // Save image ke cache
                                 CacheManager.set(CONFIG.IMAGE_CACHE_KEY, imgData.base64);
-                                
-                                // Update image dengan smooth transition
-                                const img = new Image();
-                                img.onload = function() {
-                                    document.getElementById('profileImage').src = imgData.base64;
-                                };
-                                img.src = imgData.base64;
+                                document.getElementById('profileImage').src = imgData.base64;
                             }
                         }
                     } else {
-                        // Tiada gambar, guna default
                         document.getElementById('profileImage').src = CONFIG.DEFAULT_AVATAR;
                     }
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
-                // Kekalkan cache jika ada, atau default jika tiada
-                if (!cachedProfile) {
-                    document.getElementById('profileName').textContent = 'Guest';
-                    document.getElementById('profileRole').textContent = 'Not Logged In';
-                }
+            } finally {
+                // 3. Munculkan profile section dengan efek smooth
+                profileSection.classList.add('loaded');
             }
         }
 
