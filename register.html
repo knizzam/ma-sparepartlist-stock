@@ -42,7 +42,6 @@
             border-radius: 10px; font-size: 15px; color: #333; transition: all 0.2s; 
         }
         .form-input:focus { background: white; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(26,115,232,0.1); outline: none; }
-        /* PERBAIKAN: Email kini boleh di-edit, jadi tiada style disabled */
 
         .photo-upload-card {
             border: 2px dashed #ddd; border-radius: 12px; padding: 20px; text-align: center;
@@ -142,7 +141,6 @@
             
             <div class="form-group">
                 <label class="form-label">Email Address</label>
-                <!-- PERBAIKAN: Tiada atribut 'disabled', email boleh di-edit -->
                 <input type="email" class="form-input" id="userEmail" placeholder="e.g., user@company.com">
             </div>
         </div>
@@ -179,9 +177,7 @@
         <div class="list-header">
             <div class="list-title">Registered Users <span class="list-badge" id="userCount">0</span></div>
         </div>
-        <div class="user-list" id="userList">
-            <!-- PERBAIKAN: Tiada spinner loading. Akan load dari cache serta-merta -->
-        </div>
+        <div class="user-list" id="userList"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -189,7 +185,10 @@
         let tempPhotoBase64 = '';
         let editingEmail = null;
         let allUsers = [];
+        
+        // Cache keys
         const USER_LIST_CACHE_KEY = 'ma_inventory_user_list';
+        const USER_IMAGE_CACHE_PREFIX = 'ma_user_img_';
         const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minit
 
         function showToast(message, type = 'info') {
@@ -215,6 +214,32 @@
             }
         }
 
+        // Helper: Get cached image
+        function getCachedImage(email) {
+            try {
+                const cached = localStorage.getItem(USER_IMAGE_CACHE_PREFIX + email);
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
+                        return parsed.data;
+                    }
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        // Helper: Set cached image
+        function setCachedImage(email, base64) {
+            try {
+                localStorage.setItem(USER_IMAGE_CACHE_PREFIX + email, JSON.stringify({
+                    data: base64,
+                    timestamp: new Date().getTime()
+                }));
+            } catch(e) {
+                console.warn('Image cache failed:', e);
+            }
+        }
+
         async function loadUserList() {
             // 1. INSTANT LOAD: Cuba dapatkan dari cache dulu
             const cachedData = localStorage.getItem(USER_LIST_CACHE_KEY);
@@ -223,7 +248,7 @@
                     const parsed = JSON.parse(cachedData);
                     if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
                         allUsers = parsed.data;
-                        renderUserList(allUsers); // Papar serta-merta!
+                        renderUserList(allUsers); // Papar serta-merta dengan gambar dari cache!
                     }
                 } catch(e) { console.error("Cache parse error", e); }
             }
@@ -235,16 +260,15 @@
                 
                 if (result.success && result.users) {
                     allUsers = result.users;
-                    // Simpan ke cache untuk lawatan seterusnya
                     localStorage.setItem(USER_LIST_CACHE_KEY, JSON.stringify({
                         data: allUsers,
                         timestamp: new Date().getTime()
                     }));
-                    renderUserList(allUsers); // Update UI dengan data fresh
+                    renderUserList(allUsers);
                 }
             } catch (error) {
                 console.error('Error:', error);
-                if (!allUsers.length) { // Hanya tunjuk error jika tiada cache langsung
+                if (!allUsers.length) {
                     document.getElementById('userList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Gagal memuatkan data</div>';
                 }
             }
@@ -267,8 +291,14 @@
                 const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
                 const safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, '');
                 
-                // PERBAIKAN: Default kepada inisial. TIADA <img> kosong yang menyebabkan "crack"
-                let avatarHTML = initial;
+                // PERBAIKAN: Check cache gambar dulu!
+                const cachedImage = getCachedImage(user.email);
+                let avatarHTML = initial; // Default inisial
+                
+                // Jika ada gambar dalam cache, guna terus (TIADA loading!)
+                if (cachedImage && user.pictureFileId) {
+                    avatarHTML = `<img src="${cachedImage}" alt="${user.name}" style="width:100%; height:100%; object-fit:cover;">`;
+                }
 
                 html += `
                     <div class="user-card ${cardClass} ${isEditing}" onclick="editUser('${user.email}', '${user.role}', '${user.name}', '${user.noKad}', ${user.active}, '${user.pictureFileId}')">
@@ -284,46 +314,62 @@
             });
             userList.innerHTML = html;
 
-            // 3. BACKGROUND IMAGE LOAD: Ganti inisial dengan gambar HANYA bila gambar siap load
+            // 3. BACKGROUND IMAGE LOAD: Hanya fetch jika TIADA dalam cache
             users.forEach(user => {
                 if (user.pictureFileId) {
-                    const safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, '');
-                    const avatarBox = document.getElementById(`avatar-box-${safeEmail}`);
+                    const cachedImage = getCachedImage(user.email);
                     
-                    if (avatarBox) {
-                        APIHelper.fetchImage(user.pictureFileId).then(imgResult => {
-                            if (imgResult.success && imgResult.base64) {
-                                // Smooth replacement
-                                avatarBox.innerHTML = `<img src="${imgResult.base64}" alt="${user.name}" style="width:100%; height:100%; object-fit:cover;">`;
-                            }
-                        });
+                    // Jika TIADA dalam cache, fetch dari server
+                    if (!cachedImage) {
+                        const safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, '');
+                        const avatarBox = document.getElementById(`avatar-box-${safeEmail}`);
+                        
+                        if (avatarBox) {
+                            APIHelper.fetchImage(user.pictureFileId).then(imgResult => {
+                                if (imgResult.success && imgResult.base64) {
+                                    // Simpan dalam cache untuk lawatan seterusnya
+                                    setCachedImage(user.email, imgResult.base64);
+                                    // Update UI
+                                    avatarBox.innerHTML = `<img src="${imgResult.base64}" alt="${user.name}" style="width:100%; height:100%; object-fit:cover;">`;
+                                }
+                            });
+                        }
                     }
                 }
             });
         }
 
         function editUser(email, role, name, noKad, active, pictureFileId) {
-            editingEmail = email; // Simpan email asal untuk backend
+            editingEmail = email;
             
-            // Isi form mengikut susunan baru
             document.getElementById('userName').value = name;
             document.getElementById('userNoKad').value = noKad;
             document.getElementById('userRole').value = role;
             document.getElementById('userEmail').value = email;
-            // PERBAIKAN: TIDAK disable email, supaya ia boleh di-edit jika perlu
             document.getElementById('userActive').checked = active;
             
             document.getElementById('saveBtn').innerText = 'Update User';
             document.getElementById('cancelBtn').classList.add('show');
             
             const preview = document.getElementById('photoPreview');
-            if (pictureFileId && pictureFileId.trim() !== '') {
+            
+            // PERBAIKAN: Check cache gambar untuk edit juga!
+            const cachedImage = getCachedImage(email);
+            
+            if (cachedImage) {
+                // Guna gambar dari cache serta-merta (TIADA loading!)
+                preview.src = cachedImage;
+                preview.style.display = 'block';
+                document.getElementById('photoUploadContent').style.display = 'none';
+                tempPhotoBase64 = '';
+            } else if (pictureFileId && pictureFileId.trim() !== '') {
+                // Jika tiada cache, fetch dari server
                 APIHelper.fetchImage(pictureFileId).then(imgResult => {
                     if (imgResult.success && imgResult.base64) {
                         preview.src = imgResult.base64;
                         preview.style.display = 'block';
                         document.getElementById('photoUploadContent').style.display = 'none';
-                        tempPhotoBase64 = ''; 
+                        tempPhotoBase64 = '';
                     }
                 });
             } else {
@@ -350,7 +396,7 @@
             const active = document.getElementById('userActive').checked;
 
             if (!email || !name) { 
-                showToast('⚠️ Email dan Nama Penuh wajib diisi!', 'warning'); 
+                showToast('️ Email dan Nama Penuh wajib diisi!', 'warning'); 
                 return; 
             }
 
@@ -365,7 +411,7 @@
             };
 
             try {
-                const res = await fetch(CONFIG.API_URL, {
+                await fetch(CONFIG.API_URL, {
                     method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(payload)
                 });
@@ -373,17 +419,19 @@
                 if (tempPhotoBase64) {
                     const imgPayload = {
                         action: 'uploadUserPicture',
-                        data: { base64: tempPhotoBase64, email: email } // Guna email baru jika diubah
+                        data: { base64: tempPhotoBase64, email: email }
                     };
                     await fetch(CONFIG.API_URL, {
                         method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
                         body: JSON.stringify(imgPayload)
                     });
+                    // Cache gambar baru
+                    setCachedImage(email, tempPhotoBase64);
                 }
 
                 showToast('✅ Pengguna berjaya disimpan!', 'success');
                 resetForm();
-                loadUserList(); // Ini akan update cache serta-merta
+                loadUserList();
             } catch (error) {
                 showToast('❌ Ralat semasa menyimpan', 'error');
                 btn.innerText = editingEmail ? 'Update User' : 'Add User';
@@ -392,15 +440,17 @@
         }
 
         async function deleteUser(email) {
-            if (!confirm('⚠️ Adakah anda pasti ingin memadam pengguna ini?')) return;
+            if (!confirm('️ Adakah anda pasti ingin memadam pengguna ini?')) return;
             
             try {
                 await fetch(CONFIG.API_URL, {
                     method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ action: 'deleteUser', data: { email: email } })
                 });
+                // Buang cache gambar user yang dipadam
+                localStorage.removeItem(USER_IMAGE_CACHE_PREFIX + email);
                 showToast('✅ Pengguna berjaya dipadam', 'success');
-                loadUserList(); // Update cache serta-merta
+                loadUserList();
             } catch (error) {
                 showToast('❌ Gagal memadam pengguna', 'error');
             }
