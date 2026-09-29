@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Print QR Code - MA Inventory</title>
+    
+    <!-- Bootstrap 5 & FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- HTML2Canvas Library -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <!-- Config -->
+    <script src="config.js"></script>
+
+    <style>
+        :root { --primary-blue: #1a73e8; --bg-light: #f0f4f8; }
+        body { background: var(--bg-light); font-family: 'Segoe UI', sans-serif; padding-bottom: 90px; }
+
+        .page-header {
+            background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
+            color: white; padding: 15px 20px; display: flex; align-items: center;
+            box-shadow: 0 4px 10px rgba(26,115,232,0.2); position: sticky; top: 0; z-index: 100;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            width: 36px; height: 36px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; margin-right: 15px; text-decoration: none;
+        }
+        .page-title { font-size: 1.2rem; font-weight: 700; margin: 0; }
+
+        .search-section { 
+            padding: 15px; background: white; margin: 15px; border-radius: 12px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+        }
+        .search-container { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .search-input { 
+            flex: 1; min-width: 200px; padding: 12px 15px; border: 1px solid #ddd; 
+            border-radius: 8px; font-size: 14px; outline: none; 
+        }
+        .search-input:focus { border-color: var(--primary-blue); }
+        .select-all-container { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+        .select-all-container label { font-size: 14px; font-weight: 600; cursor: pointer; color: #333; }
+        .select-all-container input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary-blue); }
+
+        .product-grid { 
+            padding: 0 15px 20px 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        
+        .product-item {
+            background: white; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s;
+            border: 1px solid #e0e0e0; position: relative;
+        }
+        .product-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+        .product-item.selected { border: 2px solid var(--primary-blue); }
+        
+        .item-header {
+            padding: 10px 40px 10px 12px; background: linear-gradient(to right, #1a73e8, #4a90e2);
+            color: white; display: flex; align-items: center; position: relative; min-height: 45px;
+        }
+        .item-title { font-size: 14px; font-weight: 600; text-align: center; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .item-checkbox {
+            width: 20px; height: 20px; cursor: pointer; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); accent-color: white;
+        }
+        
+        .item-info { padding: 10px 12px; background: #f8f9fa; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+        .info-row { display: grid; grid-template-columns: 70px 10px 1fr; margin-bottom: 4px; align-items: center; }
+        .info-row:last-child { margin-bottom: 0; }
+        .info-label { font-weight: 600; color: #555; }
+        .info-colon { text-align: center; color: #888; }
+        .info-value { color: #333; font-weight: 500; word-break: break-all; }
+        
+        .item-body { padding: 12px; display: flex; gap: 10px; align-items: center; }
+        .item-image {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            background: #f8f9fa; border-radius: 8px; padding: 8px; min-height: 100px; max-height: 120px;
+        }
+        .item-image img { max-width: 100%; max-height: 100px; object-fit: contain; }
+        .item-image-placeholder { color: #ccc; font-size: 40px; }
+        .item-qr {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            background: white; border: 2px solid #f0f0f0; border-radius: 8px; padding: 5px;
+        }
+        .item-qr img { width: 100px; height: 100px; }
+
+        /* BOTTOM ACTION BAR */
+        .bottom-action-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: white;
+            padding: 12px 20px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+            display: flex; gap: 10px; z-index: 1000;
+        }
+        .action-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: transform 0.1s;
+        }
+        .action-btn:active { transform: scale(0.97); }
+        .btn-print { background: #6c757d; color: white; }
+        .btn-download { background: var(--primary-blue); color: white; }
+        .btn-share { background: #28a745; color: white; }
+
+        .toast { 
+            position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); 
+            padding: 12px 24px; border-radius: 8px; color: white; font-size: 14px; font-weight: 500; 
+            z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideUp 0.3s ease; 
+        }
+        .toast.success { background: #28a745; } .toast.error { background: #dc3545; } .toast.warning { background: #ffc107; color: #000; }
+        @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+        /* PRINT STYLES */
+        @media print {
+            body { background: white !important; padding: 0 !important; margin: 0 !important; }
+            .page-header, .search-section, .bottom-action-bar, .toast, .item-checkbox {
+                display: none !important;
+            }
+            .product-grid { 
+                padding: 0 !important; grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; 
+            }
+            .product-item { 
+                box-shadow: none !important; border: 1px solid #ddd !important; 
+                page-break-inside: avoid !important; break-inside: avoid !important;
+            }
+            .item-header { 
+                background: #1a73e8 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; 
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .product-grid { grid-template-columns: 1fr; }
+            .item-body { flex-direction: row; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="page-title">Print QR Code</h1>
+    </div>
+
+    <div class="search-section">
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Cari Part Name, Part No, atau Location..." onkeyup="filterProducts()">
+            <div class="select-all-container">
+                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                <label for="selectAll">Pilih Semua</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="product-grid" id="productGrid">
+        <div style="text-align:center; padding: 30px; color: #888; grid-column: 1/-1;">
+            <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Memuatkan produk...
+        </div>
+    </div>
+
+    <div class="bottom-action-bar">
+        <button class="action-btn btn-print" onclick="window.print()">
+            <i class="fas fa-print"></i> Cetak
+        </button>
+        <button class="action-btn btn-download" onclick="downloadSelected()">
+            <i class="fas fa-download"></i> Muat Turun
+        </button>
+        <button class="action-btn btn-share" onclick="shareSelected()">
+            <i class="fas fa-share-alt"></i> Kongsi
+        </button</div>
+
+    <script>
+        let allProducts = [];
+        const PRODUCT_CACHE_KEY = 'ma_inventory_product_list';
+        const CACHE_EXPIRY = 5 * 60 * 1000;
+
+        // --- CACHE HELPER (Sama seperti add-product) ---
+        function getCachedProductImage(partNo) {
+            try {
+                const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
+                const item = localStorage.getItem(key);
+                if (!item) return null;
+                const parsed = JSON.parse(item);
+                if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) return parsed.base64;
+                localStorage.removeItem(key);
+                return null;
+            } catch(e) { return null; }
+        }
+
+        function setCachedProductImage(partNo, base64) {
+            try {
+                const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
+                localStorage.setItem(key, JSON.stringify({ base64: base64, timestamp: new Date().getTime() }));
+            } catch(e) { console.warn('Cache failed:', e); }
+        }
+
+        function showToast(message, type = 'info') {
+            const oldToast = document.querySelector('.toast');
+            if (oldToast) oldToast.remove();
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        async function loadProducts() {
+            const cachedData = localStorage.getItem(PRODUCT_CACHE_KEY);
+            if (cachedData) {
+                try {
+                    const parsed = JSON.parse(cachedData);
+                    if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
+                        allProducts = parsed.data;
+                        renderProducts(allProducts);
+                        return;
+                    }
+                } catch(e) { console.error("Cache error", e); }
+            }
+
+            try {
+                const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
+                const result = await res.json();
+                if (result.success && result.products) {
+                    allProducts = result.products;
+                    localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify({ data: allProducts, timestamp: new Date().getTime() }));
+                    renderProducts(allProducts);
+                } else {
+                    document.getElementById('productGrid').innerHTML = '<div style="text-align:center; padding: 30px; color: #888; grid-column: 1/-1;">Tiada produk dijumpai</div>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('productGrid').innerHTML = '<div style="text-align:center; padding: 30px; color: #dc3545; grid-column: 1/-1;">Gagal memuatkan data</div>';
+            }
+        }
+
+        function renderProducts(products) {
+            const container = document.getElementById('productGrid');
+            if (products.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding: 30px; color: #888; grid-column: 1/-1;">Tiada hasil carian</div>';
+                return;
+            }
+
+            let html = '';
+            products.forEach((product, index) => {
+                const qrData = `MA Inventory\nPart Name: ${product.partName}\nPart No: ${product.partNo}\nNo. Spec: ${product.noSpec || '-'}`;
+                const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(qrData);
+                const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
+                const cachedImg = getCachedProductImage(product.partNo);
+
+                html += `
+                    <div class="product-item" id="card-${index}" data-partno="${product.partNo}">
+                        <div class="item-header">
+                            <div class="item-title">${product.partName}</div>
+                            <input type="checkbox" class="item-checkbox" value="${index}" onchange="updateSelectAll()">
+                        </div>
+                        <div class="item-info">
+                            <div class="info-row">
+                                <span class="info-label">Part No</span>
+                                <span class="info-colon">:</span>
+                                <span class="info-value">${product.partNo}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Location</span>
+                                <span class="info-colon">:</span>
+                                <span class="info-value">${product.location || '-'}</span>
+                            </div>
+                        </div>
+                        <div class="item-body">
+                            <div class="item-image">
+                                ${cachedImg 
+                                    ? `<img src="${cachedImg}" alt="${product.partName}">` 
+                                    : (product.pictureFileId ? `<img id="img-${safePartNo}" data-fileid="${product.pictureFileId}" alt="${product.partName}">` : '<div class="item-image-placeholder"><i class="fas fa-box"></i></div>')
+                                }
+                            </div>
+                            <div class="item-qr">
+                                <img src="${qrUrl}" alt="QR Code" crossorigin="anonymous">
+                            </div>
+                        </div
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            // Load uncached images in background
+            products.forEach(product => {
+                if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
+                    const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
+                    const imgEl = document.getElementById(`img-${safePartNo}`);
+                    if (imgEl) {
+                        APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
+                            if (imgResult.success && imgResult.base64) {
+                                setCachedProductImage(product.partNo, imgResult.base64);
+                                imgEl.src = imgResult.base64;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        function filterProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allProducts.filter(p => 
+                p.partName.toLowerCase().includes(searchTerm) || 
+                p.partNo.toLowerCase().includes(searchTerm) ||
+                (p.location && p.location.toLowerCase().includes(searchTerm))
+            );
+            renderProducts(filtered);
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll').checked;
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = selectAll;
+                cb.closest('.product-item').classList.toggle('selected', selectAll);
+            });
+        }
+
+        function updateSelectAll() {
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            checkboxes.forEach(cb => {
+                cb.closest('.product-item').classList.toggle('selected', cb.checked);
+            });
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            document.getElementById('selectAll').checked = allChecked;
+        }
+
+        async function downloadSelected() {
+            const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+            if (checkboxes.length === 0) {
+                showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
+                return;
+            }
+
+            showToast('⏳ Sedang menjana imej...', 'info');
+            let downloadCount = 0;
+
+            for (const checkbox of checkboxes) {
+                const card = checkbox.closest('.product-item');
+                if (card) {
+                    try {
+                        const canvas = await html2canvas(card, { 
+                            scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: true, logging: false 
+                        });
+                        canvas.toBlob(function(blob) {
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            const partNo = card.getAttribute('data-partno');
+                            link.download = `QR_${partNo}.png`;
+                            link.href = url;
+                            link.click();
+                            URL.revokeObjectURL(url);
+                        }, 'image/png');
+                        downloadCount++;
+                        await new Promise(r => setTimeout(r, 600)); // Delay elak browser hang
+                    } catch (err) {
+                        console.error('Error capturing image:', err);
+                    }
+                }
+            }
+            showToast(`✅ Berjaya memuat turun ${downloadCount} imej!`, 'success');
+        }
+
+        async function shareSelected() {
+            const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+            if (checkboxes.length === 0) {
+                showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
+                return;
+            }
+
+            showToast('⏳ Sedang menyediakan fail...', 'info');
+            const files = [];
+
+            for (const checkbox of checkboxes) {
+                const card = checkbox.closest('.product-item');
+                if (card) {
+                    try {
+                        const canvas = await html2canvas(card, { 
+                            scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: true, logging: false 
+                        });
+                        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                        const partNo = card.getAttribute('data-partno');
+                        files.push(new File([blob], `QR_${partNo}.png`, { type: 'image/png' }));
+                    } catch (err) {
+                        console.error('Error generating image:', err);
+                    }
+                }
+            }
+
+            if (files.length === 0) {
+                showToast('❌ Gagal menjana imej!', 'error');
+                return;
+            }
+
+            if (navigator.canShare && navigator.canShare({ files: files })) {
+                try {
+                    await navigator.share({ files: files, title: 'MA Inventory QR Codes', text: `${files.length} product QR code(s)` });
+                    showToast(`✅ Berjaya share ${files.length} imej!`, 'success');
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        // Fallback to download jika share dibatalkan atau gagal
+                        for (const file of files) {
+                            const url = URL.createObjectURL(file);
+                            const link = document.createElement('a');
+                            link.download = file.name;
+                            link.href = url;
+                            link.click();
+                            URL.revokeObjectURL(url);
+                            await new Promise(r => setTimeout(r, 500));
+                        }
+                        showToast(`✅ ${files.length} imej dimuat turun (Share gagal/dibatalkan)`, 'info');
+                    }
+                }
+            } else {
+                // Fallback untuk browser yang tidak support Web Share API dengan fail
+                for (const file of files) {
+                    const url = URL.createObjectURL(file);
+                    const link = document.createElement('a');
+                    link.download = file.name;
+                    link.href = url;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    await new Promise(r => setTimeout(r, 500));
+                }
+                showToast(`✅ ${files.length} imej dimuat turun!`, 'success');
+            }
+        }
+
+        window.onload = loadProducts;
+    </script>
+</body>
+</html>
