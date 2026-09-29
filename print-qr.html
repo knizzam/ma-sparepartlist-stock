@@ -16,102 +16,198 @@
     <script src="config.js"></script>
 
     <style>
-        :root { --primary-blue: #1a73e8; --bg-light: #f0f4f8; }
-        body { background: var(--bg-light); font-family: 'Segoe UI', sans-serif; padding-bottom: 90px; }
+        :root { --primary-blue: #1a73e8; --bg-light: #f5f5f5; --shopee-orange: #ee4d2d; }
+        body { background: var(--bg-light); font-family: 'Segoe UI', sans-serif; padding-bottom: 80px; margin: 0; }
 
+        /* PAGE HEADER */
         .page-header {
-            background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
-            color: white; padding: 15px 20px; display: flex; align-items: center;
-            box-shadow: 0 4px 10px rgba(26,115,232,0.2); position: sticky; top: 0; z-index: 100;
+            background: white;
+            color: #333; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100;
         }
+        .header-left { display: flex; align-items: center; gap: 12px; }
         .back-btn {
-            background: rgba(255,255,255,0.2); border: none; color: white;
+            background: none; border: none; color: #333;
             width: 36px; height: 36px; border-radius: 50%; display: flex;
-            align-items: center; justify-content: center; margin-right: 15px; text-decoration: none;
+            align-items: center; justify-content: center; text-decoration: none;
         }
-        .page-title { font-size: 1.2rem; font-weight: 700; margin: 0; }
+        .page-title { font-size: 16px; font-weight: 600; margin: 0; }
 
+        /* SEARCH BAR - SHOPEE STYLE */
         .search-section { 
-            padding: 15px; background: white; margin: 15px; border-radius: 12px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+            padding: 10px 15px; background: white; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        .search-container { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .search-container { display: flex; gap: 8px; align-items: center; }
         .search-input { 
-            flex: 1; min-width: 200px; padding: 12px 15px; border: 1px solid #ddd; 
-            border-radius: 8px; font-size: 14px; outline: none; 
+            flex: 1; padding: 10px 12px; border: 1px solid #e0e0e0; 
+            border-radius: 4px; font-size: 14px; outline: none; background: #f5f5f5;
         }
-        .search-input:focus { border-color: var(--primary-blue); }
-        .select-all-container { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-        .select-all-container label { font-size: 14px; font-weight: 600; cursor: pointer; color: #333; }
-        .select-all-container input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary-blue); }
+        .search-input:focus { border-color: var(--primary-blue); background: white; }
+        .select-all-container { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+        .select-all-container label { font-size: 13px; font-weight: 500; cursor: pointer; color: #555; }
+        .select-all-container input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-blue); }
 
+        /* PRODUCT GRID - 2 COLUMNS LIKE SHOPEE */
         .product-grid { 
-            padding: 0 15px 20px 15px;
+            padding: 10px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
         }
         
         .product-item {
-            background: white; border-radius: 12px; overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s;
-            border: 1px solid #e0e0e0; position: relative;
+            background: white; border-radius: 4px; overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08); 
+            border: 1px solid #e8e8e8; position: relative;
+            transition: transform 0.1s, box-shadow 0.1s;
         }
-        .product-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-        .product-item.selected { border: 2px solid var(--primary-blue); }
+        .product-item:active { transform: scale(0.98); }
+        .product-item.selected { 
+            border: 2px solid var(--primary-blue); 
+            box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+        }
         
-        .item-header {
-            padding: 10px 40px 10px 12px; background: linear-gradient(to right, #1a73e8, #4a90e2);
-            color: white; display: flex; align-items: center; position: relative; min-height: 45px;
-        }
-        .item-title { font-size: 14px; font-weight: 600; text-align: center; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* Checkbox overlay di sudut */
         .item-checkbox {
-            width: 20px; height: 20px; cursor: pointer; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); accent-color: white;
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            z-index: 10;
+            accent-color: var(--primary-blue);
+            background: white;
+            border-radius: 2px;
         }
         
-        .item-info { padding: 10px 12px; background: #f8f9fa; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
-        .info-row { display: grid; grid-template-columns: 70px 10px 1fr; margin-bottom: 4px; align-items: center; }
-        .info-row:last-child { margin-bottom: 0; }
-        .info-label { font-weight: 600; color: #555; }
-        .info-colon { text-align: center; color: #888; }
-        .info-value { color: #333; font-weight: 500; word-break: break-all; }
-        
-        .item-body { padding: 12px; display: flex; gap: 10px; align-items: center; }
-        .item-image {
-            flex: 1; display: flex; align-items: center; justify-content: center;
-            background: #f8f9fa; border-radius: 8px; padding: 8px; min-height: 100px; max-height: 120px;
+        .item-image-container {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            position: relative;
         }
-        .item-image img { max-width: 100%; max-height: 100px; object-fit: contain; }
-        .item-image-placeholder { color: #ccc; font-size: 40px; }
+        .item-image-container img { 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; 
+        }
+        .item-image-placeholder { color: #ddd; font-size: 48px; }
+        
+        .item-info { 
+            padding: 8px; 
+            background: white;
+        }
+        .item-title { 
+            font-size: 13px; 
+            font-weight: 500; 
+            color: #333;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-height: 1.4;
+            height: 36px;
+        }
+        .item-partno {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 2px;
+        }
+        .item-location {
+            font-size: 11px;
+            color: var(--shopee-orange);
+            font-weight: 500;
+        }
+        
         .item-qr {
-            flex: 1; display: flex; align-items: center; justify-content: center;
-            background: white; border: 2px solid #f0f0f0; border-radius: 8px; padding: 5px;
+            padding: 8px;
+            background: white;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: center;
         }
-        .item-qr img { width: 100px; height: 100px; }
+        .item-qr img { 
+            width: 80px; 
+            height: 80px;
+            object-fit: contain;
+        }
 
-        /* BOTTOM ACTION BAR */
+        /* BOTTOM ACTION BAR - FIXED */
         .bottom-action-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%; background: white;
-            padding: 12px 20px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
-            display: flex; gap: 10px; z-index: 1000;
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            background: white;
+            padding: 10px 15px; 
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex; 
+            gap: 8px; 
+            z-index: 1000;
+            border-top: 1px solid #e8e8e8;
         }
         .action-btn {
-            flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-            transition: transform 0.1s;
+            flex: 1; 
+            padding: 10px; 
+            border: none; 
+            border-radius: 4px; 
+            font-size: 13px; 
+            font-weight: 600;
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 6px;
+            transition: opacity 0.2s;
         }
-        .action-btn:active { transform: scale(0.97); }
+        .action-btn:active { opacity: 0.8; }
         .btn-print { background: #6c757d; color: white; }
         .btn-download { background: var(--primary-blue); color: white; }
         .btn-share { background: #28a745; color: white; }
 
+        /* TOAST NOTIFICATION */
         .toast { 
-            position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); 
-            padding: 12px 24px; border-radius: 8px; color: white; font-size: 14px; font-weight: 500; 
-            z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideUp 0.3s ease; 
+            position: fixed; 
+            bottom: 90px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            padding: 12px 24px; 
+            border-radius: 4px; 
+            color: white; 
+            font-size: 13px; 
+            font-weight: 500; 
+            z-index: 10000; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            animation: slideUp 0.3s ease;
+            max-width: 90%;
+            text-align: center;
         }
-        .toast.success { background: #28a745; } .toast.error { background: #dc3545; } .toast.warning { background: #ffc107; color: #000; }
-        @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+        .toast.success { background: #28a745; } 
+        .toast.error { background: #dc3545; } 
+        .toast.warning { background: #ffc107; color: #000; }
+        .toast.info { background: var(--primary-blue); }
+        
+        @keyframes slideUp { 
+            from { transform: translate(-50%, 20px); opacity: 0; } 
+            to { transform: translate(-50%, 0); opacity: 1; } 
+        }
+
+        /* LOADING STATE */
+        .loading-container {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+        .loading-container i { font-size: 32px; margin-bottom: 10px; color: var(--primary-blue); }
 
         /* PRINT STYLES */
         @media print {
@@ -120,33 +216,46 @@
                 display: none !important;
             }
             .product-grid { 
-                padding: 0 !important; grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; 
+                padding: 0 !important; 
+                grid-template-columns: repeat(3, 1fr) !important; 
+                gap: 10px !important; 
             }
             .product-item { 
-                box-shadow: none !important; border: 1px solid #ddd !important; 
-                page-break-inside: avoid !important; break-inside: avoid !important;
-            }
-            .item-header { 
-                background: #1a73e8 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; 
+                box-shadow: none !important; 
+                border: 1px solid #ddd !important; 
+                page-break-inside: avoid !important;
             }
         }
         
-        @media (max-width: 600px) {
-            .product-grid { grid-template-columns: 1fr; }
-            .item-body { flex-direction: row; }
+        /* TABLET & DESKTOP */
+        @media (min-width: 768px) {
+            .product-grid { 
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+                padding: 15px;
+            }
+            .item-title { font-size: 14px; }
+        }
+        
+        @media (min-width: 1024px) {
+            .product-grid { 
+                grid-template-columns: repeat(4, 1fr);
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="page-header">
-        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-        <h1 class="page-title">Print QR Code</h1>
+        <div class="header-left">
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <h1 class="page-title">Print QR Code</h1>
+        </div>
     </div>
 
     <div class="search-section">
         <div class="search-container">
-            <input type="text" class="search-input" id="searchInput" placeholder="Cari Part Name, Part No, atau Location..." onkeyup="filterProducts()">
+            <input type="text" class="search-input" id="searchInput" placeholder="Cari Part Name, No..." onkeyup="filterProducts()">
             <div class="select-all-container">
                 <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
                 <label for="selectAll">Pilih Semua</label>
@@ -155,8 +264,9 @@
     </div>
 
     <div class="product-grid" id="productGrid">
-        <div style="text-align:center; padding: 30px; color: #888; grid-column: 1/-1;">
-            <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Memuatkan produk...
+        <div class="loading-container">
+            <i class="fas fa-spinner fa-spin"></i>
+            <div>Memuatkan produk...</div>
         </div>
     </div>
 
@@ -169,14 +279,15 @@
         </button>
         <button class="action-btn btn-share" onclick="shareSelected()">
             <i class="fas fa-share-alt"></i> Kongsi
-        </button</div>
+        </button>
+    </div>
 
     <script>
         let allProducts = [];
         const PRODUCT_CACHE_KEY = 'ma_inventory_product_list';
         const CACHE_EXPIRY = 5 * 60 * 1000;
 
-        // --- CACHE HELPER (Sama seperti add-product) ---
+        // --- CACHE HELPER ---
         function getCachedProductImage(partNo) {
             try {
                 const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -227,18 +338,18 @@
                     localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify({ data: allProducts, timestamp: new Date().getTime() }));
                     renderProducts(allProducts);
                 } else {
-                    document.getElementById('productGrid').innerHTML = '<div style="text-align:center; padding: 30px; color: #888; grid-column: 1/-1;">Tiada produk dijumpai</div>';
+                    document.getElementById('productGrid').innerHTML = '<div class="loading-container">Tiada produk dijumpai</div>';
                 }
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('productGrid').innerHTML = '<div style="text-align:center; padding: 30px; color: #dc3545; grid-column: 1/-1;">Gagal memuatkan data</div>';
+                document.getElementById('productGrid').innerHTML = '<div class="loading-container" style="color: #dc3545;">Gagal memuatkan data</div>';
             }
         }
 
         function renderProducts(products) {
             const container = document.getElementById('productGrid');
             if (products.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding: 30px; color: #888; grid-column: 1/-1;">Tiada hasil carian</div>';
+                container.innerHTML = '<div class="loading-container">Tiada hasil carian</div>';
                 return;
             }
 
@@ -251,39 +362,30 @@
 
                 html += `
                     <div class="product-item" id="card-${index}" data-partno="${product.partNo}">
-                        <div class="item-header">
-                            <div class="item-title">${product.partName}</div>
-                            <input type="checkbox" class="item-checkbox" value="${index}" onchange="updateSelectAll()">
+                        <input type="checkbox" class="item-checkbox" value="${index}" onchange="updateSelectAll()">
+                        
+                        <div class="item-image-container">
+                            ${cachedImg 
+                                ? `<img src="${cachedImg}" alt="${product.partName}">` 
+                                : (product.pictureFileId ? `<img id="img-${safePartNo}" data-fileid="${product.pictureFileId}" alt="${product.partName}">` : '<div class="item-image-placeholder"><i class="fas fa-box"></i></div>')
+                            }
                         </div>
+                        
                         <div class="item-info">
-                            <div class="info-row">
-                                <span class="info-label">Part No</span>
-                                <span class="info-colon">:</span>
-                                <span class="info-value">${product.partNo}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Location</span>
-                                <span class="info-colon">:</span>
-                                <span class="info-value">${product.location || '-'}</span>
-                            </div>
+                            <div class="item-title">${product.partName}</div>
+                            <div class="item-partno">${product.partNo}</div>
+                            <div class="item-location">${product.location || '-'}</div>
                         </div>
-                        <div class="item-body">
-                            <div class="item-image">
-                                ${cachedImg 
-                                    ? `<img src="${cachedImg}" alt="${product.partName}">` 
-                                    : (product.pictureFileId ? `<img id="img-${safePartNo}" data-fileid="${product.pictureFileId}" alt="${product.partName}">` : '<div class="item-image-placeholder"><i class="fas fa-box"></i></div>')
-                                }
-                            </div>
-                            <div class="item-qr">
-                                <img src="${qrUrl}" alt="QR Code" crossorigin="anonymous">
-                            </div>
-                        </div
+                        
+                        <div class="item-qr">
+                            <img src="${qrUrl}" alt="QR Code" crossorigin="anonymous">
+                        </div>
                     </div>
                 `;
             });
             container.innerHTML = html;
 
-            // Load uncached images in background
+            // Load uncached images
             products.forEach(product => {
                 if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -335,7 +437,7 @@
                 return;
             }
 
-            showToast('⏳ Sedang menjana imej...', 'info');
+            showToast(' Sedang menjana imej...', 'info');
             let downloadCount = 0;
 
             for (const checkbox of checkboxes) {
@@ -355,7 +457,7 @@
                             URL.revokeObjectURL(url);
                         }, 'image/png');
                         downloadCount++;
-                        await new Promise(r => setTimeout(r, 600)); // Delay elak browser hang
+                        await new Promise(r => setTimeout(r, 600));
                     } catch (err) {
                         console.error('Error capturing image:', err);
                     }
@@ -367,7 +469,7 @@
         async function shareSelected() {
             const checkboxes = document.querySelectorAll('.item-checkbox:checked');
             if (checkboxes.length === 0) {
-                showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
+                showToast('️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
                 return;
             }
 
@@ -401,7 +503,6 @@
                     showToast(`✅ Berjaya share ${files.length} imej!`, 'success');
                 } catch (err) {
                     if (err.name !== 'AbortError') {
-                        // Fallback to download jika share dibatalkan atau gagal
                         for (const file of files) {
                             const url = URL.createObjectURL(file);
                             const link = document.createElement('a');
@@ -411,11 +512,10 @@
                             URL.revokeObjectURL(url);
                             await new Promise(r => setTimeout(r, 500));
                         }
-                        showToast(`✅ ${files.length} imej dimuat turun (Share gagal/dibatalkan)`, 'info');
+                        showToast(`✅ ${files.length} imej dimuat turun`, 'info');
                     }
                 }
             } else {
-                // Fallback untuk browser yang tidak support Web Share API dengan fail
                 for (const file of files) {
                     const url = URL.createObjectURL(file);
                     const link = document.createElement('a');
