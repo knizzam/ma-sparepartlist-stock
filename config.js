@@ -1,6 +1,6 @@
 // config.js - Configuration File
 const CONFIG = {
-    API_URL: 'https://script.google.com/macros/s/AKfycbxMZ-ipbF6vc1zVzPFNY6pcX30T33-nDDvH3edq20ilqLTkagLCOAeR6WP4FG-BIbuk/exec',
+    API_URL: 'https://script.google.com/macros/s/AKfycbxVt2YXx9XzzKGYQ_7B7mOduYj62nbVZExjBNdaYSL_V2jb0FpyqYoM1KydjtT45IZG/exec',
     CACHE_EXPIRY: 5 * 60 * 1000,
     PROFILE_CACHE_KEY: 'ma_inventory_profile',
     IMAGE_CACHE_KEY: 'ma_inventory_profile_image',
