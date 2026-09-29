@@ -84,13 +84,15 @@
         .user-card.inactive { border-left-color: #ccc; opacity: 0.7; }
         .user-card.editing { border-left-color: #ffc107; background: #fffbeb; }
         
+        /* PERBAIKAN: User Avatar kini boleh hold text (initials) ATAU image */
         .user-avatar {
             width: 45px; height: 45px; border-radius: 50%; background: #e0e0e0;
             display: flex; align-items: center; justify-content: center;
             font-size: 18px; font-weight: bold; color: #666; flex-shrink: 0;
-            overflow: hidden; border: 2px solid white;
+            overflow: hidden; border: 2px solid white; text-transform: uppercase;
         }
         .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        
         .user-info { flex: 1; min-width: 0; }
         .user-name { font-size: 14px; font-weight: 600; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
         .user-role-badge { display: inline-block; font-size: 10px; font-weight: 700; color: var(--primary-blue); background: #e7f1ff; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
@@ -116,35 +118,43 @@
 
     <div class="page-header">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-        <h1 class="page-title">Registration Users</h9>
+        <h1 class="page-title">Registration Users</h1>
     </div>
 
     <div class="main-container">
         <!-- FORM -->
         <div class="form-card">
             <div class="form-section-title">Account Details</div>
+            
+            <!-- 1. FULL NAME -->
             <div class="form-group">
-                <label class="form-label">Email Address</label>
-                <input type="email" class="form-input" id="userEmail" placeholder="e.g., user@company.com">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-input" id="userName" placeholder="e.g., Mohd Khairul Nizzam">
             </div>
+            
+            <!-- 2. ID NUMBER -->
+            <div class="form-group">
+                <label class="form-label">ID Number (No. K/T)</label>
+                <input type="text" class="form-input" id="userNoKad" placeholder="e.g., K572">
+            </div>
+            
+            <!-- 3. ROLE -->
             <div class="form-group">
                 <label class="form-label">Role</label>
                 <input type="text" class="form-input" id="userRole" placeholder="e.g., Admin, Staff">
             </div>
+            
+            <!-- 4. EMAIL -->
             <div class="form-group">
-                <label class="form-label">Full Name</label>
-                <input type="text" class="form-input" id="userName" placeholder="e.g., John Doe">
-            </div>
-            <div class="form-group">
-                <label class="form-label">ID Number (No. K/T)</label>
-                <input type="text" class="form-input" id="userNoKad" placeholder="e.g., K572">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-input" id="userEmail" placeholder="e.g., user@company.com">
             </div>
         </div>
 
         <div class="form-card">
             <div class="form-section-title">Profile & Status</div>
             <div class="form-group">
-                <label class="form-label">Profile Photo</label>
+                <label class="form-label">Profile Picture</label>
                 <label class="photo-upload-card" for="photoInput">
                     <div id="photoUploadContent">
                         <i class="fas fa-camera" style="font-size: 24px; color: #666; margin-bottom: 8px;"></i>
@@ -209,17 +219,6 @@
 
         async function loadUserList() {
             try {
-                const response = await fetch(CONFIG.API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'getAllUsers' })
-                });
-                
-                // Kerana no-cors, kita perlu fetch semula tanpa no-cors untuk baca JSON, 
-                // ATAU kita guna fungsi helper yang sudah ada jika backend return JSON langsung.
-                // Untuk kestabilan, kita guna pendekatan fetch biasa (GAS akan handle CORS jika setup betul)
-                
                 const res = await fetch(CONFIG.API_URL + '?action=getAllUsers');
                 const result = await res.json();
                 
@@ -251,15 +250,14 @@
                 const cardClass = isActive ? '' : 'inactive';
                 const isEditing = editingEmail === user.email ? 'editing' : '';
                 const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
+                const safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, '');
                 
-                // Kita akan load gambar secara dinamik selepas render
-                const avatarContent = user.pictureFileId 
-                    ? `<img src="" id="avatar-img-${user.email.replace(/[^a-zA-Z0-9]/g, '')}" alt="${user.name}">` 
-                    : initial;
+                // PERBAIKAN: Default kepada inisial (contoh: "M"). TIADA <img src=""> yang kosong!
+                let avatarHTML = initial;
 
                 html += `
                     <div class="user-card ${cardClass} ${isEditing}" onclick="editUser('${user.email}', '${user.role}', '${user.name}', '${user.noKad}', ${user.active}, '${user.pictureFileId}')">
-                        <div class="user-avatar">${avatarContent}</div>
+                        <div class="user-avatar" id="avatar-box-${safeEmail}">${avatarHTML}</div>
                         <div class="user-info">
                             <div class="user-name">${user.name}</div>
                             <span class="user-role-badge">${user.role || 'User'}</span>
@@ -271,15 +269,17 @@
             });
             userList.innerHTML = html;
 
-            // Load images asynchronously
+            // PERBAIKAN: Load gambar secara background, dan REPLACE inisial hanya bila gambar siap
             users.forEach(user => {
                 if (user.pictureFileId) {
-                    const imgId = `avatar-img-${user.email.replace(/[^a-zA-Z0-9]/g, '')}`;
-                    const imgEl = document.getElementById(imgId);
-                    if (imgEl) {
+                    const safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, '');
+                    const avatarBox = document.getElementById(`avatar-box-${safeEmail}`);
+                    
+                    if (avatarBox) {
                         APIHelper.fetchImage(user.pictureFileId).then(imgResult => {
                             if (imgResult.success && imgResult.base64) {
-                                imgEl.src = imgResult.base64;
+                                // Gantikan teks inisial dengan tag <img> yang cantik
+                                avatarBox.innerHTML = `<img src="${imgResult.base64}" alt="${user.name}" style="width:100%; height:100%; object-fit:cover;">`;
                             }
                         });
                     }
@@ -289,11 +289,13 @@
 
         function editUser(email, role, name, noKad, active, pictureFileId) {
             editingEmail = email;
-            document.getElementById('userEmail').value = email;
-            document.getElementById('userEmail').disabled = true; // Email tidak boleh diubah semasa edit
-            document.getElementById('userRole').value = role;
+            
+            // Isi form mengikut susunan baru
             document.getElementById('userName').value = name;
             document.getElementById('userNoKad').value = noKad;
+            document.getElementById('userRole').value = role;
+            document.getElementById('userEmail').value = email;
+            document.getElementById('userEmail').disabled = true; // Email tidak boleh diubah semasa edit
             document.getElementById('userActive').checked = active;
             
             document.getElementById('saveBtn').innerText = 'Update User';
@@ -306,7 +308,7 @@
                         preview.src = imgResult.base64;
                         preview.style.display = 'block';
                         document.getElementById('photoUploadContent').style.display = 'none';
-                        tempPhotoBase64 = ''; // Reset supaya tidak overwrite kecuali user pilih baru
+                        tempPhotoBase64 = ''; 
                     }
                 });
             } else {
@@ -316,7 +318,7 @@
             }
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            renderUserList(allUsers); // Re-render untuk highlight kad yang sedang di-edit
+            renderUserList(allUsers);
         }
 
         function cancelEdit() {
@@ -326,10 +328,10 @@
         }
 
         async function saveUser() {
-            const email = document.getElementById('userEmail').value.trim();
-            const role = document.getElementById('userRole').value.trim();
             const name = document.getElementById('userName').value.trim();
             const noKad = document.getElementById('userNoKad').value.trim();
+            const role = document.getElementById('userRole').value.trim();
+            const email = document.getElementById('userEmail').value.trim();
             const active = document.getElementById('userActive').checked;
 
             if (!email || !name) { 
@@ -348,24 +350,18 @@
             };
 
             try {
-                // 1. Simpan data user dulu
                 const res = await fetch(CONFIG.API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain' },
+                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(payload)
                 });
                 
-                // 2. Jika ada gambar baru, upload
                 if (tempPhotoBase64) {
                     const imgPayload = {
                         action: 'uploadUserPicture',
                         data: { base64: tempPhotoBase64, email: email }
                     };
                     await fetch(CONFIG.API_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'text/plain' },
+                        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
                         body: JSON.stringify(imgPayload)
                     });
                 }
@@ -385,9 +381,7 @@
             
             try {
                 await fetch(CONFIG.API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain' },
+                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ action: 'deleteUser', data: { email: email } })
                 });
                 showToast('✅ Pengguna berjaya dipadam', 'success');
@@ -398,11 +392,11 @@
         }
 
         function resetForm() {
-            document.getElementById('userEmail').value = '';
-            document.getElementById('userEmail').disabled = false;
-            document.getElementById('userRole').value = '';
             document.getElementById('userName').value = '';
             document.getElementById('userNoKad').value = '';
+            document.getElementById('userRole').value = '';
+            document.getElementById('userEmail').value = '';
+            document.getElementById('userEmail').disabled = false;
             document.getElementById('userActive').checked = true;
             document.getElementById('photoInput').value = '';
             document.getElementById('photoPreview').style.display = 'none';
