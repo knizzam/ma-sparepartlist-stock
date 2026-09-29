@@ -42,7 +42,6 @@
             border-radius: 10px; font-size: 15px; color: #333; transition: all 0.2s; 
         }
         .form-input:focus { background: white; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(26,115,232,0.1); outline: none; }
-        .form-input:disabled { background: #e9ecef; color: #495057; cursor: not-allowed; }
 
         .photo-upload-card {
             border: 2px dashed #ddd; border-radius: 12px; padding: 20px; text-align: center;
@@ -139,6 +138,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Part No.</label>
+                <!-- PERBAIKAN: Tiada atribut 'disabled', Part No. BOLEH di-edit -->
                 <input type="text" class="form-input" id="partNo" placeholder="e.g., BTM-M6">
             </div>
             <div class="form-group">
@@ -172,7 +172,7 @@
 
         <!-- LIST -->
         <div class="list-header">
-            <div class="list-title"> Recent Products (5 Hari) <span class="list-badge" id="productCount">0</span></div>
+            <div class="list-title">Recent Products (5 Hari) <span class="list-badge" id="productCount">0</span></div>
         </div>
         <div class="product-list" id="productList">
             <div style="text-align:center; padding: 20px; color: #888;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
@@ -186,7 +186,7 @@
         let allProducts = [];
         
         const PRODUCT_LIST_CACHE_KEY = 'ma_inventory_product_list';
-        const CACHE_EXPIRY = 5 * 60 * 1000;
+        const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minit
 
         function getCachedProductImage(partNo) {
             try {
@@ -235,7 +235,6 @@
             }
         }
 
-        // Filter 5 hari terkini
         function isWithinLast5Days(dateStr) {
             if (!dateStr) return false;
             try {
@@ -249,42 +248,38 @@
             }
         }
 
-        async function loadProductList() {
-            console.log("=== MEMULAKAN LOAD PRODUCT LIST ===");
-            console.log("API URL:", CONFIG.API_URL);
+        // PERBAIKAN: Tambah parameter 'forceRefresh'
+        async function loadProductList(forceRefresh = false) {
+            console.log("=== MEMULAKAN LOAD PRODUCT LIST (Force:", forceRefresh, ") ===");
             
-            // 1. INSTANT LOAD dari cache
             const cachedData = localStorage.getItem(PRODUCT_LIST_CACHE_KEY);
-            if (cachedData) {
+            
+            // Hanya guna cache jika TIDAK force refresh DAN cache masih sah
+            if (!forceRefresh && cachedData) {
                 try {
                     const parsed = JSON.parse(cachedData);
                     if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
                         allProducts = parsed.data;
                         console.log("✅ Data dari cache:", allProducts.length, "produk");
                         renderProductList(allProducts);
-                        return; // Exit awal jika cache valid
+                        return; // Exit awal
                     }
                 } catch(e) { 
                     console.error("❌ Cache parse error:", e); 
                 }
             }
 
-            // 2. FETCH dari server
+            // Fetch dari server (Pasti berlaku jika forceRefresh = true)
             try {
-                console.log("🔄 Fetching dari server...");
-                const fullUrl = CONFIG.API_URL + '?action=getAllProducts';
-                console.log("Full URL:", fullUrl);
-                
-                const res = await fetch(fullUrl);
-                console.log("Response status:", res.status);
-                
+                console.log("🔄 Fetching data TERKINI dari server...");
+                const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
                 const result = await res.json();
-                console.log("📦 Result dari server:", result);
                 
                 if (result.success && result.products) {
                     allProducts = result.products;
-                    console.log("✅ Berjaya dapat", allProducts.length, "produk");
+                    console.log("✅ Berjaya dapat data TERKINI:", allProducts.length, "produk");
                     
+                    // Kemaskini cache dengan data baru
                     localStorage.setItem(PRODUCT_LIST_CACHE_KEY, JSON.stringify({
                         data: allProducts,
                         timestamp: new Date().getTime()
@@ -293,24 +288,24 @@
                     renderProductList(allProducts);
                 } else {
                     console.error("❌ Gagal dapat data:", result.message);
-                    document.getElementById('productList').innerHTML = 
-                        '<div style="text-align:center; padding: 20px; color: #888;">Tiada produk dijumpai</div>';
+                    if (!allProducts.length) {
+                        document.getElementById('productList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tiada produk dijumpai</div>';
+                    }
                 }
             } catch (error) {
                 console.error('❌ Error fetching products:', error);
-                document.getElementById('productList').innerHTML = 
-                    '<div style="text-align:center; padding: 20px; color: #888;">Gagal memuatkan data. Sila refresh.</div>';
+                if (!allProducts.length) {
+                    document.getElementById('productList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Gagal memuatkan data.</div>';
+                }
             }
         }
 
         function renderProductList(products) {
             const productList = document.getElementById('productList');
-            
-            // Filter 5 hari terkini
             const recentProducts = products.filter(p => isWithinLast5Days(p.lastUpdateDate));
             
             console.log("📊 Total products:", products.length);
-            console.log(" Recent products (5 hari):", recentProducts.length);
+            console.log("📅 Recent products (5 hari):", recentProducts.length);
             
             document.getElementById('productCount').textContent = recentProducts.length;
             
@@ -348,7 +343,6 @@
             });
             productList.innerHTML = html;
 
-            // Load images
             recentProducts.forEach(product => {
                 if (product.pictureFileId) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -371,7 +365,7 @@
             editingPartNo = partNo;
             document.getElementById('partName').value = partName;
             document.getElementById('partNo').value = partNo;
-            document.getElementById('partNo').disabled = true;
+            // PERBAIKAN: Buang baris 'disabled = true' supaya Part No. BOLEH di-edit
             document.getElementById('noSpec').value = noSpec;
             document.getElementById('location').value = location;
             document.getElementById('currentStock').value = currentStock;
@@ -423,9 +417,19 @@
             const minimumStock = document.getElementById('minimumStock').value || 0;
 
             if (!partName || !partNo) { 
-                showToast('️ Part Name dan Part No. wajib diisi!', 'warning'); 
+                showToast('⚠️ Part Name dan Part No. wajib diisi!', 'warning'); 
                 return; 
             }
+
+            // Ambil email user dari cache
+            let userEmail = 'system@api';
+            try {
+                const profileData = localStorage.getItem(CONFIG.PROFILE_CACHE_KEY);
+                if (profileData) {
+                    const cached = JSON.parse(profileData);
+                    userEmail = cached.email || 'system@api';
+                }
+            } catch(e) { console.error("Gagal ambil email:", e); }
 
             const btn = document.getElementById('saveBtn');
             btn.innerText = 'Saving...';
@@ -434,7 +438,7 @@
             const action = editingPartNo ? 'updateProduct' : 'addProduct';
             const payload = { 
                 action: action, 
-                data: { partName, partNo, noSpec, location, currentStock, minimumStock, originalPartNo: editingPartNo } 
+                data: { partName, partNo, noSpec, location, currentStock, minimumStock, originalPartNo: editingPartNo, userEmail: userEmail } 
             };
 
             try {
@@ -458,7 +462,10 @@
 
                 showToast('✅ Produk berjaya disimpan!', 'success');
                 resetForm();
-                loadProductList();
+                
+                // PERBAIKAN UTAMA: Paksa refresh data dari server
+                loadProductList(true); 
+                
             } catch (error) {
                 console.error("Save Error:", error);
                 showToast('❌ Ralat semasa menyimpan', 'error');
@@ -479,7 +486,10 @@
                 try { localStorage.removeItem('ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '')); } catch(e) {}
                 
                 showToast('✅ Produk berjaya dipadam', 'success');
-                loadProductList();
+                
+                // PERBAIKAN UTAMA: Paksa refresh data dari server
+                loadProductList(true); 
+                
             } catch (error) {
                 showToast('❌ Gagal memadam produk', 'error');
             }
@@ -488,7 +498,6 @@
         function resetForm() {
             document.getElementById('partName').value = '';
             document.getElementById('partNo').value = '';
-            document.getElementById('partNo').disabled = false;
             document.getElementById('noSpec').value = '';
             document.getElementById('location').value = '';
             document.getElementById('currentStock').value = '';
@@ -502,7 +511,8 @@
             document.getElementById('cancelBtn').classList.remove('show');
         }
 
-        window.onload = loadProductList;
+        // Load awal tanpa force refresh (guna cache jika ada)
+        window.onload = () => loadProductList(false);
     </script>
 </body>
 </html>
