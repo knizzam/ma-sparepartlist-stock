@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Registration Users - MA Inventory</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="config.js"></script>
+    
+    <style>
+        :root { --primary-blue: #1a73e8; --bg-light: #f0f4f8; }
+        body { background: var(--bg-light); font-family: 'Segoe UI', sans-serif; padding-bottom: 40px; }
+
+        .page-header {
+            background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
+            color: white; padding: 15px 20px; display: flex; align-items: center;
+            box-shadow: 0 4px 10px rgba(26,115,232,0.2); position: sticky; top: 0; z-index: 100;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            width: 36px; height: 36px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; margin-right: 15px; text-decoration: none;
+        }
+        .page-title { font-size: 1.2rem; font-weight: 700; margin: 0; }
+
+        .main-container { padding: 20px 15px; max-width: 600px; margin: 0 auto; }
+        .form-card {
+            background: white; border-radius: 16px; padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px;
+        }
+        .form-section-title {
+            font-size: 12px; font-weight: 700; color: var(--primary-blue);
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;
+            padding-bottom: 8px; border-bottom: 2px solid #f0f8ff;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px; text-transform: uppercase; }
+        .form-input { 
+            width: 100%; padding: 12px 15px; background: #f8f9fa; border: 1px solid transparent; 
+            border-radius: 10px; font-size: 15px; color: #333; transition: all 0.2s; 
+        }
+        .form-input:focus { background: white; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(26,115,232,0.1); outline: none; }
+        .form-input:disabled { background: #e9ecef; color: #495057; cursor: not-allowed; }
+
+        .photo-upload-card {
+            border: 2px dashed #ddd; border-radius: 12px; padding: 20px; text-align: center;
+            background: #fafafa; cursor: pointer; transition: all 0.2s; display: flex;
+            flex-direction: column; align-items: center; justify-content: center; min-height: 100px;
+        }
+        .photo-upload-card:hover { border-color: var(--primary-blue); background: #f0f8ff; }
+        .photo-preview-large {
+            width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+            margin-top: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 3px solid white;
+        }
+        #photoInput { display: none; }
+
+        .checkbox-wrapper { display: flex; align-items: center; gap: 12px; padding: 12px 15px; background: #f8f9fa; border-radius: 10px; cursor: pointer; }
+        .checkbox-wrapper input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary-blue); }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        .submit-btn { 
+            flex: 1; padding: 14px; background: linear-gradient(to right, #1a73e8, #1557b0); 
+            color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; 
+            cursor: pointer; box-shadow: 0 4px 10px rgba(26,115,232,0.3);
+        }
+        .submit-btn:active { transform: scale(0.98); }
+        .submit-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+        .cancel-btn { flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; display: none; }
+        .cancel-btn.show { display: block; }
+
+        .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px; }
+        .list-title { font-size: 16px; font-weight: bold; color: #000; }
+        .list-badge { background: var(--primary-blue); color: white; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+        
+        .user-list { display: flex; flex-direction: column; gap: 10px; }
+        .user-card {
+            background: white; border-radius: 12px; padding: 12px 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px;
+            border-left: 4px solid var(--primary-blue); transition: all 0.2s; cursor: pointer;
+        }
+        .user-card:hover { transform: translateX(3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .user-card.inactive { border-left-color: #ccc; opacity: 0.7; }
+        .user-card.editing { border-left-color: #ffc107; background: #fffbeb; }
+        
+        .user-avatar {
+            width: 45px; height: 45px; border-radius: 50%; background: #e0e0e0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: bold; color: #666; flex-shrink: 0;
+            overflow: hidden; border: 2px solid white;
+        }
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name { font-size: 14px; font-weight: 600; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+        .user-role-badge { display: inline-block; font-size: 10px; font-weight: 700; color: var(--primary-blue); background: #e7f1ff; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+        .user-status { width: 10px; height: 10px; border-radius: 50%; background: #28a745; flex-shrink: 0; }
+        .user-status.inactive { background: #ccc; }
+
+        .delete-btn-small {
+            width: 32px; height: 32px; border-radius: 50%; background: #fee2e2; border: none; color: #dc3545;
+            font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+        }
+        .delete-btn-small:hover { background: #dc3545; color: white; }
+
+        .toast { 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            padding: 12px 24px; border-radius: 8px; color: white; font-size: 14px; font-weight: 500; 
+            z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideUp 0.3s ease; 
+        }
+        .toast.success { background: #28a745; } .toast.error { background: #dc3545; } .toast.warning { background: #ffc107; color: #000; }
+        @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="page-title">Registration Users</h9>
+    </div>
+
+    <div class="main-container">
+        <!-- FORM -->
+        <div class="form-card">
+            <div class="form-section-title">Account Details</div>
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-input" id="userEmail" placeholder="e.g., user@company.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Role</label>
+                <input type="text" class="form-input" id="userRole" placeholder="e.g., Admin, Staff">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-input" id="userName" placeholder="e.g., John Doe">
+            </div>
+            <div class="form-group">
+                <label class="form-label">ID Number (No. K/T)</label>
+                <input type="text" class="form-input" id="userNoKad" placeholder="e.g., K572">
+            </div>
+        </div>
+
+        <div class="form-card">
+            <div class="form-section-title">Profile & Status</div>
+            <div class="form-group">
+                <label class="form-label">Profile Photo</label>
+                <label class="photo-upload-card" for="photoInput">
+                    <div id="photoUploadContent">
+                        <i class="fas fa-camera" style="font-size: 24px; color: #666; margin-bottom: 8px;"></i>
+                        <div style="color: #666; font-size: 13px;">Tap to upload photo</div>
+                    </div>
+                    <img id="photoPreview" class="photo-preview-large" style="display:none;">
+                </label>
+                <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto(this)">
+            </div>
+            <div class="form-group">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="userActive" checked>
+                    <span style="font-size: 14px; font-weight: 500; color: #333;">Activate this account</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
+            <button class="submit-btn" id="saveBtn" onclick="saveUser()">Add User</button>
+        </div>
+
+        <div style="height: 4px; background: linear-gradient(to right, #1a73e8, #4a90e2); margin: 30px 0 20px; border-radius: 2px;"></div>
+
+        <!-- LIST -->
+        <div class="list-header">
+            <div class="list-title">Registered Users <span class="list-badge" id="userCount">0</span></div>
+        </div>
+        <div class="user-list" id="userList">
+            <div style="text-align:center; padding: 20px; color: #888;"><i class="fas fa-spinner fa-spin"></i> Loading users...</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let tempPhotoBase64 = '';
+        let editingEmail = null;
+        let allUsers = [];
+
+        function showToast(message, type = 'info') {
+            const oldToast = document.querySelector('.toast');
+            if (oldToast) oldToast.remove();
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        function previewPhoto(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempPhotoBase64 = e.target.result;
+                    document.getElementById('photoPreview').src = tempPhotoBase64;
+                    document.getElementById('photoPreview').style.display = 'block';
+                    document.getElementById('photoUploadContent').style.display = 'none';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function loadUserList() {
+            try {
+                const response = await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'getAllUsers' })
+                });
+                
+                // Kerana no-cors, kita perlu fetch semula tanpa no-cors untuk baca JSON, 
+                // ATAU kita guna fungsi helper yang sudah ada jika backend return JSON langsung.
+                // Untuk kestabilan, kita guna pendekatan fetch biasa (GAS akan handle CORS jika setup betul)
+                
+                const res = await fetch(CONFIG.API_URL + '?action=getAllUsers');
+                const result = await res.json();
+                
+                if (result.success && result.users) {
+                    allUsers = result.users;
+                    renderUserList(allUsers);
+                } else {
+                    document.getElementById('userList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tiada pengguna dijumpai</div>';
+                    document.getElementById('userCount').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('❌ Gagal memuatkan senarai pengguna', 'error');
+            }
+        }
+
+        function renderUserList(users) {
+            const userList = document.getElementById('userList');
+            document.getElementById('userCount').textContent = users.length;
+            
+            if (users.length === 0) {
+                userList.innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tiada pengguna dijumpai</div>';
+                return;
+            }
+
+            let html = '';
+            users.forEach(user => {
+                const isActive = user.active;
+                const cardClass = isActive ? '' : 'inactive';
+                const isEditing = editingEmail === user.email ? 'editing' : '';
+                const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
+                
+                // Kita akan load gambar secara dinamik selepas render
+                const avatarContent = user.pictureFileId 
+                    ? `<img src="" id="avatar-img-${user.email.replace(/[^a-zA-Z0-9]/g, '')}" alt="${user.name}">` 
+                    : initial;
+
+                html += `
+                    <div class="user-card ${cardClass} ${isEditing}" onclick="editUser('${user.email}', '${user.role}', '${user.name}', '${user.noKad}', ${user.active}, '${user.pictureFileId}')">
+                        <div class="user-avatar">${avatarContent}</div>
+                        <div class="user-info">
+                            <div class="user-name">${user.name}</div>
+                            <span class="user-role-badge">${user.role || 'User'}</span>
+                        </div>
+                        <div class="user-status ${isActive ? '' : 'inactive'}"></div>
+                        <button class="delete-btn-small" onclick="event.stopPropagation(); deleteUser('${user.email}')" title="Delete"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+            });
+            userList.innerHTML = html;
+
+            // Load images asynchronously
+            users.forEach(user => {
+                if (user.pictureFileId) {
+                    const imgId = `avatar-img-${user.email.replace(/[^a-zA-Z0-9]/g, '')}`;
+                    const imgEl = document.getElementById(imgId);
+                    if (imgEl) {
+                        APIHelper.fetchImage(user.pictureFileId).then(imgResult => {
+                            if (imgResult.success && imgResult.base64) {
+                                imgEl.src = imgResult.base64;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        function editUser(email, role, name, noKad, active, pictureFileId) {
+            editingEmail = email;
+            document.getElementById('userEmail').value = email;
+            document.getElementById('userEmail').disabled = true; // Email tidak boleh diubah semasa edit
+            document.getElementById('userRole').value = role;
+            document.getElementById('userName').value = name;
+            document.getElementById('userNoKad').value = noKad;
+            document.getElementById('userActive').checked = active;
+            
+            document.getElementById('saveBtn').innerText = 'Update User';
+            document.getElementById('cancelBtn').classList.add('show');
+            
+            const preview = document.getElementById('photoPreview');
+            if (pictureFileId && pictureFileId.trim() !== '') {
+                APIHelper.fetchImage(pictureFileId).then(imgResult => {
+                    if (imgResult.success && imgResult.base64) {
+                        preview.src = imgResult.base64;
+                        preview.style.display = 'block';
+                        document.getElementById('photoUploadContent').style.display = 'none';
+                        tempPhotoBase64 = ''; // Reset supaya tidak overwrite kecuali user pilih baru
+                    }
+                });
+            } else {
+                preview.style.display = 'none';
+                document.getElementById('photoUploadContent').style.display = 'block';
+                tempPhotoBase64 = '';
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            renderUserList(allUsers); // Re-render untuk highlight kad yang sedang di-edit
+        }
+
+        function cancelEdit() {
+            resetForm();
+            renderUserList(allUsers);
+            showToast('Edit dibatalkan', 'info');
+        }
+
+        async function saveUser() {
+            const email = document.getElementById('userEmail').value.trim();
+            const role = document.getElementById('userRole').value.trim();
+            const name = document.getElementById('userName').value.trim();
+            const noKad = document.getElementById('userNoKad').value.trim();
+            const active = document.getElementById('userActive').checked;
+
+            if (!email || !name) { 
+                showToast('⚠️ Email dan Nama Penuh wajib diisi!', 'warning'); 
+                return; 
+            }
+
+            const btn = document.getElementById('saveBtn');
+            btn.innerText = 'Saving...';
+            btn.disabled = true;
+
+            const action = editingEmail ? 'updateUser' : 'addUser';
+            const payload = { 
+                action: action, 
+                data: { email, role, name, noKad, active, originalEmail: editingEmail } 
+            };
+
+            try {
+                // 1. Simpan data user dulu
+                const res = await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(payload)
+                });
+                
+                // 2. Jika ada gambar baru, upload
+                if (tempPhotoBase64) {
+                    const imgPayload = {
+                        action: 'uploadUserPicture',
+                        data: { base64: tempPhotoBase64, email: email }
+                    };
+                    await fetch(CONFIG.API_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify(imgPayload)
+                    });
+                }
+
+                showToast('✅ Pengguna berjaya disimpan!', 'success');
+                resetForm();
+                loadUserList();
+            } catch (error) {
+                showToast('❌ Ralat semasa menyimpan', 'error');
+                btn.innerText = editingEmail ? 'Update User' : 'Add User';
+                btn.disabled = false;
+            }
+        }
+
+        async function deleteUser(email) {
+            if (!confirm('⚠️ Adakah anda pasti ingin memadam pengguna ini?')) return;
+            
+            try {
+                await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'deleteUser', data: { email: email } })
+                });
+                showToast('✅ Pengguna berjaya dipadam', 'success');
+                loadUserList();
+            } catch (error) {
+                showToast('❌ Gagal memadam pengguna', 'error');
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('userEmail').value = '';
+            document.getElementById('userEmail').disabled = false;
+            document.getElementById('userRole').value = '';
+            document.getElementById('userName').value = '';
+            document.getElementById('userNoKad').value = '';
+            document.getElementById('userActive').checked = true;
+            document.getElementById('photoInput').value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('photoUploadContent').style.display = 'block';
+            tempPhotoBase64 = '';
+            editingEmail = null;
+            document.getElementById('saveBtn').innerText = 'Add User';
+            document.getElementById('cancelBtn').classList.remove('show');
+        }
+
+        window.onload = loadUserList;
+    </script>
+</body>
+</html>
