@@ -174,9 +174,7 @@
         <div class="list-header">
             <div class="list-title">📦 All Products <span class="list-badge" id="productCount">0</span></div>
         </div>
-        <div class="product-list" id="productList">
-            <div style="text-align:center; padding: 20px; color: #888;"><i class="fas fa-spinner fa-spin"></i> Loading products...</div>
-        </div>
+        <div class="product-list" id="productList"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -185,10 +183,11 @@
         let editingPartNo = null;
         let allProducts = [];
         
+        // Cache keys - SAMA SEPERTI REGISTER USER
         const PRODUCT_LIST_CACHE_KEY = 'ma_inventory_product_list';
         const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minit
 
-        // ===== CACHE HELPER FUNCTIONS FOR IMAGES =====
+        // ===== CACHE HELPER FUNCTIONS (SAMA SEPERTI REGISTER USER) =====
         function getCachedProductImage(partNo) {
             try {
                 const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -236,7 +235,10 @@
             }
         }
 
+        // ===== LOAD PRODUCT LIST (SAMA SEPERTI REGISTER USER) =====
         async function loadProductList() {
+            console.log("Memulakan loadProductList...");
+            
             // 1. INSTANT LOAD dari cache
             const cachedData = localStorage.getItem(PRODUCT_LIST_CACHE_KEY);
             if (cachedData) {
@@ -244,38 +246,55 @@
                     const parsed = JSON.parse(cachedData);
                     if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
                         allProducts = parsed.data;
-                        renderProductList(allProducts);
+                        console.log("Data dari cache:", allProducts.length, "produk");
+                        renderProductList(allProducts); // Papar serta-merta!
                     }
-                } catch(e) { console.error("Cache parse error", e); }
+                } catch(e) { 
+                    console.error("Cache parse error", e); 
+                }
             }
 
             // 2. BACKGROUND FETCH dari server
             try {
+                console.log("Fetching dari server...");
                 const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
                 const result = await res.json();
                 
+                console.log("Result dari server:", result);
+                
                 if (result.success && result.products) {
                     allProducts = result.products;
-                    // PERBAIKAN: Susun produk mengikut tarikh terkini (terbaru di atas)
-                    allProducts.sort((a, b) => new Date(b.lastUpdateDate) - new Date(a.lastUpdateDate));
+                    console.log("Berjaya dapat", allProducts.length, "produk");
                     
+                    // Simpan ke cache untuk lawatan seterusnya
                     localStorage.setItem(PRODUCT_LIST_CACHE_KEY, JSON.stringify({
                         data: allProducts,
                         timestamp: new Date().getTime()
                     }));
-                    renderProductList(allProducts);
+                    
+                    renderProductList(allProducts); // Update UI dengan data fresh
+                } else {
+                    console.error("Gagal dapat data:", result.message);
+                    if (!allProducts.length) {
+                        document.getElementById('productList').innerHTML = 
+                            '<div style="text-align:center; padding: 20px; color: #888;">Tiada produk dijumpai</div>';
+                    }
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error fetching products:', error);
                 if (!allProducts.length) {
-                    document.getElementById('productList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Gagal memuatkan data</div>';
+                    document.getElementById('productList').innerHTML = 
+                        '<div style="text-align:center; padding: 20px; color: #888;">Gagal memuatkan data. Sila refresh.</div>';
                 }
             }
         }
 
+        // ===== RENDER PRODUCT LIST (TUNJUK SEMUA, TIADA FILTER TARIKH) =====
         function renderProductList(products) {
             const productList = document.getElementById('productList');
             document.getElementById('productCount').textContent = products.length;
+            
+            console.log("Rendering", products.length, "produk");
             
             if (products.length === 0) {
                 productList.innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tiada produk dijumpai</div>';
@@ -290,7 +309,7 @@
                 const statusClass = isLowStock ? 'low' : '';
                 const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
                 
-                // PERBAIKAN UTAMA: Check cache gambar INDIVIDU
+                // Check cache gambar INDIVIDU
                 const cachedImg = getCachedProductImage(product.partNo);
                 let avatarHTML = '📦'; // Default icon
                 
@@ -312,7 +331,7 @@
             });
             productList.innerHTML = html;
 
-            // 3. BACKGROUND LOAD: Hanya fetch gambar yang TIADA dalam cache
+            // Load images asynchronously (hanya yang tiada dalam cache)
             products.forEach(product => {
                 if (product.pictureFileId) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -336,7 +355,7 @@
             
             document.getElementById('partName').value = partName;
             document.getElementById('partNo').value = partNo;
-            document.getElementById('partNo').disabled = true; // Part No tidak boleh diubah semasa edit
+            document.getElementById('partNo').disabled = true;
             document.getElementById('noSpec').value = noSpec;
             document.getElementById('location').value = location;
             document.getElementById('currentStock').value = currentStock;
@@ -388,7 +407,7 @@
             const minimumStock = document.getElementById('minimumStock').value || 0;
 
             if (!partName || !partNo) { 
-                showToast('⚠️ Part Name dan Part No. wajib diisi!', 'warning'); 
+                showToast('️ Part Name dan Part No. wajib diisi!', 'warning'); 
                 return; 
             }
 
@@ -403,15 +422,13 @@
             };
 
             try {
-                // 1. Simpan data produk dulu
                 await fetch(CONFIG.API_URL, {
                     method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(payload)
                 });
                 
-                // 2. Jika ada gambar baru, upload
                 if (tempPhotoBase64) {
-                    console.log("Menghantar gambar untuk Part No:", partNo, "Panjang data:", tempPhotoBase64.length);
+                    console.log("Menghantar gambar untuk Part No:", partNo);
                     
                     const imgPayload = {
                         action: 'uploadProductPicture',
@@ -421,14 +438,12 @@
                         method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
                         body: JSON.stringify(imgPayload)
                     });
-                    
-                    // Simpan gambar baru ke cache
                     setCachedProductImage(partNo, tempPhotoBase64);
                 }
 
                 showToast('✅ Produk berjaya disimpan!', 'success');
                 resetForm();
-                loadProductList(); // Ini akan update cache serta-merta
+                loadProductList(); // Update cache serta-merta
             } catch (error) {
                 console.error("Save Error:", error);
                 showToast('❌ Ralat semasa menyimpan', 'error');
@@ -446,13 +461,12 @@
                     body: JSON.stringify({ action: 'deleteProduct', data: { partNo: partNo } })
                 });
                 
-                // Buang cache gambar
                 try { localStorage.removeItem('ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '')); } catch(e) {}
                 
                 showToast('✅ Produk berjaya dipadam', 'success');
                 loadProductList();
             } catch (error) {
-                showToast('❌ Gagal memadam produk', 'error');
+                showToast(' Gagal memadam produk', 'error');
             }
         }
 
