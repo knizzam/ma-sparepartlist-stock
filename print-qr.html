@@ -16,7 +16,7 @@
     <script src="config.js"></script>
 
     <style>
-        :root { --primary-blue: #1a73e8; --bg-light: #f5f5f5; --shopee-orange: #ee4d2d; }
+        :root { --primary-blue: #1a73e8; --bg-light: #f5f5f5; --header-blue: #007bff; }
         body { background: var(--bg-light); font-family: 'Segoe UI', sans-serif; padding-bottom: 80px; margin: 0; }
 
         /* PAGE HEADER */
@@ -33,7 +33,7 @@
         }
         .page-title { font-size: 16px; font-weight: 600; margin: 0; }
 
-        /* SEARCH BAR - SHOPEE STYLE */
+        /* SEARCH BAR */
         .search-section { 
             padding: 10px 15px; background: white; 
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -48,99 +48,136 @@
         .select-all-container label { font-size: 13px; font-weight: 500; cursor: pointer; color: #555; }
         .select-all-container input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-blue); }
 
-        /* PRODUCT GRID - 2 COLUMNS LIKE SHOPEE */
+        /* PRODUCT GRID - 2 COLUMNS */
         .product-grid { 
             padding: 10px;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
+            gap: 10px;
         }
         
-        .product-item {
-            background: white; border-radius: 4px; overflow: hidden;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08); 
-            border: 1px solid #e8e8e8; position: relative;
+        /* CARD DESIGN - SEPERTI GAMBAR */
+        .product-card {
+            background: white; 
+            border-radius: 8px; 
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1); 
+            border: 1px solid #e8e8e8; 
+            position: relative;
             transition: transform 0.1s, box-shadow 0.1s;
         }
-        .product-item:active { transform: scale(0.98); }
-        .product-item.selected { 
-            border: 2px solid var(--primary-blue); 
-            box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+        .product-card:active { transform: scale(0.98); }
+        .product-card.selected { 
+            box-shadow: 0 0 0 2px var(--primary-blue);
         }
         
-        /* Checkbox overlay di sudut */
-        .item-checkbox {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            z-index: 10;
-            accent-color: var(--primary-blue);
-            background: white;
-            border-radius: 2px;
-        }
-        
-        .item-image-container {
-            width: 100%;
-            aspect-ratio: 1;
-            background: #f8f9fa;
+        /* CARD HEADER - BIRU DENGAN CHECKBOX */
+        .card-header {
+            background: linear-gradient(135deg, #007bff 0%, #00a8ff 100%);
+            color: white;
+            padding: 10px 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 8px;
             position: relative;
+            min-height: 45px;
         }
-        .item-image-container img { 
-            max-width: 100%; 
-            max-height: 100%; 
-            object-fit: contain; 
-        }
-        .item-image-placeholder { color: #ddd; font-size: 48px; }
-        
-        .item-info { 
-            padding: 8px; 
-            background: white;
-        }
-        .item-title { 
-            font-size: 13px; 
-            font-weight: 500; 
-            color: #333;
-            margin-bottom: 4px;
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            flex: 1;
             overflow: hidden;
             text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            line-height: 1.4;
-            height: 36px;
+            white-space: nowrap;
         }
-        .item-partno {
-            font-size: 11px;
-            color: #888;
-            margin-bottom: 2px;
-        }
-        .item-location {
-            font-size: 11px;
-            color: var(--shopee-orange);
-            font-weight: 500;
+        .card-checkbox {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: white;
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+            padding: 2px;
         }
         
-        .item-qr {
-            padding: 8px;
-            background: white;
-            border-top: 1px solid #f0f0f0;
-            display: flex;
-            justify-content: center;
+        /* CARD INFO SECTION */
+        .card-info {
+            padding: 10px 12px;
+            background: #fafafa;
+            border-bottom: 1px solid #f0f0f0;
         }
-        .item-qr img { 
-            width: 80px; 
-            height: 80px;
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+        .info-row:last-child { margin-bottom: 0; }
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .info-value {
+            color: #333;
+            text-align: right;
+            flex: 1;
+            margin-left: 10px;
+            word-break: break-all;
+        }
+        
+        /* CARD BODY - GAMBAR & QR CODE */
+        .card-body {
+            padding: 12px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            align-items: center;
+        }
+        .card-image {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+            cursor: pointer;
+        }
+        .card-image img {
+            max-width: 100%;
+            max-height: 100px;
             object-fit: contain;
         }
+        .card-image-placeholder {
+            color: #ddd;
+            font-size: 40px;
+        }
+        .card-qr {
+            background: white;
+            border: 2px solid #f0f0f0;
+            border-radius: 6px;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-qr img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+        }
+        
+        /* CLICKABLE AREA (seluruh card kecuali checkbox) */
+        .card-clickable {
+            cursor: pointer;
+        }
 
-        /* BOTTOM ACTION BAR - FIXED */
+        /* BOTTOM ACTION BAR */
         .bottom-action-bar {
             position: fixed; 
             bottom: 0; 
@@ -212,18 +249,23 @@
         /* PRINT STYLES */
         @media print {
             body { background: white !important; padding: 0 !important; margin: 0 !important; }
-            .page-header, .search-section, .bottom-action-bar, .toast, .item-checkbox {
+            .page-header, .search-section, .bottom-action-bar, .toast, .card-checkbox {
                 display: none !important;
             }
             .product-grid { 
                 padding: 0 !important; 
-                grid-template-columns: repeat(3, 1fr) !important; 
+                grid-template-columns: repeat(2, 1fr) !important; 
                 gap: 10px !important; 
             }
-            .product-item { 
+            .product-card { 
                 box-shadow: none !important; 
                 border: 1px solid #ddd !important; 
                 page-break-inside: avoid !important;
+            }
+            .card-header { 
+                background: #007bff !important; 
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
         }
         
@@ -234,7 +276,6 @@
                 gap: 12px;
                 padding: 15px;
             }
-            .item-title { font-size: 14px; }
         }
         
         @media (min-width: 1024px) {
@@ -361,24 +402,33 @@
                 const cachedImg = getCachedProductImage(product.partNo);
 
                 html += `
-                    <div class="product-item" id="card-${index}" data-partno="${product.partNo}">
-                        <input type="checkbox" class="item-checkbox" value="${index}" onchange="updateSelectAll()">
-                        
-                        <div class="item-image-container">
-                            ${cachedImg 
-                                ? `<img src="${cachedImg}" alt="${product.partName}">` 
-                                : (product.pictureFileId ? `<img id="img-${safePartNo}" data-fileid="${product.pictureFileId}" alt="${product.partName}">` : '<div class="item-image-placeholder"><i class="fas fa-box"></i></div>')
-                            }
+                    <div class="product-card ${product.selected ? 'selected' : ''}" id="card-${index}" data-partno="${product.partNo}" data-index="${index}">
+                        <div class="card-header">
+                            <div class="card-title">${product.partName}</div>
+                            <input type="checkbox" class="card-checkbox" value="${index}" onchange="toggleProductSelection(${index})" ${product.selected ? 'checked' : ''}>
                         </div>
                         
-                        <div class="item-info">
-                            <div class="item-title">${product.partName}</div>
-                            <div class="item-partno">${product.partNo}</div>
-                            <div class="item-location">${product.location || '-'}</div>
+                        <div class="card-info card-clickable" onclick="goToProductDetail('${product.partNo}')">
+                            <div class="info-row">
+                                <span class="info-label">Part No</span>
+                                <span class="info-value">: ${product.partNo}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Location</span>
+                                <span class="info-value">: ${product.location || '-'}</span>
+                            </div>
                         </div>
                         
-                        <div class="item-qr">
-                            <img src="${qrUrl}" alt="QR Code" crossorigin="anonymous">
+                        <div class="card-body">
+                            <div class="card-image card-clickable" onclick="goToProductDetail('${product.partNo}')">
+                                ${cachedImg 
+                                    ? `<img src="${cachedImg}" alt="${product.partName}">` 
+                                    : (product.pictureFileId ? `<img id="img-${safePartNo}" data-fileid="${product.pictureFileId}" alt="${product.partName}">` : '<div class="card-image-placeholder"><i class="fas fa-box"></i></div>')
+                                }
+                            </div>
+                            <div class="card-qr">
+                                <img src="${qrUrl}" alt="QR Code" crossorigin="anonymous">
+                            </div>
                         </div>
                     </div>
                 `;
@@ -402,6 +452,20 @@
             });
         }
 
+        // Toggle selection individual product
+        function toggleProductSelection(index) {
+            allProducts[index].selected = !allProducts[index].selected;
+            const card = document.getElementById(`card-${index}`);
+            card.classList.toggle('selected', allProducts[index].selected);
+            updateSelectAllCheckbox();
+        }
+
+        // Go to product detail page
+        function goToProductDetail(partNo) {
+            // Redirect ke product-list.html dengan parameter partNo
+            window.location.href = `product-list.html?partno=${encodeURIComponent(partNo)}`;
+        }
+
         function filterProducts() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const filtered = allProducts.filter(p => 
@@ -414,34 +478,39 @@
 
         function toggleSelectAll() {
             const selectAll = document.getElementById('selectAll').checked;
-            const checkboxes = document.querySelectorAll('.item-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = selectAll;
-                cb.closest('.product-item').classList.toggle('selected', selectAll);
+            allProducts.forEach((product, index) => {
+                product.selected = selectAll;
+                const card = document.getElementById(`card-${index}`);
+                if (card) {
+                    card.classList.toggle('selected', selectAll);
+                    const checkbox = card.querySelector('.card-checkbox');
+                    if (checkbox) checkbox.checked = selectAll;
+                }
             });
         }
 
-        function updateSelectAll() {
-            const checkboxes = document.querySelectorAll('.item-checkbox');
-            checkboxes.forEach(cb => {
-                cb.closest('.product-item').classList.toggle('selected', cb.checked);
-            });
-            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        function updateSelectAllCheckbox() {
+            const allChecked = allProducts.every(p => p.selected);
             document.getElementById('selectAll').checked = allChecked;
         }
 
+        function getSelectedProducts() {
+            return allProducts.filter(p => p.selected);
+        }
+
         async function downloadSelected() {
-            const checkboxes = document.querySelectorAll('.item-checkbox:checked');
-            if (checkboxes.length === 0) {
+            const selected = getSelectedProducts();
+            if (selected.length === 0) {
                 showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
                 return;
             }
 
-            showToast(' Sedang menjana imej...', 'info');
+            showToast('⏳ Sedang menjana imej...', 'info');
             let downloadCount = 0;
 
-            for (const checkbox of checkboxes) {
-                const card = checkbox.closest('.product-item');
+            for (const product of selected) {
+                const index = allProducts.indexOf(product);
+                const card = document.getElementById(`card-${index}`);
                 if (card) {
                     try {
                         const canvas = await html2canvas(card, { 
@@ -450,8 +519,7 @@
                         canvas.toBlob(function(blob) {
                             const url = URL.createObjectURL(blob);
                             const link = document.createElement('a');
-                            const partNo = card.getAttribute('data-partno');
-                            link.download = `QR_${partNo}.png`;
+                            link.download = `QR_${product.partNo}.png`;
                             link.href = url;
                             link.click();
                             URL.revokeObjectURL(url);
@@ -467,25 +535,25 @@
         }
 
         async function shareSelected() {
-            const checkboxes = document.querySelectorAll('.item-checkbox:checked');
-            if (checkboxes.length === 0) {
-                showToast('️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
+            const selected = getSelectedProducts();
+            if (selected.length === 0) {
+                showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
                 return;
             }
 
             showToast('⏳ Sedang menyediakan fail...', 'info');
             const files = [];
 
-            for (const checkbox of checkboxes) {
-                const card = checkbox.closest('.product-item');
+            for (const product of selected) {
+                const index = allProducts.indexOf(product);
+                const card = document.getElementById(`card-${index}`);
                 if (card) {
                     try {
                         const canvas = await html2canvas(card, { 
                             scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: true, logging: false 
                         });
                         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-                        const partNo = card.getAttribute('data-partno');
-                        files.push(new File([blob], `QR_${partNo}.png`, { type: 'image/png' }));
+                        files.push(new File([blob], `QR_${product.partNo}.png`, { type: 'image/png' }));
                     } catch (err) {
                         console.error('Error generating image:', err);
                     }
