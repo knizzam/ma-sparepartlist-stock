@@ -2,7 +2,7 @@
    REGISTRATION USERS SPECIFIC
    ========================================= */
 
-/* Header Cantik - Sama Seperti Add Product */
+/* Header Cantik */
 .register-header {
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
     color: white; text-align: center; padding: 15px 20px 20px;
@@ -23,39 +23,36 @@
 }
 .register-title i { font-size: 1.2rem; }
 
-/* Photo Upload (Sama Macam Add Product) */
+/* === PHOTO UPLOAD (DIPAKSA BERFUNGSI) === */
 .photo-upload-wrapper { 
     display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; 
+    /* JANGAN GUNA overflow: hidden DI SINI */
 }
+
 .photo-placeholder, .photo-preview-large {
-    width: 100%; max-width: 160px; aspect-ratio: 4 / 3; border-radius: 8px !important; overflow: hidden;
+    width: 100%; max-width: 160px; aspect-ratio: 4 / 3; border-radius: 8px; 
 }
+
 .photo-placeholder {
     border: 2px dashed #ddd; background: #fafafa; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer;
+    align-items: center; justify-content: center; transition: all 0.2s; 
+    cursor: pointer !important;       /* PAKSA CURSOR JADI TANGAN */
+    pointer-events: auto !important;  /* PAKSA BOLEH KLIK */
+    z-index: 10;
 }
 .photo-placeholder:hover { border-color: var(--primary-blue); background: #f0f8ff; }
 .photo-placeholder i { font-size: 24px; color: #666; margin-bottom: 5px; }
 .photo-placeholder span { font-size: 11px; color: #666; text-align: center; line-height: 1.2; }
+
 .photo-preview-large { 
-    display: none; object-fit: cover !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; 
+    display: none; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    z-index: 10;
 }
+
+/* Input file asal disembunyikan sepenuhnya */
 #photoInput { display: none !important; }
-
-/* Floating Menu (PENTING!) */
-.photo-option-menu {
-    position: fixed; background: transparent; padding: 5px; z-index: 1000;
-    display: flex; gap: 15px; animation: popIn 0.2s ease;
-}
-.photo-option-item {
-    width: 50px; height: 50px; border-radius: 50%; border: none;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-.photo-option-item:active { transform: scale(0.9); }
-.photo-option-item i { font-size: 22px; color: white; }
-
-@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 /* User List Cards */
 .user-list { display: flex; flex-direction: column; gap: 10px; }
@@ -89,7 +86,6 @@
 }
 .delete-btn-small:hover { background: #dc3545; color: white; }
 
-/* Cancel Button Sentiasa Kelihatan */
 .cancel-btn { 
     flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; 
     font-size: 15px; font-weight: bold; cursor: pointer; display: block !important; 
