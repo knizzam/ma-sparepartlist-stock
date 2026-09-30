@@ -1,6 +1,6 @@
 /**
  * Header Dropdown Menu Component
- * Menu yang muncul di bawah butang 3 titik dalam header apabila ditekan
+ * Menu dropdown yang muncul di bawah butang 3 titik dalam header
  */
 const HeaderMenu = {
     init(config = {}) {
@@ -14,13 +14,16 @@ const HeaderMenu = {
     },
 
     createDropdown() {
-        // Cipta bekas dropdown (tersembunyi pada mulanya)
+        // Buang dropdown lama jika ada (elak duplicate)
+        const oldDropdown = document.getElementById('headerDropdownMenu');
+        if (oldDropdown) oldDropdown.remove();
+        
         const dropdown = document.createElement('div');
         dropdown.id = 'headerDropdownMenu';
         dropdown.style.cssText = `
             position: absolute;
-            top: 60px; /* Jarak dari atas header */
-            right: 15px; /* Selari dengan butang 3 titik */
+            top: 60px;
+            right: 15px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
@@ -73,7 +76,6 @@ const HeaderMenu = {
                 this.toggle();
             };
 
-            // Tutup menu bila klik di luar
             document.addEventListener('click', (e) => {
                 if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
                     this.close();
@@ -88,7 +90,6 @@ const HeaderMenu = {
             this.close();
         } else {
             dropdown.style.display = 'flex';
-            // Delay sedikit untuk animasi CSS berfungsi
             setTimeout(() => {
                 dropdown.style.opacity = '1';
                 dropdown.style.transform = 'translateY(0)';
