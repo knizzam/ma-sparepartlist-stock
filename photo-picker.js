@@ -8,7 +8,6 @@ const PhotoPicker = {
         this.placeholderEl = document.getElementById(placeholderId);
         this.onImageSelected = callback;
 
-        // Klik pada wrapper (placeholder ATAU preview) akan buka menu
         if (this.wrapperEl) {
             this.wrapperEl.addEventListener('click', (e) => this.showMenu(e, this.wrapperEl));
         }
@@ -16,29 +15,62 @@ const PhotoPicker = {
     },
 
     showMenu(e, triggerElement) {
-        e.preventDefault(); e.stopPropagation();
+        e.preventDefault(); 
+        e.stopPropagation();
         this.closeMenu();
 
         const menu = document.createElement('div');
-        menu.className = 'photo-option-menu'; menu.id = 'photoOptionMenu';
+        menu.className = 'photo-option-menu'; 
+        menu.id = 'photoOptionMenu';
 
         const rect = triggerElement.getBoundingClientRect();
         menu.style.top = (rect.bottom + window.scrollY + 10) + 'px';
         menu.style.left = (rect.left + window.scrollX + (rect.width / 2) - 55) + 'px';
 
-        menu.innerHTML = `
-            <div class="photo-option-item" onclick="PhotoPicker.selectSource('camera')" style="background: #6c757d;"><i class="fas fa-camera"></i></div>
-            <div class="photo-option-item" onclick="PhotoPicker.selectSource('gallery')" style="background: #1a73e8;"><i class="fas fa-images"></i></div>
-        `;
+        // BUTANG CAMERA
+        const cameraBtn = document.createElement('div');
+        cameraBtn.className = 'photo-option-item';
+        cameraBtn.style.background = '#6c757d';
+        cameraBtn.innerHTML = '<i class="fas fa-camera"></i>';
+        cameraBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation(); // PENTING: Elak event bubble ke document
+            this.selectSource('camera');
+        });
+
+        // BUTANG GALLERY
+        const galleryBtn = document.createElement('div');
+        galleryBtn.className = 'photo-option-item';
+        galleryBtn.style.background = '#1a73e8';
+        galleryBtn.innerHTML = '<i class="fas fa-images"></i>';
+        galleryBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation(); // PENTING: Elak event bubble ke document
+            this.selectSource('gallery');
+        });
+
+        menu.appendChild(cameraBtn);
+        menu.appendChild(galleryBtn);
         document.body.appendChild(menu);
-        setTimeout(() => document.addEventListener('click', this.closeMenu.bind(this), { once: true }), 100);
+
+        // Tutup menu bila klik di luar
+        setTimeout(() => {
+            document.addEventListener('click', () => this.closeMenu(), { once: true });
+        }, 100);
     },
 
     selectSource(source) {
-        if (source === 'camera') this.inputEl.setAttribute('capture', 'environment');
-        else this.inputEl.removeAttribute('capture');
-        this.inputEl.click();
+        if (source === 'camera') {
+            this.inputEl.setAttribute('capture', 'environment');
+        } else {
+            this.inputEl.removeAttribute('capture');
+        }
+        
+        // Close menu DULU, kemudian buka file picker
         this.closeMenu();
+        
+        // Guna setTimeout kecil untuk pastikan menu dah close sebelum buka file picker
+        setTimeout(() => {
+            this.inputEl.click();
+        }, 50);
     },
 
     closeMenu() {
@@ -51,7 +83,10 @@ const PhotoPicker = {
             const reader = new FileReader();
             reader.onload = (ev) => {
                 const base64 = ev.target.result;
-                if (this.previewEl) { this.previewEl.src = base64; this.previewEl.style.display = 'block'; }
+                if (this.previewEl) { 
+                    this.previewEl.src = base64; 
+                    this.previewEl.style.display = 'block'; 
+                }
                 if (this.placeholderEl) this.placeholderEl.style.display = 'none';
                 if (this.onImageSelected) this.onImageSelected(base64);
             };
