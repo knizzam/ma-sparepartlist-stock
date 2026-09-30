@@ -1,159 +1,97 @@
 /**
- * Photo Picker Component
+ * Photo Picker Component (Final & Robust Version)
+ * Menggunakan inline styles dengan !important untuk menjamin ia sentiasa kelihatan.
  */
 const PhotoPicker = {
-    init(config = {}) {
-        this.config = {
-            wrapperId: 'photoWrapper',
-            inputId: 'photoInput',
-            previewId: 'photoPreview',
-            placeholderId: 'photoPlaceholder',
-            onImageSelected: null,
-            ...config
-        };
+    init: function(config) {
+        this.config = config || {};
+        this.wrapper = document.getElementById(this.config.wrapperId || 'photoWrapper');
+        this.input = document.getElementById(this.config.inputId || 'photoInput');
+        this.preview = document.getElementById(this.config.previewId || 'photoPreview');
+        this.placeholder = document.getElementById(this.config.placeholderId || 'photoPlaceholder');
         
-        this.wrapper = document.getElementById(this.config.wrapperId);
-        this.input = document.getElementById(this.config.inputId);
-        this.preview = document.getElementById(this.config.previewId);
-        this.placeholder = document.getElementById(this.config.placeholderId);
-
-        if (!this.wrapper || !this.input) {
-            console.error('❌ PhotoPicker: ID tidak dijumpai! Sila semak HTML.');
-            return;
-        }
-
-        console.log('✅ PhotoPicker berjaya diinisialisasi.');
-        this.input.style.display = 'none';
-
-        this.createMenu();
-        this.attachEvents();
+        // Sembunyikan input file asal
+        if (this.input) this.input.style.display = 'none';
+        
+        // Jadikan fungsi tersedia secara global untuk onclick di HTML
+        window.showPhotoMenu = this.showMenu.bind(this);
+        window.closePhotoMenu = this.closeMenu.bind(this);
+        window.openFilePicker = this.openFilePicker.bind(this);
+        
+        console.log('✅ Photo Picker berjaya diinisialisasi.');
     },
 
-    createMenu() {
-        const oldMenu = document.getElementById('photoOptionMenu');
-        if (oldMenu) oldMenu.remove();
+    showMenu: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.closeMenu();
         
         const menu = document.createElement('div');
         menu.id = 'photoOptionMenu';
+        
+        // INLINE STYLES DENGAN !IMPORTANT (JAMINAN TIADA CSS LAIN BOLEH TINDAS)
         menu.style.cssText = `
-            position: fixed;
-            background: white;
-            padding: 10px 15px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            z-index: 999999;
-            display: none;
-            flex-direction: row;
-            gap: 15px;
-            opacity: 0;
-            transform: scale(0.8);
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            position: fixed !important;
+            background: white !important;
+            padding: 15px !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+            z-index: 999999 !important;
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 15px !important;
+            animation: popIn 0.2s ease !important;
         `;
 
-        const camBtn = document.createElement('button');
-        camBtn.style.cssText = `
-            width: 50px; height: 50px; border-radius: 50%; border: none;
-            background: #6c757d; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: transform 0.2s;
-        `;
-        camBtn.innerHTML = '<i class="fas fa-camera" style="font-size: 22px; color: white;"></i>';
-        camBtn.onclick = (e) => {
-            e.stopPropagation();
-            console.log('📷 Kamera dipilih');
-            this.input.setAttribute('capture', 'environment');
-            this.input.value = '';
-            this.input.click();
-            this.close();
-        };
+        // Kira posisi tepat di bawah elemen yang diklik
+        const rect = e.currentTarget.getBoundingClientRect();
+        menu.style.top = (rect.bottom + window.scrollY + 10) + 'px';
+        menu.style.left = (rect.left + window.scrollX + (rect.width / 2) - 55) + 'px';
 
-        const galBtn = document.createElement('button');
-        galBtn.style.cssText = `
-            width: 50px; height: 50px; border-radius: 50%; border: none;
-            background: #1a73e8; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: transform 0.2s;
-        `;
-        galBtn.innerHTML = '<i class="fas fa-images" style="font-size: 22px; color: white;"></i>';
-        galBtn.onclick = (e) => {
-            e.stopPropagation();
-            console.log('🖼️ Galeri dipilih');
-            this.input.removeAttribute('capture');
-            this.input.value = '';
-            this.input.click();
-            this.close();
-        };
+        // Butang Camera
+        const cameraBtn = document.createElement('button');
+        cameraBtn.style.cssText = `width: 50px !important; height: 50px !important; border-radius: 50% !important; border: none !important; background: #6c757d !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important; transition: transform 0.2s !important;`;
+        cameraBtn.innerHTML = '<i class="fas fa-camera" style="font-size: 22px !important; color: white !important;"></i>';
+        cameraBtn.onmouseenter = () => cameraBtn.style.transform = 'scale(1.1)';
+        cameraBtn.onmouseleave = () => cameraBtn.style.transform = 'scale(1)';
+        cameraBtn.onclick = (ev) => { ev.stopPropagation(); this.openFilePicker('camera'); };
 
-        menu.appendChild(camBtn);
-        menu.appendChild(galBtn);
+        // Butang Gallery
+        const galleryBtn = document.createElement('button');
+        galleryBtn.style.cssText = `width: 50px !important; height: 50px !important; border-radius: 50% !important; border: none !important; background: #1a73e8 !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important; transition: transform 0.2s !important;`;
+        galleryBtn.innerHTML = '<i class="fas fa-images" style="font-size: 22px !important; color: white !important;"></i>';
+        galleryBtn.onmouseenter = () => galleryBtn.style.transform = 'scale(1.1)';
+        galleryBtn.onmouseleave = () => galleryBtn.style.transform = 'scale(1)';
+        galleryBtn.onclick = (ev) => { ev.stopPropagation(); this.openFilePicker('gallery'); };
+
+        menu.appendChild(cameraBtn);
+        menu.appendChild(galleryBtn);
         document.body.appendChild(menu);
-        console.log('📦 Menu floating dicipta dalam DOM.');
+
+        // Tutup menu bila klik di luar
+        setTimeout(() => {
+            document.addEventListener('click', this.closeMenu.bind(this), { once: true });
+        }, 100);
     },
 
-    attachEvents() {
-        const openMenu = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('👆 Klik dikesan pada foto! Membuka menu...');
-            
-            const menu = document.getElementById('photoOptionMenu');
-            if (!menu) return;
-
-            const rect = this.wrapper.getBoundingClientRect();
-            menu.style.top = (rect.bottom + window.scrollY + 10) + 'px';
-            menu.style.left = (rect.left + window.scrollX + (rect.width / 2) - 55) + 'px';
-
-            menu.style.display = 'flex';
-            setTimeout(() => {
-                menu.style.opacity = '1';
-                menu.style.transform = 'scale(1)';
-            }, 10);
-
-            setTimeout(() => {
-                document.addEventListener('click', this.close.bind(this), { once: true });
-            }, 100);
-        };
-
-        if (this.placeholder) {
-            this.placeholder.addEventListener('click', openMenu);
-        }
-        if (this.preview) {
-            this.preview.addEventListener('click', openMenu);
-        }
-
-        this.input.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files[0]) {
-                console.log('📁 Fail dipilih, memproses...');
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    const base64 = ev.target.result;
-                    if (this.preview) {
-                        this.preview.src = base64;
-                        this.preview.style.display = 'block';
-                    }
-                    if (this.placeholder) {
-                        this.placeholder.style.display = 'none';
-                    }
-                    if (this.config.onImageSelected) {
-                        this.config.onImageSelected(base64);
-                    }
-                };
-                reader.readAsDataURL(e.target.files[0]);
-            }
-        });
-    },
-
-    close() {
+    closeMenu: function() {
         const menu = document.getElementById('photoOptionMenu');
-        if (menu) {
-            console.log('🚪 Menu ditutup.');
-            menu.style.opacity = '0';
-            menu.style.transform = 'scale(0.8)';
-            setTimeout(() => {
-                menu.style.display = 'none';
-            }, 200);
-        }
+        if (menu) menu.remove();
     },
 
-    reset() {
+    openFilePicker: function(source) {
+        if (!this.input) return;
+        if (source === 'camera') {
+            this.input.setAttribute('capture', 'environment');
+        } else {
+            this.input.removeAttribute('capture');
+        }
+        this.input.value = ''; // Reset supaya boleh pilih gambar yang sama
+        this.input.click();
+        this.closeMenu();
+    },
+
+    reset: function() {
         if (this.preview) { this.preview.style.display = 'none'; this.preview.src = ''; }
         if (this.placeholder) { this.placeholder.style.display = 'flex'; }
         if (this.input) { this.input.value = ''; }
