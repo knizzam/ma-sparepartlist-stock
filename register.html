@@ -13,6 +13,7 @@
     <script src="config.js"></script>
     <!-- HANYA PERLU PANGGIL 1 FAIL JS INI -->
     <script src="photo-picker.js"></script>
+    <script src="photo-picker.js"></script>
 </head>
 <body>
 
@@ -243,6 +244,27 @@
         }
 
         window.onload = loadUserList;
+        <script>
+        let tempPhotoBase64 = '', editingEmail = null, allUsers = [];
+        // ... (kod lain anda) ...
+
+        // === INIT PHOTO PICKER (HANYA 1 BARIS INI) ===
+        document.addEventListener('DOMContentLoaded', () => {
+            PhotoPicker.init('photoWrapper', 'photoInput', 'photoPreview', 'photoPlaceholder', (base64) => {
+                tempPhotoBase64 = base64;
+            });
+        });
+        
+        // ... (kod fungsi saveUser, deleteUser, resetForm, dll) ...
+        
+        function resetForm() {
+            // ... kod reset lain ...
+            
+            // GUNA FUNGSI RESET DARI PHOTO PICKER
+            PhotoPicker.reset();
+            
+            // ... kod reset lain ...
+        }
     </script>
 </body>
 </html>
