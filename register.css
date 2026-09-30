@@ -23,7 +23,7 @@
 }
 .register-title i { font-size: 1.2rem; }
 
-/* Photo Upload (GUNA STYLE SAMA MACAM ADD PRODUCT) */
+/* Photo Upload (Sama Macam Add Product) */
 .photo-upload-wrapper { 
     display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; 
 }
@@ -42,7 +42,7 @@
 }
 #photoInput { display: none !important; }
 
-/* === FLOATING MENU CSS (PENTING!) === */
+/* Floating Menu (PENTING!) */
 .photo-option-menu {
     position: fixed; background: transparent; padding: 5px; z-index: 1000;
     display: flex; gap: 15px; animation: popIn 0.2s ease;
