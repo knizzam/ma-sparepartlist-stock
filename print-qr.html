@@ -56,7 +56,7 @@
             gap: 10px;
         }
         
-        /* CARD DESIGN - SEPERTI GAMBAR */
+        /* CARD DESIGN */
         .product-card {
             background: white; 
             border-radius: 8px; 
@@ -71,7 +71,7 @@
             box-shadow: 0 0 0 2px var(--primary-blue);
         }
         
-        /* CARD HEADER - BIRU DENGAN CHECKBOX */
+        /* CARD HEADER */
         .card-header {
             background: linear-gradient(135deg, #007bff 0%, #00a8ff 100%);
             color: white;
@@ -112,25 +112,29 @@
             border-bottom: 1px solid #f0f0f0;
         }
         .info-row {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 70px 15px 1fr;
             margin-bottom: 6px;
             font-size: 13px;
+            align-items: baseline;
         }
         .info-row:last-child { margin-bottom: 0; }
         .info-label {
             font-weight: 600;
             color: #555;
+            text-align: left;
+        }
+        .info-colon {
+            text-align: center;
+            color: #888;
         }
         .info-value {
             color: #333;
-            text-align: right;
-            flex: 1;
-            margin-left: 10px;
+            text-align: left;
             word-break: break-all;
         }
         
-        /* CARD BODY - GAMBAR & QR CODE */
+        /* CARD BODY */
         .card-body {
             padding: 12px;
             display: grid;
@@ -172,7 +176,6 @@
             object-fit: contain;
         }
         
-        /* CLICKABLE AREA (seluruh card kecuali checkbox) */
         .card-clickable {
             cursor: pointer;
         }
@@ -210,7 +213,7 @@
         .btn-download { background: var(--primary-blue); color: white; }
         .btn-share { background: #28a745; color: white; }
 
-        /* TOAST NOTIFICATION */
+        /* TOAST */
         .toast { 
             position: fixed; 
             bottom: 90px; 
@@ -237,7 +240,6 @@
             to { transform: translate(-50%, 0); opacity: 1; } 
         }
 
-        /* LOADING STATE */
         .loading-container {
             grid-column: 1 / -1;
             text-align: center;
@@ -246,26 +248,90 @@
         }
         .loading-container i { font-size: 32px; margin-bottom: 10px; color: var(--primary-blue); }
 
-        /* PRINT STYLES */
+        /* PRINT STYLES - A4 LANDSCAPE 3 COLUMN */
         @media print {
-            body { background: white !important; padding: 0 !important; margin: 0 !important; }
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
+            
+            body { 
+                background: white !important; 
+                padding: 0 !important; 
+                margin: 0 !important;
+            }
+            
             .page-header, .search-section, .bottom-action-bar, .toast, .card-checkbox {
                 display: none !important;
             }
+            
             .product-grid { 
                 padding: 0 !important; 
-                grid-template-columns: repeat(2, 1fr) !important; 
-                gap: 10px !important; 
+                grid-template-columns: repeat(3, 1fr) !important; 
+                gap: 8mm !important;
             }
+            
+            /* HIDE cards yang TIDAK selected */
+            .product-card:not(.selected) {
+                display: none !important;
+            }
+            
             .product-card { 
                 box-shadow: none !important; 
                 border: 1px solid #ddd !important; 
                 page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
+            
             .card-header { 
                 background: #007bff !important; 
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                padding: 8px 10px !important;
+                min-height: 40px !important;
+            }
+            
+            .card-title {
+                font-size: 14px !important;
+                font-weight: 700 !important;
+            }
+            
+            .card-info {
+                padding: 8px 10px !important;
+            }
+            
+            .info-row {
+                font-size: 12px !important;
+                margin-bottom: 4px !important;
+            }
+            
+            .info-label {
+                font-size: 12px !important;
+                font-weight: 700 !important;
+            }
+            
+            .info-value {
+                font-size: 12px !important;
+                font-weight: 500 !important;
+            }
+            
+            .card-body {
+                padding: 10px !important;
+                gap: 8px !important;
+            }
+            
+            .card-image {
+                min-height: 80px !important;
+            }
+            
+            .card-image img {
+                max-height: 80px !important;
+            }
+            
+            .card-qr img {
+                width: 75px !important;
+                height: 75px !important;
             }
         }
         
@@ -312,7 +378,7 @@
     </div>
 
     <div class="bottom-action-bar">
-        <button class="action-btn btn-print" onclick="window.print()">
+        <button class="action-btn btn-print" onclick="printSelected()">
             <i class="fas fa-print"></i> Cetak
         </button>
         <button class="action-btn btn-download" onclick="downloadSelected()">
@@ -328,7 +394,6 @@
         const PRODUCT_CACHE_KEY = 'ma_inventory_product_list';
         const CACHE_EXPIRY = 5 * 60 * 1000;
 
-        // --- CACHE HELPER ---
         function getCachedProductImage(partNo) {
             try {
                 const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -410,12 +475,14 @@
                         
                         <div class="card-info card-clickable" onclick="goToProductDetail('${product.partNo}')">
                             <div class="info-row">
-                                <span class="info-label">Part No</span>
-                                <span class="info-value">: ${product.partNo}</span>
+                                <span class="info-label">Part No.</span>
+                                <span class="info-colon">:</span>
+                                <span class="info-value">${product.partNo}</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Location</span>
-                                <span class="info-value">: ${product.location || '-'}</span>
+                                <span class="info-colon">:</span>
+                                <span class="info-value">${product.location || '-'}</span>
                             </div>
                         </div>
                         
@@ -435,7 +502,6 @@
             });
             container.innerHTML = html;
 
-            // Load uncached images
             products.forEach(product => {
                 if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -452,7 +518,6 @@
             });
         }
 
-        // Toggle selection individual product
         function toggleProductSelection(index) {
             allProducts[index].selected = !allProducts[index].selected;
             const card = document.getElementById(`card-${index}`);
@@ -460,9 +525,7 @@
             updateSelectAllCheckbox();
         }
 
-        // Go to product detail page
         function goToProductDetail(partNo) {
-            // Redirect ke product-list.html dengan parameter partNo
             window.location.href = `product-list.html?partno=${encodeURIComponent(partNo)}`;
         }
 
@@ -498,10 +561,20 @@
             return allProducts.filter(p => p.selected);
         }
 
-        async function downloadSelected() {
+        // PRINT FUNCTION - Hanya print yang selected sahaja
+        function printSelected() {
             const selected = getSelectedProducts();
             if (selected.length === 0) {
                 showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
+                return;
+            }
+            window.print();
+        }
+
+        async function downloadSelected() {
+            const selected = getSelectedProducts();
+            if (selected.length === 0) {
+                showToast('️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
                 return;
             }
 
@@ -537,7 +610,7 @@
         async function shareSelected() {
             const selected = getSelectedProducts();
             if (selected.length === 0) {
-                showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
+                showToast('️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
                 return;
             }
 
