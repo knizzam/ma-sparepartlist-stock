@@ -8,6 +8,12 @@ const PhotoPicker = {
         
         if (this.input) this.input.style.display = 'none';
         
+        // Paksa wrapper jadi relative supaya menu boleh melekat padanya
+        if (this.wrapper) {
+            this.wrapper.style.position = 'relative';
+            this.wrapper.style.overflow = 'visible'; // Elak menu terpotong
+        }
+        
         window.showPhotoMenu = this.showMenu.bind(this);
         window.closePhotoMenu = this.closeMenu.bind(this);
         window.openFilePicker = this.openFilePicker.bind(this);
@@ -23,36 +29,29 @@ const PhotoPicker = {
         const menu = document.createElement('div');
         menu.id = 'photoOptionMenu';
         
-        // LETAK DI TENGAH SKRIN - SUDAH TERBUKTI BERFUNGSI
+        // GUNA POSITION ABSOLUTE SUPAYA MELEKAT PADA WRAPPER
         menu.style.cssText = `
-            position: fixed !important;
-            top: 50% !important;
+            position: absolute !important;
+            bottom: -65px !important; /* Letak tepat di bawah frame */
             left: 50% !important;
-            transform: translate(-50%, -50%) !important;
+            transform: translateX(-50%) !important;
             background: transparent !important;
-            padding: 10px !important;
-            z-index: 999999 !important;
+            padding: 5px !important;
+            z-index: 100 !important;
             display: flex !important;
             flex-direction: row !important;
             gap: 15px !important;
+            white-space: nowrap !important;
         `;
 
         // Butang Camera
         const cameraBtn = document.createElement('button');
         cameraBtn.style.cssText = `
-            width: 50px !important;
-            height: 50px !important;
-            border-radius: 50% !important;
-            border: none !important;
-            background: #6c757d !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            cursor: pointer !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-            transition: transform 0.2s !important;
-            margin: 0 !important;
-            padding: 0 !important;
+            width: 50px !important; height: 50px !important; border-radius: 50% !important;
+            border: none !important; background: #6c757d !important;
+            display: flex !important; align-items: center !important; justify-content: center !important;
+            cursor: pointer !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            transition: transform 0.2s !important; margin: 0 !important; padding: 0 !important;
         `;
         cameraBtn.innerHTML = '<i class="fas fa-camera" style="font-size: 22px !important; color: white !important;"></i>';
         cameraBtn.onmouseenter = () => cameraBtn.style.transform = 'scale(1.1)';
@@ -62,19 +61,11 @@ const PhotoPicker = {
         // Butang Gallery
         const galleryBtn = document.createElement('button');
         galleryBtn.style.cssText = `
-            width: 50px !important;
-            height: 50px !important;
-            border-radius: 50% !important;
-            border: none !important;
-            background: #1a73e8 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            cursor: pointer !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-            transition: transform 0.2s !important;
-            margin: 0 !important;
-            padding: 0 !important;
+            width: 50px !important; height: 50px !important; border-radius: 50% !important;
+            border: none !important; background: #1a73e8 !important;
+            display: flex !important; align-items: center !important; justify-content: center !important;
+            cursor: pointer !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            transition: transform 0.2s !important; margin: 0 !important; padding: 0 !important;
         `;
         galleryBtn.innerHTML = '<i class="fas fa-images" style="font-size: 22px !important; color: white !important;"></i>';
         galleryBtn.onmouseenter = () => galleryBtn.style.transform = 'scale(1.1)';
@@ -83,7 +74,9 @@ const PhotoPicker = {
 
         menu.appendChild(cameraBtn);
         menu.appendChild(galleryBtn);
-        document.body.appendChild(menu);
+        
+        // LETAK DALAM WRAPPER (BUKAN BODY) SUPAYA IKUT FRAME SCROLL
+        this.wrapper.appendChild(menu);
 
         // Tutup menu bila klik di luar
         setTimeout(() => {
