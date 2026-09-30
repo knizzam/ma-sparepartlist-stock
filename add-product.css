@@ -35,16 +35,16 @@
 .delete-btn-add { width: 32px; height: 32px; border-radius: 50%; background: #fee2e2; border: none; color: #dc3545; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 .delete-btn-add:hover { background: #dc3545; color: white; }
 
-/* === PHOTO UPLOAD (3:4 RATIO) === */
+/* === PHOTO UPLOAD (3:4 LANDSCAPE) === */
 .photo-upload-wrapper { 
     display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; 
-    cursor: pointer; /* Wrapper boleh klik */
+    cursor: pointer;
 }
 
-/* Saiz 3:4 (90px x 120px) */
+/* 3:4 LANDSCAPE = Lebar 120px, Tinggi 90px */
 .photo-placeholder, .photo-preview-large {
-    width: 90px !important;
-    height: 120px !important;
+    width: 120px !important;
+    height: 90px !important;
     border-radius: 8px !important;
     object-fit: cover !important;
 }
@@ -56,7 +56,7 @@
     transition: all 0.2s;
 }
 .photo-placeholder:hover { border-color: var(--primary-blue); background: #f0f8ff; }
-.photo-placeholder i { font-size: 24px; color: #666; margin-bottom: 5px; }
+.photo-placeholder i { font-size: 22px; color: #666; margin-bottom: 4px; }
 .photo-placeholder span { font-size: 10px; color: #666; text-align: center; line-height: 1.2; }
 
 .photo-preview-large {
