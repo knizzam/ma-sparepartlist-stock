@@ -2,32 +2,24 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add New Product - MA Inventory</title>
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="add-product.css">
-    
     <script src="config.js"></script>
 </head>
 <body>
 
-    <!-- HEADER CANTIK DENGAN BACK BUTTON & TITLE DI TENGAH -->
     <div class="add-product-header">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-        <h1 class="add-product-title">
-            <i class="fas fa-box-open"></i>Add New Product
-        </h1>
+        <h1 class="add-product-title"><i class="fas fa-box-open"></i>Add New Product</h1>
     </div>
 
     <div class="main-container">
-        <!-- FORM -->
         <div class="form-card">
             <div class="form-section-title">Product Information</div>
-            
-            <!-- PHOTO UPLOAD DENGAN FLOATING MENU -->
             <div class="form-group">
                 <label class="form-label">Product Photo</label>
                 <div class="photo-upload-wrapper">
@@ -38,39 +30,19 @@
                         </div>
                         <img id="photoPreview" class="photo-preview-large" alt="Preview">
                     </label>
-                    <!-- Input file disembunyikan, akan dipanggil melalui JavaScript -->
                     <input type="file" id="photoInput" accept="image/*" onchange="handlePhotoSelect(event)">
                 </div>
             </div>
-            
-            <div class="form-group">
-                <label class="form-label">Part Name</label>
-                <input type="text" class="form-input" id="partName" placeholder="e.g., CAP NUT / LOWER BASE">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Part No.</label>
-                <input type="text" class="form-input" id="partNo" placeholder="e.g., BTM-M6">
-            </div>
-            <div class="form-group">
-                <label class="form-label">No. Spec</label>
-                <input type="text" class="form-input" id="noSpec" placeholder="e.g., M6x1.0">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Location</label>
-                <input type="text" class="form-input" id="location" placeholder="e.g., Rack A-01">
-            </div>
+            <div class="form-group"><label class="form-label">Part Name</label><input type="text" class="form-input" id="partName" placeholder="e.g., CAP NUT / LOWER BASE"></div>
+            <div class="form-group"><label class="form-label">Part No.</label><input type="text" class="form-input" id="partNo" placeholder="e.g., BTM-M6"></div>
+            <div class="form-group"><label class="form-label">No. Spec</label><input type="text" class="form-input" id="noSpec" placeholder="e.g., M6x1.0"></div>
+            <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-input" id="location" placeholder="e.g., Rack A-01"></div>
         </div>
 
         <div class="form-card">
             <div class="form-section-title">Stock Information</div>
-            <div class="form-group">
-                <label class="form-label">Current Stock</label>
-                <input type="number" class="form-input" id="currentStock" placeholder="0" min="0">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Minimum Stock</label>
-                <input type="number" class="form-input" id="minimumStock" placeholder="0" min="0">
-            </div>
+            <div class="form-group"><label class="form-label">Current Stock</label><input type="number" class="form-input" id="currentStock" placeholder="0" min="0"></div>
+            <div class="form-group"><label class="form-label">Minimum Stock</label><input type="number" class="form-input" id="minimumStock" placeholder="0" min="0"></div>
         </div>
 
         <div class="btn-group">
@@ -80,90 +52,54 @@
 
         <div style="height: 4px; background: linear-gradient(to right, #1a73e8, #4a90e2); margin: 30px 0 20px; border-radius: 2px;"></div>
 
-        <!-- LIST -->
         <div class="list-header-add">
             <div class="list-title-add">Recent Products (5 Hari) <span class="list-badge-add" id="productCount">0</span></div>
         </div>
-        <div class="product-list-add" id="productList">
-            <div style="text-align:center; padding: 20px; color: #888;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
-        </div>
+        <div class="product-list-add" id="productList"><div style="text-align:center; padding: 20px; color: #888;"><i class="fas fa-spinner fa-spin"></i> Loading...</div></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let tempPhotoBase64 = '';
-        let editingPartNo = null;
-        let allProducts = [];
-        let photoSource = ''; // 'camera' atau 'gallery'
-        
-        const PRODUCT_LIST_CACHE_KEY = 'ma_inventory_product_list';
-        const CACHE_EXPIRY = 5 * 60 * 1000;
+        let tempPhotoBase64 = '', editingPartNo = null, allProducts = [], photoSource = '';
+        const PRODUCT_LIST_CACHE_KEY = 'ma_inventory_product_list', CACHE_EXPIRY = 5 * 60 * 1000;
 
-        // === FUNGSI BARU: Tunjuk floating menu pilihan photo ===
-        function showPhotoOptions(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            
-            // Buang menu lama jika ada
+        function showPhotoOptions(e) {
+            e.preventDefault(); e.stopPropagation();
             closePhotoMenu();
-            
-            // Cipta menu baharu
             const menu = document.createElement('div');
-            menu.className = 'photo-option-menu';
-            menu.id = 'photoOptionMenu';
+            menu.className = 'photo-option-menu'; menu.id = 'photoOptionMenu';
             menu.innerHTML = `
-                <div class="photo-option-item" onclick="selectPhotoSource('camera')">
-                    <i class="fas fa-camera"></i>
-                    <span>Take Picture</span>
-                </div>
-                <div class="photo-option-item" onclick="selectPhotoSource('gallery')">
-                    <i class="fas fa-images"></i>
-                    <span>Gallery</span>
-                </div>
+                <div class="photo-option-item" onclick="selectPhotoSource('camera')" style="background: #6c757d;"><i class="fas fa-camera"></i></div>
+                <div class="photo-option-item" onclick="selectPhotoSource('gallery')" style="background: #1a73e8;"><i class="fas fa-images"></i></div>
             `;
             document.body.appendChild(menu);
-            
-            // Tutup menu bila klik di luar
-            setTimeout(() => {
-                document.addEventListener('click', closePhotoMenu, { once: true });
-            }, 100);
+            setTimeout(() => document.addEventListener('click', closePhotoMenu, { once: true }), 100);
         }
 
-        // === FUNGSI BARU: Pilih sumber photo ===
         function selectPhotoSource(source) {
             photoSource = source;
             const photoInput = document.getElementById('photoInput');
-            
-            if (source === 'camera') {
-                photoInput.setAttribute('capture', 'environment');
-            } else {
-                photoInput.removeAttribute('capture');
-            }
-            
+            if (source === 'camera') photoInput.setAttribute('capture', 'environment');
+            else photoInput.removeAttribute('capture');
             photoInput.click();
             closePhotoMenu();
         }
 
-        // === FUNGSI BARU: Tutup menu photo ===
         function closePhotoMenu() {
             const menu = document.getElementById('photoOptionMenu');
             if (menu) menu.remove();
         }
 
-        // === FUNGSI BARU: Handle bila user pilih gambar ===
-        function handlePhotoSelect(event) {
-            if (event.target.files && event.target.files[0]) {
+        function handlePhotoSelect(e) {
+            if (e.target.files && e.target.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    tempPhotoBase64 = e.target.result;
-                    const preview = document.getElementById('photoPreview');
-                    const uploadContent = document.getElementById('photoUploadContent');
-                    
-                    preview.src = tempPhotoBase64;
-                    preview.style.display = 'block';
-                    uploadContent.style.display = 'none';
+                reader.onload = function(ev) {
+                    tempPhotoBase64 = ev.target.result;
+                    document.getElementById('photoPreview').src = tempPhotoBase64;
+                    document.getElementById('photoPreview').style.display = 'block';
+                    document.getElementById('photoUploadContent').style.display = 'none';
                 };
-                reader.readAsDataURL(event.target.files[0]);
+                reader.readAsDataURL(e.target.files[0]);
             }
         }
 
@@ -173,9 +109,7 @@
                 const item = localStorage.getItem(key);
                 if (!item) return null;
                 const parsed = JSON.parse(item);
-                if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
-                    return parsed.base64;
-                }
+                if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) return parsed.base64;
                 localStorage.removeItem(key);
                 return null;
             } catch(e) { return null; }
@@ -184,10 +118,7 @@
         function setCachedProductImage(partNo, base64) {
             try {
                 const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
-                localStorage.setItem(key, JSON.stringify({
-                    base64: base64,
-                    timestamp: new Date().getTime()
-                }));
+                localStorage.setItem(key, JSON.stringify({ base64: base64, timestamp: new Date().getTime() }));
             } catch(e) { console.warn('Cache failed:', e); }
         }
 
@@ -208,10 +139,7 @@
                 const now = new Date();
                 const fiveDaysAgo = new Date(now.getTime() - (5 * 24 * 60 * 60 * 1000));
                 return dateObj >= fiveDaysAgo;
-            } catch (e) { 
-                console.error("Error parsing date:", dateStr, e);
-                return false; 
-            }
+            } catch (e) { return false; }
         }
 
         async function loadProductList(forceRefresh = false) {
@@ -226,17 +154,12 @@
                     }
                 } catch(e) { console.error("Cache parse error:", e); }
             }
-
             try {
                 const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
                 const result = await res.json();
-                
                 if (result.success && result.products) {
                     allProducts = result.products;
-                    localStorage.setItem(PRODUCT_LIST_CACHE_KEY, JSON.stringify({
-                        data: allProducts,
-                        timestamp: new Date().getTime()
-                    }));
+                    localStorage.setItem(PRODUCT_LIST_CACHE_KEY, JSON.stringify({ data: allProducts, timestamp: new Date().getTime() }));
                     renderProductList(allProducts);
                 } else {
                     document.getElementById('productList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tiada produk dijumpai</div>';
@@ -252,14 +175,11 @@
         function renderProductList(products) {
             const productList = document.getElementById('productList');
             const recentProducts = products.filter(p => isWithinLast5Days(p.lastUpdateDate));
-            
             document.getElementById('productCount').textContent = recentProducts.length;
-            
             if (recentProducts.length === 0) {
                 productList.innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tiada produk dalam 5 hari terkini</div>';
                 return;
             }
-
             let html = '';
             recentProducts.forEach(product => {
                 const isLowStock = parseInt(product.currentStock) <= parseInt(product.minimumStock);
@@ -267,14 +187,9 @@
                 const isEditing = editingPartNo === product.partNo ? 'editing' : '';
                 const statusClass = isLowStock ? 'low' : '';
                 const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
-                
                 const cachedImg = getCachedProductImage(product.partNo);
                 let avatarHTML = '';
-                
-                if (cachedImg) {
-                    avatarHTML = `<img src="${cachedImg}" alt="${product.partName}">`;
-                }
-
+                if (cachedImg) avatarHTML = `<img src="${cachedImg}" alt="${product.partName}">`;
                 html += `
                     <div class="product-card-add ${cardClass} ${isEditing}" onclick="editProduct('${product.partNo}', '${product.partName}', '${product.noSpec}', '${product.location}', ${product.currentStock}, ${product.minimumStock}, '${product.pictureFileId}')">
                         <div class="product-avatar-add" id="prod-avatar-${safePartNo}">${avatarHTML}</div>
@@ -282,19 +197,17 @@
                             <div class="product-name-add">${product.partName}</div>
                             <span class="product-badge-add">${product.partNo}</span>
                         </div>
-                        <div class="product-status-add ${statusClass}" title="${isLowStock ? 'Low Stock' : 'OK'}"></div>
-                        <button class="delete-btn-add" onclick="event.stopPropagation(); deleteProduct('${product.partNo}')" title="Delete"><i class="fas fa-trash"></i></button>
+                        <div class="product-status-add ${statusClass}"></div>
+                        <button class="delete-btn-add" onclick="event.stopPropagation(); deleteProduct('${product.partNo}')"><i class="fas fa-trash"></i></button>
                     </div>
                 `;
             });
             productList.innerHTML = html;
-
             recentProducts.forEach(product => {
                 if (product.pictureFileId) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
                     const avatarBox = document.getElementById(`prod-avatar-${safePartNo}`);
                     const cachedImg = getCachedProductImage(product.partNo);
-                    
                     if (avatarBox && !cachedImg) {
                         APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
                             if (imgResult.success && imgResult.base64) {
@@ -315,13 +228,10 @@
             document.getElementById('location').value = location;
             document.getElementById('currentStock').value = currentStock;
             document.getElementById('minimumStock').value = minimumStock;
-            
             document.getElementById('saveBtn').innerText = 'Update Product';
             document.getElementById('cancelBtn').classList.add('show');
-            
             const preview = document.getElementById('photoPreview');
             const cachedImg = getCachedProductImage(partNo);
-            
             if (cachedImg) {
                 preview.src = cachedImg;
                 preview.style.display = 'block';
@@ -342,7 +252,6 @@
                 document.getElementById('photoUploadContent').style.display = 'block';
                 tempPhotoBase64 = '';
             }
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
             renderProductList(allProducts);
         }
@@ -360,12 +269,7 @@
             const location = document.getElementById('location').value.trim();
             const currentStock = document.getElementById('currentStock').value || 0;
             const minimumStock = document.getElementById('minimumStock').value || 0;
-
-            if (!partName || !partNo) { 
-                showToast('⚠️ Part Name dan Part No. wajib diisi!', 'warning'); 
-                return; 
-            }
-
+            if (!partName || !partNo) { showToast('⚠️ Part Name dan Part No. wajib diisi!', 'warning'); return; }
             let userEmail = 'system@api';
             try {
                 const profileData = localStorage.getItem(CONFIG.PROFILE_CACHE_KEY);
@@ -374,39 +278,21 @@
                     userEmail = cached.email || 'system@api';
                 }
             } catch(e) { console.error("Gagal ambil email:", e); }
-
             const btn = document.getElementById('saveBtn');
             btn.innerText = 'Saving...';
             btn.disabled = true;
-
             const action = editingPartNo ? 'updateProduct' : 'addProduct';
-            const payload = { 
-                action: action, 
-                data: { partName, partNo, noSpec, location, currentStock, minimumStock, originalPartNo: editingPartNo, userEmail: userEmail } 
-            };
-
+            const payload = { action: action, data: { partName, partNo, noSpec, location, currentStock, minimumStock, originalPartNo: editingPartNo, userEmail: userEmail } };
             try {
-                await fetch(CONFIG.API_URL, {
-                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify(payload)
-                });
-                
+                await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
                 if (tempPhotoBase64) {
-                    const imgPayload = {
-                        action: 'uploadProductPicture',
-                        data: { base64: tempPhotoBase64, partNo: partNo }
-                    };
-                    await fetch(CONFIG.API_URL, {
-                        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
-                        body: JSON.stringify(imgPayload)
-                    });
+                    const imgPayload = { action: 'uploadProductPicture', data: { base64: tempPhotoBase64, partNo: partNo } };
+                    await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(imgPayload) });
                     setCachedProductImage(partNo, tempPhotoBase64);
                 }
-
                 showToast('✅ Produk berjaya disimpan!', 'success');
                 resetForm();
-                loadProductList(true); 
-                
+                loadProductList(true);
             } catch (error) {
                 console.error("Save Error:", error);
                 showToast('❌ Ralat semasa menyimpan', 'error');
@@ -417,21 +303,12 @@
 
         async function deleteProduct(partNo) {
             if (!confirm('⚠️ Adakah anda pasti ingin memadam produk ini?')) return;
-            
             try {
-                await fetch(CONFIG.API_URL, {
-                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: 'deleteProduct', data: { partNo: partNo } })
-                });
-                
+                await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'deleteProduct', data: { partNo: partNo } }) });
                 try { localStorage.removeItem('ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '')); } catch(e) {}
-                
                 showToast('✅ Produk berjaya dipadam', 'success');
-                loadProductList(true); 
-                
-            } catch (error) {
-                showToast('❌ Gagal memadam produk', 'error');
-            }
+                loadProductList(true);
+            } catch (error) { showToast('❌ Gagal memadam produk', 'error'); }
         }
 
         function resetForm() {
