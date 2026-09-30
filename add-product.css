@@ -1,52 +1,19 @@
-/* ADD NEW PRODUCT CSS */
+/* ADD PRODUCT CSS (Minimum & Clean) */
 .add-product-header {
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
-    color: white;
-    text-align: center;
-    padding: 15px 20px 20px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
-    box-shadow: 0 4px 10px rgba(26,115,232,0.2);
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    min-height: 60px;
+    color: white; text-align: center; padding: 15px 20px 20px;
+    position: sticky; top: 0; z-index: 100;
+    border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;
+    box-shadow: 0 4px 10px rgba(26,115,232,0.2); margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px;
 }
-
 .add-product-header .back-btn {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255,255,255,0.2);
-    border: none;
-    color: white;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
+    position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,0.2); border: none; color: white;
+    width: 36px; height: 36px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; text-decoration: none;
 }
-
-.add-product-title {
-    font-size: 1.0rem;
-    font-weight: 800;
-    margin: 0;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    letter-spacing: 1.5px;
-}
-
+.add-product-title { font-size: 1.0rem; font-weight: 800; margin: 0; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 1.5px; }
 .add-product-title i { font-size: 1.2rem; }
 
 .list-header-add { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px; }
@@ -54,89 +21,70 @@
 .list-badge-add { background: var(--primary-blue); color: white; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
 .product-list-add { display: flex; flex-direction: column; gap: 10px; }
 
-.product-card-add {
-    background: white; border-radius: 12px; padding: 12px 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px;
-    border-left: 4px solid var(--primary-blue); transition: all 0.2s; cursor: pointer;
-}
+.product-card-add { background: white; border-radius: 12px; padding: 12px 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px; border-left: 4px solid var(--primary-blue); transition: all 0.2s; cursor: pointer; }
 .product-card-add:hover { transform: translateX(3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .product-card-add.editing { border-left-color: #ffc107; background: #fffbeb; }
 .product-card-add.low-stock { border-left-color: #dc3545; }
-
-.product-avatar-add {
-    width: 48px; height: 48px; border-radius: 12px; background: #f0f8ff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px; flex-shrink: 0; overflow: hidden; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+.product-avatar-add { width: 48px; height: 48px; border-radius: 12px; background: #f0f8ff; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; overflow: hidden; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 .product-avatar-add img { width: 100%; height: 100%; object-fit: cover; }
-
 .product-info-add { flex: 1; min-width: 0; }
 .product-name-add { font-size: 15px; font-weight: 600; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
 .product-badge-add { display: inline-block; font-size: 10px; font-weight: 700; color: var(--primary-blue); background: #e7f1ff; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
 .product-status-add { width: 10px; height: 10px; border-radius: 50%; background: #28a745; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2); }
 .product-status-add.low { background: #dc3545; box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2); }
-.delete-btn-add {
-    width: 32px; height: 32px; border-radius: 50%; background: #fee2e2; border: none; color: #dc3545;
-    font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
-}
+.delete-btn-add { width: 32px; height: 32px; border-radius: 50%; background: #fee2e2; border: none; color: #dc3545; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 .delete-btn-add:hover { background: #dc3545; color: white; }
 
-/* PHOTO UPLOAD */
-.photo-upload-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
-.photo-upload-card {
-    border: 2px dashed #ddd; border-radius: 12px; padding: 25px 20px; text-align: center;
-    background: #fafafa; cursor: pointer; transition: all 0.2s; display: flex;
-    flex-direction: column; align-items: center; justify-content: center;
-    width: 100%; max-width: 280px; min-height: 120px;
-}
-.photo-upload-card:hover { border-color: var(--primary-blue); background: #f0f8ff; }
-.photo-upload-card .camera-icon { font-size: 32px; color: #666; margin-bottom: 8px; }
-.photo-upload-card .upload-text { color: #666; font-size: 12px; margin-top: 8px; text-align: center; }
+/* === PHOTO UPLOAD (DIPERBAIKI) === */
+.photo-upload-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
 
-/* PREVIEW GAMBAR - SQUARE (SEGI EMPAT) */
-.photo-preview-large {
+/* Frame Placeholder & Preview MESTI sama saiz & bentuk */
+.photo-placeholder, .photo-preview-large {
     width: 100px !important;
     height: 100px !important;
-    border-radius: 8px !important; /* Tukar dari 50% kepada 8px */
+    border-radius: 8px !important; /* Segi empat bucu tirus, BUKAN bulat */
     object-fit: cover !important;
-    margin-top: 10px;
+}
+
+.photo-placeholder {
+    border: 2px dashed #ddd;
+    background: #fafafa;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.photo-placeholder:hover { border-color: var(--primary-blue); background: #f0f8ff; }
+.photo-placeholder i { font-size: 28px; color: #666; margin-bottom: 5px; }
+.photo-placeholder span { font-size: 11px; color: #666; text-align: center; line-height: 1.2; }
+
+.photo-preview-large {
+    display: none; /* Sembunyi default */
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border: 2px solid var(--primary-blue) !important;
-    display: none;
+    /* TIADA BORDER BIRU DI SINI */
 }
 
 #photoInput { display: none !important; }
 
-/* FLOATING MENU - ICON BULAT BERWARNA */
+/* Floating Menu */
 .photo-option-menu {
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed; /* Posisi dikira oleh JS */
     background: transparent;
-    padding: 10px;
+    padding: 5px;
     z-index: 1000;
     display: flex;
     gap: 15px;
-    animation: slideUp 0.3s ease;
+    animation: popIn 0.2s ease;
 }
-
 .photo-option-item {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.2s;
+    width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.2s;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
-
 .photo-option-item:hover { transform: scale(1.1); }
-.photo-option-item i { font-size: 24px; color: white; }
+.photo-option-item i { font-size: 22px; color: white; }
 
-@keyframes slideUp {
-    from { transform: translate(-50%, 20px); opacity: 0; }
-    to { transform: translate(-50%, 0); opacity: 1; }
-}
+@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
