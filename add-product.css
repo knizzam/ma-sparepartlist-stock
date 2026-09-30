@@ -1,6 +1,8 @@
 /* =========================================
    ADD NEW PRODUCT CSS
    ========================================= */
+
+/* Header */
 .add-product-header {
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
     color: white; text-align: center; padding: 15px 20px 20px;
@@ -15,20 +17,69 @@
     width: 36px; height: 36px; border-radius: 50%; display: flex;
     align-items: center; justify-content: center; text-decoration: none;
 }
-.add-product-title { font-size: 1.0rem; font-weight: 800; margin: 0; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 1.5px; }
+.add-product-title { 
+    font-size: 1.0rem; font-weight: 800; margin: 0; color: white; 
+    display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 1.5px; 
+}
 .add-product-title i { font-size: 1.2rem; }
 
+/* === PHOTO UPLOAD === */
+.photo-upload-wrapper { 
+    display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; 
+    position: relative !important;
+    overflow: visible !important;
+    margin-bottom: 70px !important;
+}
+
+.photo-placeholder, .photo-preview-large {
+    width: 100%; max-width: 160px; aspect-ratio: 4 / 3; border-radius: 8px; 
+}
+.photo-placeholder {
+    border: 2px dashed #ddd; background: #fafafa; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; transition: all 0.2s; 
+    cursor: pointer;
+}
+.photo-placeholder:hover { border-color: var(--primary-blue); background: #f0f8ff; }
+.photo-placeholder i { font-size: 24px; color: #666; margin-bottom: 5px; }
+.photo-placeholder span { font-size: 11px; color: #666; text-align: center; line-height: 1.2; }
+.photo-preview-large { 
+    display: none; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+    cursor: pointer;
+}
+#photoInput { display: none !important; }
+
+/* === PRODUCT LIST === */
 .list-header-add { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px; }
 .list-title-add { font-size: 16px; font-weight: bold; color: #000; }
 .list-badge-add { background: var(--primary-blue); color: white; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
 .product-list-add { display: flex; flex-direction: column; gap: 10px; }
 
-.product-card-add { background: white; border-radius: 12px; padding: 12px 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px; border-left: 4px solid var(--primary-blue); transition: all 0.2s; cursor: pointer; }
+.product-card-add { 
+    background: white; border-radius: 12px; padding: 12px 15px; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px; 
+    border-left: 4px solid var(--primary-blue); transition: all 0.2s; cursor: pointer; 
+}
 .product-card-add:hover { transform: translateX(3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .product-card-add.editing { border-left-color: #ffc107; background: #fffbeb; }
 .product-card-add.low-stock { border-left-color: #dc3545; }
-.product-avatar-add { width: 48px; height: 48px; border-radius: 12px; background: #f0f8ff; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; overflow: hidden; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+/* AVATAR SEGEMPAT ROUNDED (SAMA MACAM REGISTER) */
+.product-avatar-add {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #f0f8ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 .product-avatar-add img { width: 100%; height: 100%; object-fit: cover; }
+
 .product-info-add { flex: 1; min-width: 0; }
 .product-name-add { font-size: 15px; font-weight: 600; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
 .product-badge-add { display: inline-block; font-size: 10px; font-weight: 700; color: var(--primary-blue); background: #e7f1ff; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
@@ -37,64 +88,14 @@
 .delete-btn-add { width: 32px; height: 32px; border-radius: 50%; background: #fee2e2; border: none; color: #dc3545; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 .delete-btn-add:hover { background: #dc3545; color: white; }
 
-/* === PHOTO UPLOAD (RESPONSIVE 4:3 LANDSCAPE) === */
-.photo-upload-wrapper { 
-    display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; 
-}
-
-/* Frame Responsive: Lebar penuh tapi max 160px, Nisbah 4:3 (Landscape) */
-.photo-placeholder, .photo-preview-large {
-    width: 100%;
-    max-width: 160px;
-    aspect-ratio: 4 / 3; 
-    border-radius: 8px !important;
-    overflow: hidden;
-}
-
-.photo-placeholder {
-    border: 2px dashed #ddd;
-    background: #fafafa;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    transition: all 0.2s;
-    cursor: pointer;
-}
-.photo-placeholder:hover { border-color: var(--primary-blue); background: #f0f8ff; }
-.photo-placeholder i { font-size: 24px; color: #666; margin-bottom: 5px; }
-.photo-placeholder span { font-size: 11px; color: #666; text-align: center; line-height: 1.2; }
-
-/* GAMBAR PENUH DALAM FRAME */
-.photo-preview-large {
-    display: none;
-    object-fit: cover !important; /* INI BUAT GAMBAR PENUH TANPA DISTORTION */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    cursor: pointer;
-}
-
-#photoInput { display: none !important; }
-
-/* Floating Menu */
-.photo-option-menu {
-    position: fixed; background: transparent; padding: 5px; z-index: 1000;
-    display: flex; gap: 15px; animation: popIn 0.2s ease;
-}
-.photo-option-item {
-    width: 50px; height: 50px; border-radius: 50%; border: none;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-.photo-option-item:active { transform: scale(0.9); }
-.photo-option-item i { font-size: 22px; color: white; }
-
-@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-/* === INPUT FORM (WARNA PUTIH) === */
+/* === INPUT FORM === */
 .form-input { 
     width: 100%; padding: 12px 15px; background: #ffffff; border: 1px solid #e0e0e0; 
     border-radius: 10px; font-size: 15px; color: #333; transition: all 0.2s; box-sizing: border-box; 
 }
 .form-input:focus { background: white; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(26,115,232,0.1); outline: none; }
 
-/* === CANCEL BUTTON (SENTIASA NAMPAK) === */
+/* === CANCEL BUTTON === */
 .cancel-btn { 
     flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; 
     font-size: 15px; font-weight: bold; cursor: pointer; display: block !important; 
