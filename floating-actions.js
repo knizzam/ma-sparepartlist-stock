@@ -28,14 +28,14 @@ const FloatingActions = {
         if (this.config.position === 'top-right') {
             menuContainer.style.cssText = `
                 position: fixed;
-                top: 70px;
+                top: 1px;
                 right: 15px;
                 z-index: 1001;
             `;
         } else {
             menuContainer.style.cssText = `
                 position: fixed;
-                top: 70px;
+                top: 1px;
                 left: 15px;
                 z-index: 1001;
             `;
