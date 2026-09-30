@@ -1,19 +1,17 @@
 /**
  * Floating Action Menu (FAM) Component
- * Komponen menu terapung yang boleh diguna semula di semua halaman
+ * Versi Diperbaiki - Selari dengan Header
  */
 
 const FloatingActions = {
-    // Konfigurasi default
     defaultConfig: {
-        position: 'top-right', // 'top-right' atau 'top-left'
-        buttons: [], // Array button objects
+        position: 'top-right',
+        buttons: [],
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         iconColor: '#333',
         hoverColor: '#f0f0f0'
     },
 
-    // Initialize floating menu
     init(config = {}) {
         this.config = { ...this.defaultConfig, ...config };
         this.createMenu();
@@ -21,30 +19,28 @@ const FloatingActions = {
         this.attachEvents();
     },
 
-    // Create floating button (3 dots)
     createMenu() {
         const menuContainer = document.createElement('div');
         menuContainer.id = 'floatingActionMenu';
         menuContainer.className = 'floating-action-container';
         
-        // Position - SELARI DENGAN HEADER
+        // PERBAIKAN: Position selari dengan header content
         if (this.config.position === 'top-right') {
             menuContainer.style.cssText = `
                 position: fixed;
-                top: 15px;
+                top: 12px;
                 right: 15px;
                 z-index: 1001;
             `;
         } else {
             menuContainer.style.cssText = `
                 position: fixed;
-                top: 15px;
+                top: 12px;
                 left: 15px;
                 z-index: 1001;
             `;
         }
 
-        // Create menu items (hidden by default)
         const menuItems = document.createElement('div');
         menuItems.id = 'floatingMenuItems';
         menuItems.className = 'floating-menu-items';
@@ -91,7 +87,6 @@ const FloatingActions = {
             menuItems.appendChild(menuItem);
         });
 
-        // Create trigger button (3 dots)
         const triggerBtn = document.createElement('div');
         triggerBtn.id = 'floatingTriggerBtn';
         triggerBtn.className = 'floating-trigger-btn';
@@ -125,7 +120,6 @@ const FloatingActions = {
         document.body.appendChild(menuContainer);
     },
 
-    // Create overlay (background blur when menu open)
     createOverlay() {
         const overlay = document.createElement('div');
         overlay.id = 'floatingOverlay';
@@ -146,7 +140,6 @@ const FloatingActions = {
         document.body.appendChild(overlay);
     },
 
-    // Attach events
     attachEvents() {
         const triggerBtn = document.getElementById('floatingTriggerBtn');
         triggerBtn.onclick = (e) => {
@@ -155,7 +148,6 @@ const FloatingActions = {
         };
     },
 
-    // Toggle menu visibility
     toggleMenu() {
         const menuItems = document.getElementById('floatingMenuItems');
         const overlay = document.getElementById('floatingOverlay');
@@ -168,7 +160,6 @@ const FloatingActions = {
         }
     },
 
-    // Open menu with animation
     openMenu() {
         const menuItems = document.getElementById('floatingMenuItems');
         const overlay = document.getElementById('floatingOverlay');
@@ -179,10 +170,8 @@ const FloatingActions = {
         overlay.style.opacity = '1';
         overlay.style.pointerEvents = 'auto';
         
-        // Rotate trigger button
         triggerBtn.querySelector('i').style.transform = 'rotate(90deg)';
         
-        // Animate items
         items.forEach((item, index) => {
             setTimeout(() => {
                 item.style.opacity = '1';
@@ -192,7 +181,6 @@ const FloatingActions = {
         });
     },
 
-    // Close menu
     closeMenu() {
         const menuItems = document.getElementById('floatingMenuItems');
         const overlay = document.getElementById('floatingOverlay');
@@ -203,10 +191,8 @@ const FloatingActions = {
         overlay.style.opacity = '0';
         overlay.style.pointerEvents = 'none';
         
-        // Reset trigger button
         triggerBtn.querySelector('i').style.transform = 'rotate(0deg)';
         
-        // Hide items
         items.forEach((item) => {
             item.style.opacity = '0';
             item.style.transform = 'translateY(-10px)';
@@ -214,7 +200,6 @@ const FloatingActions = {
         });
     },
 
-    // Update buttons dynamically
     updateButtons(newButtons) {
         this.config.buttons = newButtons;
         const menuItems = document.getElementById('floatingMenuItems');
