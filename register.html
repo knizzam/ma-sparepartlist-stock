@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="register.css">
     
     <script src="config.js"></script>
-    <!-- HANYA PERLU PANGGIL 1 KALI SAHAJA -->
+    <!-- PANGGIL FAIL JS INI (PASTIKAN NAMANYA photo-picker.js) -->
     <script src="photo-picker.js"></script>
 </head>
 <body>
@@ -33,7 +33,7 @@
         <div class="form-card">
             <div class="form-section-title">Profile & Status</div>
             
-            <!-- PHOTO UPLOAD (ID MESTI SAMA MACAM DALAM INIT DI BAWAH) -->
+            <!-- PHOTO UPLOAD (ID MESTI SAMA MACAM DALAM CONFIG DI BAWAH) -->
             <div class="form-group">
                 <label class="form-label">Profile Picture</label>
                 <div class="photo-upload-wrapper" id="photoWrapper">
@@ -72,10 +72,18 @@
         let tempPhotoBase64 = '', editingEmail = null, allUsers = [];
         const USER_LIST_CACHE_KEY = 'ma_inventory_user_list', USER_IMAGE_CACHE_PREFIX = 'ma_user_img_', CACHE_EXPIRY = 5 * 60 * 1000;
 
-        // === INIT PHOTO PICKER (HANYA 1 BARIS KOD!) ===
-        document.addEventListener('DOMContentLoaded', () => {
-            PhotoPicker.init('photoWrapper', 'photoInput', 'photoPreview', 'photoPlaceholder', (base64) => {
-                tempPhotoBase64 = base64;
+        // === INIT PHOTO PICKER (MENGIKUT CORAK HEADERMENU) ===
+        window.addEventListener('DOMContentLoaded', function() {
+            loadUserList();
+            
+            PhotoPicker.init({
+                wrapperId: 'photoWrapper',
+                inputId: 'photoInput',
+                previewId: 'photoPreview',
+                placeholderId: 'photoPlaceholder',
+                onImageSelected: function(base64) {
+                    tempPhotoBase64 = base64;
+                }
             });
         });
 
@@ -240,8 +248,6 @@
             tempPhotoBase64 = ''; editingEmail = null;
             document.getElementById('saveBtn').innerText = 'Add User';
         }
-
-        window.onload = loadUserList;
     </script>
 </body>
 </html>
