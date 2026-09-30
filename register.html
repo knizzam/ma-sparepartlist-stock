@@ -5,19 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Registration Users - MA Inventory</title>
     
-    <!-- External CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css"> <!-- Pautan ke fail CSS global -->
+    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="register.css">
     
     <script src="config.js"></script>
+    <!-- PANGGIL FAIL PHOTO PICKER UNIVERSAL -->
+    <script src="photo-picker.js"></script>
 </head>
 <body>
 
-    <div class="page-header">
+    <!-- HEADER CANTIK DENGAN ICON -->
+    <div class="register-header">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-        <h1 class="page-title">Registration Users</h1>
+        <h1 class="register-title"><i class="fas fa-user-plus"></i>Registration Users</h1>
     </div>
 
     <div class="main-container">
@@ -48,17 +50,20 @@
 
         <div class="form-card">
             <div class="form-section-title">Profile & Status</div>
+            
+            <!-- PHOTO UPLOAD MENGGUNAKAN PHOTO-PICKER -->
             <div class="form-group">
                 <label class="form-label">Profile Picture</label>
-                <label class="photo-upload-card" for="photoInput">
-                    <div id="photoUploadContent">
-                        <i class="fas fa-camera" style="font-size: 24px; color: #666; margin-bottom: 8px;"></i>
-                        <div style="color: #666; font-size: 13px;">Tap to upload photo</div>
+                <div class="photo-upload-wrapper" id="photoWrapper">
+                    <div class="photo-placeholder" id="photoPlaceholder">
+                        <i class="fas fa-camera"></i>
+                        <span>Tap to upload<br>or take photo</span>
                     </div>
-                    <img id="photoPreview" class="photo-preview-large" style="display:none;">
-                </label>
-                <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto(this)">
+                    <img id="photoPreview" class="photo-preview-large" alt="Preview">
+                    <input type="file" id="photoInput" accept="image/*">
+                </div>
             </div>
+            
             <div class="form-group">
                 <label class="checkbox-wrapper">
                     <input type="checkbox" id="userActive" checked>
@@ -91,6 +96,13 @@
         const USER_IMAGE_CACHE_PREFIX = 'ma_user_img_';
         const CACHE_EXPIRY = 5 * 60 * 1000;
 
+        // === INIT PHOTO PICKER ===
+        document.addEventListener('DOMContentLoaded', () => {
+            PhotoPicker.init('photoWrapper', 'photoInput', 'photoPreview', 'photoPlaceholder', (base64) => {
+                tempPhotoBase64 = base64;
+            });
+        });
+
         function showToast(message, type = 'info') {
             const oldToast = document.querySelector('.toast');
             if (oldToast) oldToast.remove();
@@ -99,19 +111,6 @@
             toast.textContent = message;
             document.body.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
-        }
-
-        function previewPhoto(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    tempPhotoBase64 = e.target.result;
-                    document.getElementById('photoPreview').src = tempPhotoBase64;
-                    document.getElementById('photoPreview').style.display = 'block';
-                    document.getElementById('photoUploadContent').style.display = 'none';
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
         }
 
         function getCachedImage(email) {
@@ -144,6 +143,7 @@
                     if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
                         allUsers = parsed.data;
                         renderUserList(allUsers);
+                        return;
                     }
                 } catch(e) { console.error("Cache parse error", e); }
             }
@@ -236,28 +236,28 @@
             document.getElementById('userActive').checked = active;
             
             document.getElementById('saveBtn').innerText = 'Update User';
-            document.getElementById('cancelBtn').classList.add('show');
             
             const preview = document.getElementById('photoPreview');
+            const placeholder = document.getElementById('photoPlaceholder');
             const cachedImage = getCachedImage(email);
             
             if (cachedImage) {
                 preview.src = cachedImage;
                 preview.style.display = 'block';
-                document.getElementById('photoUploadContent').style.display = 'none';
+                placeholder.style.display = 'none';
                 tempPhotoBase64 = '';
             } else if (pictureFileId && pictureFileId.trim() !== '') {
                 APIHelper.fetchImage(pictureFileId).then(imgResult => {
                     if (imgResult.success && imgResult.base64) {
                         preview.src = imgResult.base64;
                         preview.style.display = 'block';
-                        document.getElementById('photoUploadContent').style.display = 'none';
+                        placeholder.style.display = 'none';
                         tempPhotoBase64 = '';
                     }
                 });
             } else {
                 preview.style.display = 'none';
-                document.getElementById('photoUploadContent').style.display = 'block';
+                placeholder.style.display = 'flex';
                 tempPhotoBase64 = '';
             }
             
@@ -268,7 +268,7 @@
         function cancelEdit() {
             resetForm();
             renderUserList(allUsers);
-            showToast('Edit dibatalkan', 'info');
+            showToast('Form dikosongkan', 'info');
         }
 
         async function saveUser() {
@@ -343,13 +343,13 @@
             document.getElementById('userRole').value = '';
             document.getElementById('userEmail').value = '';
             document.getElementById('userActive').checked = true;
-            document.getElementById('photoInput').value = '';
-            document.getElementById('photoPreview').style.display = 'none';
-            document.getElementById('photoUploadContent').style.display = 'block';
+            
+            // GUNA FUNGSI RESET DARI PHOTO PICKER
+            PhotoPicker.reset();
+            
             tempPhotoBase64 = '';
             editingEmail = null;
             document.getElementById('saveBtn').innerText = 'Add User';
-            document.getElementById('cancelBtn').classList.remove('show');
         }
 
         window.onload = loadUserList;
