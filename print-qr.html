@@ -20,9 +20,8 @@
             <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
             <h1 class="page-title">Print QR Code</h1>
         </div>
-        <!-- BUTANG 3 TITIK DI SINI (STATIK DALAM HEADER) -->
         <div id="headerMenuTrigger" style="cursor: pointer; color: white; padding: 10px; border-radius: 50%; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='transparent'">
-            <i class="fas fa-ellipsis-v" style="font-size: 20px;"></6>
+            <i class="fas fa-ellipsis-v" style="font-size: 20px;"></i>
         </div>
     </div>
 
@@ -126,38 +125,38 @@
                 if (cachedImg) {
                     imageContent = `<img src="${cachedImg}" alt="${product.partName}">`;
                 } else if (product.pictureFileId) {
-                    imageContent = `<div class="card-image-placeholder" id="img-placeholder-${safePartNo}" data-fileid="${product.pictureFileId}"><i class="fas fa-spinner fa-spin"></i></div>`;
+                    imageContent = `<div class="print-card-image-placeholder" id="img-placeholder-${safePartNo}" data-fileid="${product.pictureFileId}"><i class="fas fa-spinner fa-spin"></i></div>`;
                 } else {
-                    imageContent = '<div class="card-image-placeholder"><i class="fas fa-box"></i></div>';
+                    imageContent = '<div class="print-card-image-placeholder"><i class="fas fa-box"></i></div>';
                 }
 
                 html += `
-                    <div class="product-card ${isSelected}" id="card-${index}" data-partno="${product.partNo}" data-index="${index}">
-                        <div class="card-header">
-                            <div class="card-title">${product.partName}</div>
-                            <div class="card-checkbox-wrapper">
+                    <div class="print-card ${isSelected}" id="card-${index}" data-partno="${product.partNo}" data-index="${index}">
+                        <div class="print-card-header">
+                            <div class="print-card-title">${product.partName}</div>
+                            <div class="print-card-checkbox">
                                 <div class="custom-checkbox ${isChecked}" data-index="${index}" onclick="handleCheckboxClick(${index})"></div>
                             </div>
                         </div>
                         
-                        <div class="card-info card-clickable" onclick="goToProductDetail('${product.partNo}')">
-                            <div class="info-row">
-                                <span class="info-label">Part No.</span>
-                                <span class="info-colon">:</span>
-                                <span class="info-value">${product.partNo}</span>
+                        <div class="print-card-info card-clickable" onclick="goToProductDetail('${product.partNo}')">
+                            <div class="print-info-row">
+                                <span class="print-info-label">Part No.</span>
+                                <span class="print-info-colon">:</span>
+                                <span class="print-info-value">${product.partNo}</span>
                             </div>
-                            <div class="info-row">
-                                <span class="info-label">Location</span>
-                                <span class="info-colon">:</span>
-                                <span class="info-value">${product.location || '-'}</span>
+                            <div class="print-info-row">
+                                <span class="print-info-label">Location</span>
+                                <span class="print-info-colon">:</span>
+                                <span class="print-info-value">${product.location || '-'}</span>
                             </div>
                         </div>
                         
-                        <div class="card-body">
-                            <div class="card-image card-clickable" id="card-img-${safePartNo}" onclick="goToProductDetail('${product.partNo}')">
+                        <div class="print-card-body">
+                            <div class="print-card-image card-clickable" id="card-img-${safePartNo}" onclick="goToProductDetail('${product.partNo}')">
                                 ${imageContent}
                             </div>
-                            <div class="card-qr">
+                            <div class="print-card-qr">
                                 <img src="${qrUrl}" alt="QR Code" crossorigin="anonymous">
                             </div>
                         </div>
@@ -270,8 +269,8 @@
 
         async function shareSelected() {
             const selected = getSelectedProducts();
-            if (selected.length === 0) { showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning'); return; }
-            showToast('⏳ Sedang menyediakan fail...', 'info');
+            if (selected.length === 0) { showToast('️ Sila pilih sekurang-kurangnya satu produk!', 'warning'); return; }
+            showToast(' Sedang menyediakan fail...', 'info');
             const files = [];
 
             for (const product of selected) {
@@ -286,7 +285,7 @@
                 }
             }
 
-            if (files.length === 0) { showToast('❌ Gagal menjana imej!', 'error'); return; }
+            if (files.length === 0) { showToast(' Gagal menjana imej!', 'error'); return; }
 
             if (navigator.canShare && navigator.canShare({ files: files })) {
                 try {
@@ -320,31 +319,15 @@
             }
         }
 
-        // INITIALIZE HEADER DROPDOWN MENU
         window.addEventListener('DOMContentLoaded', function() {
             loadProducts();
             
             HeaderMenu.init({
                 triggerId: 'headerMenuTrigger',
                 buttons: [
-                    {
-                        icon: 'fas fa-print',
-                        title: 'Cetak',
-                        color: '#6c757d',
-                        action: printSelected
-                    },
-                    {
-                        icon: 'fas fa-download',
-                        title: 'Muat Turun',
-                        color: '#1a73e8',
-                        action: downloadSelected
-                    },
-                    {
-                        icon: 'fas fa-share-alt',
-                        title: 'Kongsi',
-                        color: '#28a745',
-                        action: shareSelected
-                    }
+                    { icon: 'fas fa-print', title: 'Cetak', color: '#6c757d', action: printSelected },
+                    { icon: 'fas fa-download', title: 'Muat Turun', color: '#1a73e8', action: downloadSelected },
+                    { icon: 'fas fa-share-alt', title: 'Kongsi', color: '#28a745', action: shareSelected }
                 ]
             });
         });
