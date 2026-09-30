@@ -35,18 +35,17 @@
 .delete-btn-add { width: 32px; height: 32px; border-radius: 50%; background: #fee2e2; border: none; color: #dc3545; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 .delete-btn-add:hover { background: #dc3545; color: white; }
 
-/* === PHOTO UPLOAD (3:4 LANDSCAPE) === */
+/* === PHOTO UPLOAD (RESPONSIVE) === */
 .photo-upload-wrapper { 
     display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; 
-    cursor: pointer;
 }
 
-/* 3:4 LANDSCAPE = Lebar 120px, Tinggi 90px */
+/* Frame fixed size */
 .photo-placeholder, .photo-preview-large {
     width: 120px !important;
     height: 90px !important;
     border-radius: 8px !important;
-    object-fit: cover !important;
+    overflow: hidden;
 }
 
 .photo-placeholder {
@@ -54,14 +53,18 @@
     background: #fafafa;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     transition: all 0.2s;
+    cursor: pointer;
 }
 .photo-placeholder:hover { border-color: var(--primary-blue); background: #f0f8ff; }
 .photo-placeholder i { font-size: 22px; color: #666; margin-bottom: 4px; }
 .photo-placeholder span { font-size: 10px; color: #666; text-align: center; line-height: 1.2; }
 
+/* GAMBAR PENUH DALAM FRAME */
 .photo-preview-large {
     display: none;
+    object-fit: cover !important; /* INI YANG BUAT GAMBAR PENUH */
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    cursor: pointer;
 }
 
 #photoInput { display: none !important; }
@@ -75,12 +78,12 @@
     width: 50px; height: 50px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: none;
 }
 .photo-option-item:hover { transform: scale(1.1); }
 .photo-option-item i { font-size: 22px; color: white; }
 
 @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
 /* === INPUT FORM (WARNA PUTIH) === */
 .form-input { 
     width: 100%; padding: 12px 15px; background: #ffffff; border: 1px solid #e0e0e0; 
