@@ -1,0 +1,23 @@
+/* =========================================
+   EDIT PROFILE SPECIFIC
+   ========================================= */
+.photo-upload-card {
+    border: 2px dashed #ddd; border-radius: 12px; padding: 20px; text-align: center;
+    background: #fafafa; cursor: pointer; transition: all 0.2s; display: flex;
+    flex-direction: column; align-items: center; justify-content: center; min-height: 100px;
+}
+.photo-upload-card:hover { border-color: var(--primary-blue); background: #f0f8ff; }
+.photo-preview-large {
+    width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+    margin-top: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 3px solid white;
+}
+#photoInput { display: none; }
+
+.photo-upload-wrapper { position: relative; width: 120px; height: 120px; margin: 0 auto 15px auto; }
+.profile-pic-outer { width: 120px; height: 120px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.profile-pic-outer img { width: 100%; height: 100%; object-fit: cover; }
+.profile-pic-default { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 48px; color: #999; }
+.edit-icon-float { position: absolute; bottom: 0; right: 0; width: 36px; height: 36px; background: var(--primary-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); border: 3px solid white; }
+
+.checkbox-wrapper { display: flex; align-items: center; gap: 12px; padding: 12px 15px; background: #f8f9fa; border-radius: 10px; cursor: pointer; }
+.checkbox-wrapper input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary-blue); }
