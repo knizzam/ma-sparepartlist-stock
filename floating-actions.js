@@ -1,6 +1,6 @@
 /**
  * Header Dropdown Menu Component
- * Menu dropdown yang muncul di bawah butang 3 titik dalam header
+ * Menu floating dengan icon bulat berwarna
  */
 const HeaderMenu = {
     init(config = {}) {
@@ -14,7 +14,7 @@ const HeaderMenu = {
     },
 
     createDropdown() {
-        // Buang dropdown lama jika ada (elak duplicate)
+        // Buang dropdown lama jika ada
         const oldDropdown = document.getElementById('headerDropdownMenu');
         if (oldDropdown) oldDropdown.remove();
         
@@ -24,14 +24,12 @@ const HeaderMenu = {
             position: absolute;
             top: 60px;
             right: 15px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            padding: 8px 0;
+            background: transparent;
+            padding: 8px;
             z-index: 1000;
             display: none;
             flex-direction: column;
-            min-width: 160px;
+            gap: 10px;
             opacity: 0;
             transform: translateY(-10px);
             transition: opacity 0.2s ease, transform 0.2s ease;
@@ -39,21 +37,23 @@ const HeaderMenu = {
 
         this.config.buttons.forEach(btn => {
             const item = document.createElement('div');
+            item.title = btn.title;
             item.style.cssText = `
-                padding: 12px 16px;
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: ${btn.color || '#333'};
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
                 display: flex;
                 align-items: center;
-                gap: 12px;
+                justify-content: center;
                 cursor: pointer;
-                color: #333;
-                font-size: 14px;
-                font-weight: 500;
-                transition: background 0.2s;
+                transition: transform 0.2s;
             `;
-            item.innerHTML = `<i class="${btn.icon}" style="color: ${btn.color || '#333'}; width: 20px; text-align: center; font-size: 16px;"></i> <span>${btn.title}</span>`;
+            item.innerHTML = `<i class="${btn.icon}" style="color: white; font-size: 20px;"></i>`;
             
-            item.onmouseenter = () => item.style.background = '#f0f4f8';
-            item.onmouseleave = () => item.style.background = 'transparent';
+            item.onmouseenter = () => item.style.transform = 'scale(1.1)';
+            item.onmouseleave = () => item.style.transform = 'scale(1)';
             item.onclick = (e) => {
                 e.stopPropagation();
                 btn.action();
