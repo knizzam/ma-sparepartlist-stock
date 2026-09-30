@@ -11,19 +11,17 @@
     <link rel="stylesheet" href="register.css">
     
     <script src="config.js"></script>
-    <!-- PANGGIL FAIL PHOTO PICKER UNIVERSAL DI SINI -->
+    <!-- PASTIKAN FAIL INI DIPANGGIL -->
     <script src="photo-picker.js"></script>
 </head>
 <body>
 
-    <!-- HEADER CANTIK DENGAN ICON -->
     <div class="register-header">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <h1 class="register-title"><i class="fas fa-user-plus"></i>Registration Users</h1>
     </div>
 
     <div class="main-container">
-        <!-- FORM -->
         <div class="form-card">
             <div class="form-section-title">Account Details</div>
             
@@ -51,7 +49,7 @@
         <div class="form-card">
             <div class="form-section-title">Profile & Status</div>
             
-            <!-- PHOTO UPLOAD MENGGUNAKAN PHOTO-PICKER (SAMA MACAM ADD PRODUCT) -->
+            <!-- PHOTO UPLOAD - GUNA ID YANG SAMA MACAM ADD PRODUCT -->
             <div class="form-group">
                 <label class="form-label">Profile Picture</label>
                 <div class="photo-upload-wrapper" id="photoWrapper">
@@ -79,7 +77,6 @@
 
         <div style="height: 4px; background: linear-gradient(to right, #1a73e8, #4a90e2); margin: 30px 0 20px; border-radius: 2px;"></div>
 
-        <!-- LIST -->
         <div class="list-header">
             <div class="list-title">Registered Users <span class="list-badge" id="userCount">0</span></div>
         </div>
@@ -96,7 +93,7 @@
         const USER_IMAGE_CACHE_PREFIX = 'ma_user_img_';
         const CACHE_EXPIRY = 5 * 60 * 1000;
 
-        // === INIT PHOTO PICKER UNIVERSAL ===
+        // === INIT PHOTO PICKER (SAMA MACAM ADD PRODUCT) ===
         document.addEventListener('DOMContentLoaded', () => {
             PhotoPicker.init('photoWrapper', 'photoInput', 'photoPreview', 'photoPlaceholder', (base64) => {
                 tempPhotoBase64 = base64;
@@ -344,7 +341,7 @@
             document.getElementById('userEmail').value = '';
             document.getElementById('userActive').checked = true;
             
-            // GUNA FUNGSI RESET DARI PHOTO PICKER UNIVERSAL
+            // GUNA FUNGSI RESET DARI PHOTO PICKER
             PhotoPicker.reset();
             
             tempPhotoBase64 = '';
