@@ -11,8 +11,6 @@
     <link rel="stylesheet" href="register.css">
     
     <script src="config.js"></script>
-    <!-- PASTIKAN FAIL INI DIPANGGIL -->
-    <script src="photo-picker.js"></script>
 </head>
 <body>
 
@@ -49,15 +47,15 @@
         <div class="form-card">
             <div class="form-section-title">Profile & Status</div>
             
-            <!-- PHOTO UPLOAD - GUNA ID YANG SAMA MACAM ADD PRODUCT -->
+            <!-- PHOTO UPLOAD DENGAN onclick="showPhotoMenu(event)" -->
             <div class="form-group">
                 <label class="form-label">Profile Picture</label>
-                <div class="photo-upload-wrapper" id="photoWrapper">
-                    <div class="photo-placeholder" id="photoPlaceholder">
+                <div class="photo-upload-wrapper">
+                    <div class="photo-placeholder" id="photoPlaceholder" onclick="showPhotoMenu(event)">
                         <i class="fas fa-camera"></i>
                         <span>Tap to upload<br>or take photo</span>
                     </div>
-                    <img id="photoPreview" class="photo-preview-large" alt="Preview">
+                    <img id="photoPreview" class="photo-preview-large" alt="Preview" onclick="showPhotoMenu(event)">
                     <input type="file" id="photoInput" accept="image/*">
                 </div>
             </div>
@@ -93,11 +91,69 @@
         const USER_IMAGE_CACHE_PREFIX = 'ma_user_img_';
         const CACHE_EXPIRY = 5 * 60 * 1000;
 
-        // === INIT PHOTO PICKER (SAMA MACAM ADD PRODUCT) ===
-        document.addEventListener('DOMContentLoaded', () => {
-            PhotoPicker.init('photoWrapper', 'photoInput', 'photoPreview', 'photoPlaceholder', (base64) => {
-                tempPhotoBase64 = base64;
-            });
+        // === FUNGSI PHOTO MENU (SAMA MACAM ADD PRODUCT) ===
+        function showPhotoMenu(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closePhotoMenu();
+            
+            const menu = document.createElement('div');
+            menu.className = 'photo-option-menu';
+            menu.id = 'photoOptionMenu';
+
+            const rect = e.currentTarget.getBoundingClientRect();
+            menu.style.top = (rect.bottom + window.scrollY + 10) + 'px';
+            menu.style.left = (rect.left + window.scrollX + (rect.width / 2) - 55) + 'px';
+
+            const cameraBtn = document.createElement('button');
+            cameraBtn.className = 'photo-option-item';
+            cameraBtn.style.background = '#6c757d';
+            cameraBtn.innerHTML = '<i class="fas fa-camera"></i>';
+            cameraBtn.onclick = (ev) => { ev.stopPropagation(); openFilePicker('camera'); };
+
+            const galleryBtn = document.createElement('button');
+            galleryBtn.className = 'photo-option-item';
+            galleryBtn.style.background = '#1a73e8';
+            galleryBtn.innerHTML = '<i class="fas fa-images"></i>';
+            galleryBtn.onclick = (ev) => { ev.stopPropagation(); openFilePicker('gallery'); };
+
+            menu.appendChild(cameraBtn);
+            menu.appendChild(galleryBtn);
+            document.body.appendChild(menu);
+
+            setTimeout(() => {
+                document.addEventListener('click', closePhotoMenu, { once: true });
+            }, 100);
+        }
+
+        function closePhotoMenu() {
+            const menu = document.getElementById('photoOptionMenu');
+            if (menu) menu.remove();
+        }
+
+        function openFilePicker(source) {
+            const input = document.getElementById('photoInput');
+            if (source === 'camera') {
+                input.setAttribute('capture', 'environment');
+            } else {
+                input.removeAttribute('capture');
+            }
+            input.value = '';
+            input.click();
+            closePhotoMenu();
+        }
+
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    tempPhotoBase64 = ev.target.result;
+                    document.getElementById('photoPreview').src = tempPhotoBase64;
+                    document.getElementById('photoPreview').style.display = 'block';
+                    document.getElementById('photoPlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
         });
 
         function showToast(message, type = 'info') {
@@ -319,7 +375,7 @@
         }
 
         async function deleteUser(email) {
-            if (!confirm('⚠️ Adakah anda pasti ingin memadam pengguna ini?')) return;
+            if (!confirm('️ Adakah anda pasti ingin memadam pengguna ini?')) return;
             
             try {
                 await fetch(CONFIG.API_URL, {
@@ -340,10 +396,9 @@
             document.getElementById('userRole').value = '';
             document.getElementById('userEmail').value = '';
             document.getElementById('userActive').checked = true;
-            
-            // GUNA FUNGSI RESET DARI PHOTO PICKER
-            PhotoPicker.reset();
-            
+            document.getElementById('photoInput').value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('photoPlaceholder').style.display = 'flex';
             tempPhotoBase64 = '';
             editingEmail = null;
             document.getElementById('saveBtn').innerText = 'Add User';
