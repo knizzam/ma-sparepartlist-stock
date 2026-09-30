@@ -23,17 +23,14 @@ const PhotoPicker = {
         const menu = document.createElement('div');
         menu.id = 'photoOptionMenu';
         
-        // Kira posisi di BAWAH elemen yang diklik
-        const rect = e.currentTarget.getBoundingClientRect();
-        const top = rect.bottom + window.scrollY + 10;
-        const left = rect.left + window.scrollX + (rect.width / 2) - 55;
-        
+        // LETAK DI TENGAH SKRIN - SUDAH TERBUKTI BERFUNGSI
         menu.style.cssText = `
             position: fixed !important;
-            top: ${top}px !important;
-            left: ${left}px !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
             background: transparent !important;
-            padding: 5px !important;
+            padding: 10px !important;
             z-index: 999999 !important;
             display: flex !important;
             flex-direction: row !important;
@@ -54,6 +51,8 @@ const PhotoPicker = {
             cursor: pointer !important;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
             transition: transform 0.2s !important;
+            margin: 0 !important;
+            padding: 0 !important;
         `;
         cameraBtn.innerHTML = '<i class="fas fa-camera" style="font-size: 22px !important; color: white !important;"></i>';
         cameraBtn.onmouseenter = () => cameraBtn.style.transform = 'scale(1.1)';
@@ -74,6 +73,8 @@ const PhotoPicker = {
             cursor: pointer !important;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
             transition: transform 0.2s !important;
+            margin: 0 !important;
+            padding: 0 !important;
         `;
         galleryBtn.innerHTML = '<i class="fas fa-images" style="font-size: 22px !important; color: white !important;"></i>';
         galleryBtn.onmouseenter = () => galleryBtn.style.transform = 'scale(1.1)';
