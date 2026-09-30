@@ -1,0 +1,74 @@
+/* =========================================
+   PRINT QR CODE SPECIFIC
+   ========================================= */
+.search-section { padding: 10px 15px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.search-container { display: flex; gap: 8px; align-items: center; }
+.search-input { flex: 1; padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; outline: none; background: #f5f5f5; }
+.search-input:focus { border-color: var(--primary-blue); background: white; }
+.select-all-container { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.select-all-container label { font-size: 13px; font-weight: 500; cursor: pointer; color: #555; }
+
+.custom-checkbox {
+    width: 20px; height: 20px; border: 2px solid #fff; border-radius: 3px;
+    background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+}
+.custom-checkbox.checked { background: white; border-color: white; }
+.custom-checkbox.checked::after { content: '✓'; color: #007bff; font-size: 14px; font-weight: bold; }
+.select-all-container .custom-checkbox { border-color: #007bff; background: white; }
+.select-all-container .custom-checkbox.checked { background: #007bff; }
+.select-all-container .custom-checkbox.checked::after { color: white; }
+
+.product-grid { padding: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+.print-card {
+    background: white; border-radius: 8px; overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1); border: 2px solid transparent;
+    position: relative; transition: border-color 0.2s;
+}
+.print-card.selected { border-color: var(--primary-blue); }
+.print-card-header {
+    background: linear-gradient(135deg, #007bff 0%, #00a8ff 100%);
+    color: white; padding: 10px 12px; display: flex; align-items: center; justify-content: center; position: relative; min-height: 42px;
+}
+.print-card-title { font-size: 13px; font-weight: 600; text-align: center; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 30px; }
+.print-card-checkbox { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); z-index: 10; }
+.print-card-info { padding: 8px 12px; background: #fafafa; border-bottom: 1px solid #f0f0f0; }
+.print-info-row { display: grid; grid-template-columns: 65px 12px 1fr; margin-bottom: 4px; font-size: 12px; align-items: baseline; }
+.print-info-row:last-child { margin-bottom: 0; }
+.print-info-label { font-weight: 600; color: #555; }
+.print-info-colon { text-align: center; color: #888; }
+.print-info-value { color: #333; font-weight: 500; word-break: break-all; }
+.print-card-body { padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: stretch; }
+.print-card-image { background: #f8f9fa; border-radius: 6px; padding: 6px; display: flex; align-items: center; justify-content: center; aspect-ratio: 1; cursor: pointer; overflow: hidden; position: relative; }
+.print-card-image img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+.print-card-image-placeholder { color: #ddd; font-size: 32px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+.print-card-qr { background: white; border: 2px solid #f0f0f0; border-radius: 6px; padding: 6px; display: flex; align-items: center; justify-content: center; aspect-ratio: 1; overflow: hidden; }
+.print-card-qr img { width: 100%; height: 100%; object-fit: contain; }
+.card-clickable { cursor: pointer; }
+.loading-container { grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #888; }
+.loading-container i { font-size: 32px; margin-bottom: 10px; color: var(--primary-blue); }
+
+/* PRINT MEDIA QUERIES */
+@media print {
+    @page { size: A4 landscape; margin: 10mm; }
+    body { background: white !important; padding: 0 !important; margin: 0 !important; }
+    .page-header, .search-section, .toast, .print-card-checkbox, #headerMenuTrigger, #headerDropdownMenu { display: none !important; }
+    .product-grid { padding: 0 !important; grid-template-columns: repeat(3, 1fr) !important; gap: 8mm !important; }
+    .print-card:not(.selected) { display: none !important; }
+    .print-card { box-shadow: none !important; border: 1px solid #ddd !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+    .print-card-header { background: #007bff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; padding: 8px 10px !important; }
+    .print-card-title { font-size: 14px !important; font-weight: 700 !important; color: white !important; }
+    .print-card-info { padding: 8px 10px !important; }
+    .print-info-row { font-size: 12px !important; margin-bottom: 4px !important; }
+    .print-info-label { font-size: 12px !important; font-weight: 700 !important; }
+    .print-info-value { font-size: 12px !important; font-weight: 500 !important; }
+    .print-card-body { padding: 10px !important; gap: 8px !important; }
+}
+@media (min-width: 768px) {
+    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; }
+    .print-card-title { font-size: 15px; }
+    .print-info-row { font-size: 14px; }
+}
+@media (min-width: 1024px) {
+    .product-grid { grid-template-columns: repeat(3, 1fr); }
+}
