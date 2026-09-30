@@ -1,3 +1,93 @@
+// === PHOTO MENU FUNCTIONS ===
+function showPhotoMenu(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Buang menu lama
+    const oldMenu = document.getElementById('photoOptionMenu');
+    if (oldMenu) oldMenu.remove();
+    
+    // Cipta menu baru
+    const menu = document.createElement('div');
+    menu.className = 'photo-option-menu';
+    menu.id = 'photoOptionMenu';
+    
+    // Posisi menu
+    const rect = e.currentTarget.getBoundingClientRect();
+    menu.style.top = (rect.bottom + window.scrollY + 10) + 'px';
+    menu.style.left = (rect.left + window.scrollX + (rect.width / 2) - 55) + 'px';
+    
+    // Butang Camera
+    const cameraBtn = document.createElement('button');
+    cameraBtn.className = 'photo-option-item';
+    cameraBtn.style.background = '#6c757d';
+    cameraBtn.innerHTML = '<i class="fas fa-camera"></i>';
+    cameraBtn.onclick = function(ev) {
+        ev.stopPropagation();
+        menu.remove();
+        openFilePicker('camera');
+    };
+    
+    // Butang Gallery
+    const galleryBtn = document.createElement('button');
+    galleryBtn.className = 'photo-option-item';
+    galleryBtn.style.background = '#1a73e8';
+    galleryBtn.innerHTML = '<i class="fas fa-images"></i>';
+    galleryBtn.onclick = function(ev) {
+        ev.stopPropagation();
+        menu.remove();
+        openFilePicker('gallery');
+    };
+    
+    menu.appendChild(cameraBtn);
+    menu.appendChild(galleryBtn);
+    document.body.appendChild(menu);
+    
+    // Auto close bila klik luar
+    setTimeout(() => {
+        document.addEventListener('click', function closeMenu() {
+            const m = document.getElementById('photoOptionMenu');
+            if (m) m.remove();
+            document.removeEventListener('click', closeMenu);
+        }, { once: true });
+    }, 100);
+}
+
+function openFilePicker(source) {
+    const input = document.getElementById('photoInput');
+    
+    if (source === 'camera') {
+        input.setAttribute('capture', 'environment');
+    } else {
+        input.removeAttribute('capture');
+    }
+    
+    // Reset value supaya boleh pilih gambar yang sama
+    input.value = '';
+    
+    // Trigger file picker
+    input.click();
+}
+
+// Handle bila user pilih gambar
+document.getElementById('photoInput').addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            const base64 = ev.target.result;
+            tempPhotoBase64 = base64;
+            
+            const preview = document.getElementById('photoPreview');
+            const placeholder = document.getElementById('photoPlaceholder');
+            
+            preview.src = base64;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    }
+});
+
 const PhotoPicker = {
     inputEl: null, previewEl: null, placeholderEl: null, wrapperEl: null, onImageSelected: null,
 
