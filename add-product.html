@@ -5,110 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Add New Product - MA Inventory</title>
     
+    <!-- External CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="config.js"></script>
+    <link rel="stylesheet" href="styles.css"> <!-- INI YANG MENGHubungkan KE styles.css -->
     
-    <style>
-        :root { --primary-blue: #1a73e8; --bg-light: #f0f4f8; }
-        body { background: var(--bg-light); font-family: 'Segoe UI', sans-serif; padding-bottom: 40px; }
-
-        .page-header {
-            background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
-            color: white; padding: 15px 20px; display: flex; align-items: center;
-            box-shadow: 0 4px 10px rgba(26,115,232,0.2); position: sticky; top: 0; z-index: 100;
-        }
-        .back-btn {
-            background: rgba(255,255,255,0.2); border: none; color: white;
-            width: 36px; height: 36px; border-radius: 50%; display: flex;
-            align-items: center; justify-content: center; margin-right: 15px; text-decoration: none;
-        }
-        .page-title { font-size: 1.2rem; font-weight: 700; margin: 0; }
-
-        .main-container { padding: 20px 15px; max-width: 600px; margin: 0 auto; }
-        .form-card {
-            background: white; border-radius: 16px; padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px;
-        }
-        .form-section-title {
-            font-size: 12px; font-weight: 700; color: var(--primary-blue);
-            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;
-            padding-bottom: 8px; border-bottom: 2px solid #f0f8ff;
-        }
-        .form-group { margin-bottom: 16px; }
-        .form-label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px; text-transform: uppercase; }
-        .form-input { 
-            width: 100%; padding: 12px 15px; background: #f8f9fa; border: 1px solid transparent; 
-            border-radius: 10px; font-size: 15px; color: #333; transition: all 0.2s; 
-        }
-        .form-input:focus { background: white; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(26,115,232,0.1); outline: none; }
-
-        .photo-upload-card {
-            border: 2px dashed #ddd; border-radius: 12px; padding: 20px; text-align: center;
-            background: #fafafa; cursor: pointer; transition: all 0.2s; display: flex;
-            flex-direction: column; align-items: center; justify-content: center; min-height: 100px;
-        }
-        .photo-upload-card:hover { border-color: var(--primary-blue); background: #f0f8ff; }
-        .photo-preview-large {
-            width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
-            margin-top: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 3px solid white;
-        }
-        #photoInput { display: none; }
-
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
-        .submit-btn { 
-            flex: 1; padding: 14px; background: linear-gradient(to right, #1a73e8, #1557b0); 
-            color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; 
-            cursor: pointer; box-shadow: 0 4px 10px rgba(26,115,232,0.3);
-        }
-        .submit-btn:active { transform: scale(0.98); }
-        .submit-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
-        .cancel-btn { flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; display: none; }
-        .cancel-btn.show { display: block; }
-
-        .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px; }
-        .list-title { font-size: 16px; font-weight: bold; color: #000; }
-        .list-badge { background: var(--primary-blue); color: white; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
-        
-        .product-list { display: flex; flex-direction: column; gap: 10px; }
-        .product-card {
-            background: white; border-radius: 12px; padding: 12px 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px;
-            border-left: 4px solid var(--primary-blue); transition: all 0.2s; cursor: pointer;
-        }
-        .product-card:hover { transform: translateX(3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .product-card.editing { border-left-color: #ffc107; background: #fffbeb; }
-        .product-card.low-stock { border-left-color: #dc3545; }
-        
-        .product-avatar {
-            width: 48px; height: 48px; border-radius: 12px; background: #f0f8ff;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 24px; flex-shrink: 0; overflow: hidden; border: 2px solid white; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .product-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .product-info { flex: 1; min-width: 0; }
-        .product-name { font-size: 15px; font-weight: 600; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
-        .product-badge { display: inline-block; font-size: 10px; font-weight: 700; color: var(--primary-blue); background: #e7f1ff; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
-        
-        .product-status { width: 10px; height: 10px; border-radius: 50%; background: #28a745; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2); }
-        .product-status.low { background: #dc3545; box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2); }
-
-        .delete-btn-small {
-            width: 32px; height: 32px; border-radius: 50%; background: #fee2e2; border: none; color: #dc3545;
-            font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
-        }
-        .delete-btn-small:hover { background: #dc3545; color: white; }
-
-        .toast { 
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
-            padding: 12px 24px; border-radius: 8px; color: white; font-size: 14px; font-weight: 500; 
-            z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideUp 0.3s ease; 
-        }
-        .toast.success { background: #28a745; } .toast.error { background: #dc3545; } .toast.warning { background: #ffc107; color: #000; }
-        @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-    </style>
+    <script src="config.js"></script>
 </head>
 <body>
 
@@ -138,7 +40,6 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Part No.</label>
-                <!-- PERBAIKAN: Tiada atribut 'disabled', Part No. BOLEH di-edit -->
                 <input type="text" class="form-input" id="partNo" placeholder="e.g., BTM-M6">
             </div>
             <div class="form-group">
@@ -212,16 +113,6 @@
             } catch(e) { console.warn('Cache failed:', e); }
         }
 
-        function showToast(message, type = 'info') {
-            const oldToast = document.querySelector('.toast');
-            if (oldToast) oldToast.remove();
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
-        }
-
         function previewPhoto(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -248,52 +139,35 @@
             }
         }
 
-        // PERBAIKAN: Tambah parameter 'forceRefresh'
         async function loadProductList(forceRefresh = false) {
-            console.log("=== MEMULAKAN LOAD PRODUCT LIST (Force:", forceRefresh, ") ===");
-            
             const cachedData = localStorage.getItem(PRODUCT_LIST_CACHE_KEY);
-            
-            // Hanya guna cache jika TIDAK force refresh DAN cache masih sah
             if (!forceRefresh && cachedData) {
                 try {
                     const parsed = JSON.parse(cachedData);
                     if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
                         allProducts = parsed.data;
-                        console.log("✅ Data dari cache:", allProducts.length, "produk");
                         renderProductList(allProducts);
-                        return; // Exit awal
+                        return;
                     }
-                } catch(e) { 
-                    console.error("❌ Cache parse error:", e); 
-                }
+                } catch(e) { console.error("Cache parse error:", e); }
             }
 
-            // Fetch dari server (Pasti berlaku jika forceRefresh = true)
             try {
-                console.log("🔄 Fetching data TERKINI dari server...");
                 const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
                 const result = await res.json();
                 
                 if (result.success && result.products) {
                     allProducts = result.products;
-                    console.log("✅ Berjaya dapat data TERKINI:", allProducts.length, "produk");
-                    
-                    // Kemaskini cache dengan data baru
                     localStorage.setItem(PRODUCT_LIST_CACHE_KEY, JSON.stringify({
                         data: allProducts,
                         timestamp: new Date().getTime()
                     }));
-                    
                     renderProductList(allProducts);
                 } else {
-                    console.error("❌ Gagal dapat data:", result.message);
-                    if (!allProducts.length) {
-                        document.getElementById('productList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tiada produk dijumpai</div>';
-                    }
+                    document.getElementById('productList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tiada produk dijumpai</div>';
                 }
             } catch (error) {
-                console.error('❌ Error fetching products:', error);
+                console.error('Error fetching products:', error);
                 if (!allProducts.length) {
                     document.getElementById('productList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Gagal memuatkan data.</div>';
                 }
@@ -303,9 +177,6 @@
         function renderProductList(products) {
             const productList = document.getElementById('productList');
             const recentProducts = products.filter(p => isWithinLast5Days(p.lastUpdateDate));
-            
-            console.log("📊 Total products:", products.length);
-            console.log("📅 Recent products (5 hari):", recentProducts.length);
             
             document.getElementById('productCount').textContent = recentProducts.length;
             
@@ -365,7 +236,6 @@
             editingPartNo = partNo;
             document.getElementById('partName').value = partName;
             document.getElementById('partNo').value = partNo;
-            // PERBAIKAN: Buang baris 'disabled = true' supaya Part No. BOLEH di-edit
             document.getElementById('noSpec').value = noSpec;
             document.getElementById('location').value = location;
             document.getElementById('currentStock').value = currentStock;
@@ -421,7 +291,6 @@
                 return; 
             }
 
-            // Ambil email user dari cache
             let userEmail = 'system@api';
             try {
                 const profileData = localStorage.getItem(CONFIG.PROFILE_CACHE_KEY);
@@ -448,7 +317,6 @@
                 });
                 
                 if (tempPhotoBase64) {
-                    console.log("Menghantar gambar untuk Part No:", partNo);
                     const imgPayload = {
                         action: 'uploadProductPicture',
                         data: { base64: tempPhotoBase64, partNo: partNo }
@@ -462,8 +330,6 @@
 
                 showToast('✅ Produk berjaya disimpan!', 'success');
                 resetForm();
-                
-                // PERBAIKAN UTAMA: Paksa refresh data dari server
                 loadProductList(true); 
                 
             } catch (error) {
@@ -486,8 +352,6 @@
                 try { localStorage.removeItem('ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '')); } catch(e) {}
                 
                 showToast('✅ Produk berjaya dipadam', 'success');
-                
-                // PERBAIKAN UTAMA: Paksa refresh data dari server
                 loadProductList(true); 
                 
             } catch (error) {
@@ -511,7 +375,6 @@
             document.getElementById('cancelBtn').classList.remove('show');
         }
 
-        // Load awal tanpa force refresh (guna cache jika ada)
         window.onload = () => loadProductList(false);
     </script>
 </body>
