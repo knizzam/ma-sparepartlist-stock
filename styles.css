@@ -146,3 +146,30 @@ body.index-page { padding-bottom: 100px; }
 .fab-scan { position: absolute; bottom: 20px; background: white; width: 65px; height: 65px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); text-decoration: none; color: var(--primary-blue); border: 4px solid var(--primary-blue); }
 .fab-scan i { font-size: 1.6rem; margin-bottom: 2px; }
 .fab-scan span { font-size: 0.6rem; font-weight: bold; }
+
+/* =========================================
+   UNIVERSAL PHOTO PICKER FLOATING MENU
+   (Diletak di Global CSS supaya auto load di semua page)
+   ========================================= */
+.photo-option-menu {
+    position: fixed; 
+    background: transparent; 
+    padding: 5px; 
+    z-index: 10000; /* Z-index sangat tinggi supaya tidak tertutup header atau modal */
+    display: flex; 
+    gap: 15px; 
+    animation: popIn 0.2s ease;
+}
+
+.photo-option-item {
+    width: 50px; height: 50px; border-radius: 50%; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.photo-option-item:active { transform: scale(0.9); }
+.photo-option-item i { font-size: 22px; color: white; }
+
+@keyframes popIn { 
+    from { transform: scale(0.8); opacity: 0; } 
+    to { transform: scale(1); opacity: 1; } 
+}
