@@ -26,17 +26,23 @@
         <!-- FORM -->
         <div class="form-card">
             <div class="form-section-title">Product Information</div>
+            
+            <!-- PHOTO UPLOAD DENGAN FLOATING MENU -->
             <div class="form-group">
                 <label class="form-label">Product Photo</label>
-                <label class="photo-upload-card" for="photoInput">
-                    <div id="photoUploadContent">
-                        <i class="fas fa-camera" style="font-size: 24px; color: #666; margin-bottom: 8px;"></i>
-                        <div style="color: #666; font-size: 13px;">Tap to upload or take a photo</div>
-                    </div>
-                    <img id="photoPreview" class="photo-preview-large" style="display:none;">
-                </label>
-                <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto(this)">
+                <div class="photo-upload-wrapper">
+                    <label class="photo-upload-card" id="photoUploadCard" onclick="showPhotoOptions(event)">
+                        <div id="photoUploadContent">
+                            <i class="fas fa-camera camera-icon"></i>
+                            <div class="upload-text">Tap to upload or take a photo</div>
+                        </div>
+                        <img id="photoPreview" class="photo-preview-large" alt="Preview">
+                    </label>
+                    <!-- Input file disembunyikan, akan dipanggil melalui JavaScript -->
+                    <input type="file" id="photoInput" accept="image/*" onchange="handlePhotoSelect(event)">
+                </div>
             </div>
+            
             <div class="form-group">
                 <label class="form-label">Part Name</label>
                 <input type="text" class="form-input" id="partName" placeholder="e.g., CAP NUT / LOWER BASE">
@@ -88,9 +94,78 @@
         let tempPhotoBase64 = '';
         let editingPartNo = null;
         let allProducts = [];
+        let photoSource = ''; // 'camera' atau 'gallery'
         
         const PRODUCT_LIST_CACHE_KEY = 'ma_inventory_product_list';
         const CACHE_EXPIRY = 5 * 60 * 1000;
+
+        // === FUNGSI BARU: Tunjuk floating menu pilihan photo ===
+        function showPhotoOptions(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Buang menu lama jika ada
+            closePhotoMenu();
+            
+            // Cipta menu baharu
+            const menu = document.createElement('div');
+            menu.className = 'photo-option-menu';
+            menu.id = 'photoOptionMenu';
+            menu.innerHTML = `
+                <div class="photo-option-item" onclick="selectPhotoSource('camera')">
+                    <i class="fas fa-camera"></i>
+                    <span>Take Picture</span>
+                </div>
+                <div class="photo-option-item" onclick="selectPhotoSource('gallery')">
+                    <i class="fas fa-images"></i>
+                    <span>Gallery</span>
+                </div>
+            `;
+            document.body.appendChild(menu);
+            
+            // Tutup menu bila klik di luar
+            setTimeout(() => {
+                document.addEventListener('click', closePhotoMenu, { once: true });
+            }, 100);
+        }
+
+        // === FUNGSI BARU: Pilih sumber photo ===
+        function selectPhotoSource(source) {
+            photoSource = source;
+            const photoInput = document.getElementById('photoInput');
+            
+            if (source === 'camera') {
+                photoInput.setAttribute('capture', 'environment');
+            } else {
+                photoInput.removeAttribute('capture');
+            }
+            
+            photoInput.click();
+            closePhotoMenu();
+        }
+
+        // === FUNGSI BARU: Tutup menu photo ===
+        function closePhotoMenu() {
+            const menu = document.getElementById('photoOptionMenu');
+            if (menu) menu.remove();
+        }
+
+        // === FUNGSI BARU: Handle bila user pilih gambar ===
+        function handlePhotoSelect(event) {
+            if (event.target.files && event.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempPhotoBase64 = e.target.result;
+                    const preview = document.getElementById('photoPreview');
+                    const uploadContent = document.getElementById('photoUploadContent');
+                    
+                    preview.src = tempPhotoBase64;
+                    preview.style.display = 'block';
+                    uploadContent.style.display = 'none';
+                };
+                reader.readAsDataURL(event.target.files[0]);
+            }
+        }
 
         function getCachedProductImage(partNo) {
             try {
@@ -124,19 +199,6 @@
             toast.textContent = message;
             document.body.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
-        }
-
-        function previewPhoto(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    tempPhotoBase64 = e.target.result;
-                    document.getElementById('photoPreview').src = tempPhotoBase64;
-                    document.getElementById('photoPreview').style.display = 'block';
-                    document.getElementById('photoUploadContent').style.display = 'none';
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
         }
 
         function isWithinLast5Days(dateStr) {
@@ -300,7 +362,7 @@
             const minimumStock = document.getElementById('minimumStock').value || 0;
 
             if (!partName || !partNo) { 
-                showToast('️ Part Name dan Part No. wajib diisi!', 'warning'); 
+                showToast('⚠️ Part Name dan Part No. wajib diisi!', 'warning'); 
                 return; 
             }
 
@@ -354,7 +416,7 @@
         }
 
         async function deleteProduct(partNo) {
-            if (!confirm('️ Adakah anda pasti ingin memadam produk ini?')) return;
+            if (!confirm('⚠️ Adakah anda pasti ingin memadam produk ini?')) return;
             
             try {
                 await fetch(CONFIG.API_URL, {
