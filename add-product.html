@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="add-product.css">
     <script src="config.js"></script>
-    <!-- PANGGIL FAIL JS UNIVERSAL INI -->
     <script src="photo-picker.js"></script>
 </head>
 <body>
@@ -23,18 +22,15 @@
         <div class="form-card">
             <div class="form-section-title">Product Information</div>
             
-            <!-- STRUKTUR PHOTO UPLOAD YANG LEBIH KEMAS -->
+            <!-- TAMBAH id="photoWrapper" DI SINI -->
             <div class="form-group">
                 <label class="form-label">Product Photo</label>
-                <div class="photo-upload-wrapper">
-                    <!-- Placeholder (Akan hilang bila ada gambar) -->
+                <div class="photo-upload-wrapper" id="photoWrapper">
                     <div class="photo-placeholder" id="photoPlaceholder">
                         <i class="fas fa-camera"></i>
                         <span>Tap to upload<br>or take photo</span>
                     </div>
-                    <!-- Preview Gambar -->
                     <img id="photoPreview" class="photo-preview-large" alt="Preview">
-                    <!-- Input File (Tersembunyi) -->
                     <input type="file" id="photoInput" accept="image/*">
                 </div>
             </div>
@@ -51,7 +47,6 @@
             <div class="form-group"><label class="form-label">Minimum Stock</label><input type="number" class="form-input" id="minimumStock" placeholder="0" min="0"></div>
         </div>
 
-        <!-- BUTANG CANCEL & SAVE -->
         <div class="btn-group">
             <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
             <button class="submit-btn" id="saveBtn" onclick="saveProduct()">Add Product</button>
@@ -70,10 +65,10 @@
         let tempPhotoBase64 = '', editingPartNo = null, allProducts = [];
         const PRODUCT_LIST_CACHE_KEY = 'ma_inventory_product_list', CACHE_EXPIRY = 5 * 60 * 1000;
 
-        // === INIT PHOTO PICKER UNIVERSAL ===
         document.addEventListener('DOMContentLoaded', () => {
-            PhotoPicker.init('photoPlaceholder', 'photoInput', 'photoPreview', 'photoPlaceholder', (base64) => {
-                tempPhotoBase64 = base64; // Simpan untuk dihantar ke server nanti
+            // GUNA 'photoWrapper' SEKARANG
+            PhotoPicker.init('photoWrapper', 'photoInput', 'photoPreview', 'photoPlaceholder', (base64) => {
+                tempPhotoBase64 = base64;
             });
         });
 
@@ -189,7 +184,6 @@
             document.getElementById('minimumStock').value = minimumStock;
             
             document.getElementById('saveBtn').innerText = 'Update Product';
-            document.getElementById('cancelBtn').classList.add('show'); // TUNJUKKAN BUTANG CANCEL
             
             const preview = document.getElementById('photoPreview');
             const placeholder = document.getElementById('photoPlaceholder');
@@ -213,7 +207,7 @@
         }
 
         function cancelEdit() {
-            resetForm(); renderProductList(allProducts); showToast('Edit dibatalkan', 'info');
+            resetForm(); renderProductList(allProducts); showToast('Form dikosongkan', 'info');
         }
 
         async function saveProduct() {
@@ -274,7 +268,6 @@
             document.getElementById('photoPlaceholder').style.display = 'flex';
             tempPhotoBase64 = ''; editingPartNo = null;
             document.getElementById('saveBtn').innerText = 'Add Product';
-            document.getElementById('cancelBtn').classList.remove('show');
         }
 
         window.onload = () => loadProductList(false);
