@@ -23,7 +23,7 @@
 }
 .register-title i { font-size: 1.2rem; }
 
-/* Photo Upload (Guna Konsep Sama Macam Add Product) */
+/* Photo Upload (GUNA STYLE SAMA MACAM ADD PRODUCT) */
 .photo-upload-wrapper { 
     display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; 
 }
