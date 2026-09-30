@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="add-product.css">
     <script src="config.js"></script>
-    <!-- JANGAN GUNA photo-picker.js LAGI -->
+    <script src="photo-picker.js"></script>
 </head>
 <body>
 
@@ -22,10 +22,9 @@
         <div class="form-card">
             <div class="form-section-title">Product Information</div>
             
-            <!-- PHOTO UPLOAD -->
             <div class="form-group">
                 <label class="form-label">Product Photo</label>
-                <div class="photo-upload-wrapper">
+                <div class="photo-upload-wrapper" id="photoWrapper">
                     <div class="photo-placeholder" id="photoPlaceholder" onclick="showPhotoMenu(event)">
                         <i class="fas fa-camera"></i>
                         <span>Tap to upload<br>or take photo</span>
@@ -65,72 +64,36 @@
         let tempPhotoBase64 = '', editingPartNo = null, allProducts = [];
         const PRODUCT_LIST_CACHE_KEY = 'ma_inventory_product_list', CACHE_EXPIRY = 5 * 60 * 1000;
 
-        // === FUNGSI PHOTO MENU (DITANAM TERUS) ===
-        function showPhotoMenu(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            closePhotoMenu();
+        document.addEventListener('DOMContentLoaded', function() {
+            PhotoPicker.init({
+                wrapperId: 'photoWrapper',
+                inputId: 'photoInput',
+                previewId: 'photoPreview',
+                placeholderId: 'photoPlaceholder'
+            });
             
-            const menu = document.createElement('div');
-            menu.className = 'photo-option-menu';
-            menu.id = 'photoOptionMenu';
+            document.getElementById('photoInput').addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        tempPhotoBase64 = ev.target.result;
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
 
-            const rect = e.currentTarget.getBoundingClientRect();
-            menu.style.top = (rect.bottom + window.scrollY + 10) + 'px';
-            menu.style.left = (rect.left + window.scrollX + (rect.width / 2) - 55) + 'px';
-
-            const cameraBtn = document.createElement('button');
-            cameraBtn.className = 'photo-option-item';
-            cameraBtn.style.background = '#6c757d';
-            cameraBtn.innerHTML = '<i class="fas fa-camera"></i>';
-            cameraBtn.onclick = (ev) => { ev.stopPropagation(); openFilePicker('camera'); };
-
-            const galleryBtn = document.createElement('button');
-            galleryBtn.className = 'photo-option-item';
-            galleryBtn.style.background = '#1a73e8';
-            galleryBtn.innerHTML = '<i class="fas fa-images"></i>';
-            galleryBtn.onclick = (ev) => { ev.stopPropagation(); openFilePicker('gallery'); };
-
-            menu.appendChild(cameraBtn);
-            menu.appendChild(galleryBtn);
-            document.body.appendChild(menu);
-
-            setTimeout(() => {
-                document.addEventListener('click', closePhotoMenu, { once: true });
-            }, 100);
-        }
-
-        function closePhotoMenu() {
-            const menu = document.getElementById('photoOptionMenu');
-            if (menu) menu.remove();
-        }
-
-        function openFilePicker(source) {
-            const input = document.getElementById('photoInput');
-            if (source === 'camera') {
-                input.setAttribute('capture', 'environment');
-            } else {
-                input.removeAttribute('capture');
-            }
-            input.value = ''; // Reset supaya boleh pilih gambar sama
-            input.click();
-            closePhotoMenu();
-        }
-
-        document.getElementById('photoInput').addEventListener('change', function(e) {
-            if (e.target.files && e.target.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    tempPhotoBase64 = ev.target.result;
-                    document.getElementById('photoPreview').src = tempPhotoBase64;
-                    document.getElementById('photoPreview').style.display = 'block';
-                    document.getElementById('photoPlaceholder').style.display = 'none';
-                };
-                reader.readAsDataURL(e.target.files[0]);
-            }
+            loadProductList();
         });
 
-        // === FUNGSI LAIN ===
+        function showToast(message, type = 'info') {
+            const oldToast = document.querySelector('.toast');
+            if (oldToast) oldToast.remove();
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`; toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
         function getCachedProductImage(partNo) {
             try {
                 const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -147,15 +110,6 @@
                 const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
                 localStorage.setItem(key, JSON.stringify({ base64: base64, timestamp: new Date().getTime() }));
             } catch(e) { console.warn('Cache failed:', e); }
-        }
-
-        function showToast(message, type = 'info') {
-            const oldToast = document.querySelector('.toast');
-            if (oldToast) oldToast.remove();
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`; toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
         function isWithinLast5Days(dateStr) {
@@ -248,26 +202,20 @@
             const placeholder = document.getElementById('photoPlaceholder');
             const cachedImg = getCachedProductImage(partNo);
             
-            if (cachedImg) {
-                preview.src = cachedImg; preview.style.display = 'block'; placeholder.style.display = 'none';
-                tempPhotoBase64 = '';
-            } else if (pictureFileId && pictureFileId.trim() !== '') {
+            if (cachedImg) { preview.src = cachedImg; preview.style.display = 'block'; placeholder.style.display = 'none'; tempPhotoBase64 = ''; } 
+            else if (pictureFileId && pictureFileId.trim() !== '') {
                 APIHelper.fetchImage(pictureFileId).then(imgResult => {
                     if (imgResult.success && imgResult.base64) {
-                        preview.src = imgResult.base64; preview.style.display = 'block'; placeholder.style.display = 'none';
-                        tempPhotoBase64 = ''; setCachedProductImage(partNo, imgResult.base64);
+                        preview.src = imgResult.base64; preview.style.display = 'block'; placeholder.style.display = 'none'; tempPhotoBase64 = '';
                     }
                 });
-            } else {
-                preview.style.display = 'none'; placeholder.style.display = 'flex'; tempPhotoBase64 = '';
-            }
+            } else { preview.style.display = 'none'; placeholder.style.display = 'flex'; tempPhotoBase64 = ''; }
+            
             window.scrollTo({ top: 0, behavior: 'smooth' });
             renderProductList(allProducts);
         }
 
-        function cancelEdit() {
-            resetForm(); renderProductList(allProducts); showToast('Form dikosongkan', 'info');
-        }
+        function cancelEdit() { resetForm(); renderProductList(allProducts); showToast('Form dikosongkan', 'info'); }
 
         async function saveProduct() {
             const partName = document.getElementById('partName').value.trim();
@@ -277,7 +225,7 @@
             const currentStock = document.getElementById('currentStock').value || 0;
             const minimumStock = document.getElementById('minimumStock').value || 0;
 
-            if (!partName || !partNo) { showToast('️ Part Name dan Part No. wajib diisi!', 'warning'); return; }
+            if (!partName || !partNo) { showToast('⚠️ Part Name dan Part No. wajib diisi!', 'warning'); return; }
 
             let userEmail = 'system@api';
             try {
@@ -300,7 +248,7 @@
                 showToast('✅ Produk berjaya disimpan!', 'success');
                 resetForm(); loadProductList(true);
             } catch (error) {
-                showToast('❌ Ralat semasa menyimpan', 'error');
+                showToast(' Ralat semasa menyimpan', 'error');
                 btn.innerText = editingPartNo ? 'Update Product' : 'Add Product'; btn.disabled = false;
             }
         }
@@ -322,14 +270,10 @@
             document.getElementById('location').value = '';
             document.getElementById('currentStock').value = '';
             document.getElementById('minimumStock').value = '';
-            document.getElementById('photoInput').value = '';
-            document.getElementById('photoPreview').style.display = 'none';
-            document.getElementById('photoPlaceholder').style.display = 'flex';
+            PhotoPicker.reset();
             tempPhotoBase64 = ''; editingPartNo = null;
             document.getElementById('saveBtn').innerText = 'Add Product';
         }
-
-        window.onload = () => loadProductList(false);
     </script>
 </body>
 </html>
