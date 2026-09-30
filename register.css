@@ -42,6 +42,21 @@
 }
 #photoInput { display: none !important; }
 
+/* === FLOATING MENU CSS (PENTING!) === */
+.photo-option-menu {
+    position: fixed; background: transparent; padding: 5px; z-index: 1000;
+    display: flex; gap: 15px; animation: popIn 0.2s ease;
+}
+.photo-option-item {
+    width: 50px; height: 50px; border-radius: 50%; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.photo-option-item:active { transform: scale(0.9); }
+.photo-option-item i { font-size: 22px; color: white; }
+
+@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
 /* User List Cards */
 .user-list { display: flex; flex-direction: column; gap: 10px; }
 .user-card {
