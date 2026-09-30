@@ -5,38 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Edit Profile - MA Inventory</title>
     
+    <!-- External CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="config.js"></script>
+    <link rel="stylesheet" href="styles.css"> <!-- Pautan ke fail CSS global -->
     
-    <style>
-        :root { --primary-blue: #1a73e8; --bg-light: #f0f4f8; }
-        body { background: var(--bg-light); font-family: 'Segoe UI', sans-serif; padding-bottom: 40px; }
-        .page-header { background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%); color: white; padding: 15px 20px; display: flex; align-items: center; box-shadow: 0 4px 10px rgba(26,115,232,0.2); }
-        .back-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; text-decoration: none; }
-        .page-title { font-size: 1.2rem; font-weight: 700; margin: 0; }
-        .form-container { padding: 20px 15px; max-width: 600px; margin: 0 auto; }
-        .form-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; }
-        .form-section-title { font-size: 12px; font-weight: 700; color: var(--primary-blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #f0f8ff; }
-        .form-group { margin-bottom: 16px; }
-        .form-label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px; text-transform: uppercase; }
-        .form-input { width: 100%; padding: 12px 15px; background: #f8f9fa; border: 1px solid transparent; border-radius: 10px; font-size: 15px; color: #333; }
-        .form-input:disabled { background: #e9ecef; color: #495057; cursor: not-allowed; }
-        .photo-upload-wrapper { position: relative; width: 120px; height: 120px; margin: 0 auto 15px auto; }
-        .profile-pic-outer { width: 120px; height: 120px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .profile-pic-outer img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-pic-default { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 48px; color: #999; }
-        .edit-icon-float { position: absolute; bottom: 0; right: 0; width: 36px; height: 36px; background: var(--primary-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); border: 3px solid white; }
-        #photoInput { display: none; }
-        .submit-btn { width: 100%; padding: 16px; background: linear-gradient(to right, #1a73e8, #1557b0); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(26,115,232,0.3); }
-        .submit-btn:active { transform: scale(0.98); }
-        .submit-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
-        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 8px; color: white; font-size: 14px; font-weight: 500; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideUp 0.3s ease; }
-        .toast.success { background: #28a745; } .toast.error { background: #dc3545; } .toast.warning { background: #ffc107; color: #000; }
-        @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-        .loading-spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-blue); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+    <script src="config.js"></script>
 </head>
 <body>
     <div class="page-header">
@@ -169,10 +143,7 @@
             .then(() => {
                 showToast('✅ Profil berjaya dikemaskini!', 'success');
                 
-                // PERBAIKAN: Update cache dengan gambar baru (jangan clear)
                 CacheManager.set(CONFIG.IMAGE_CACHE_KEY, tempPhotoBase64);
-                
-                // Kekalkan gambar baru di UI
                 document.getElementById('profilePic').innerHTML = `<img src="${tempPhotoBase64}" alt="Profile" style="width:100%; height:100%; object-fit:cover;">`;
                 
                 hasNewPhoto = false;
