@@ -39,7 +39,40 @@
         .search-input:focus { border-color: var(--primary-blue); background: white; }
         .select-all-container { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
         .select-all-container label { font-size: 13px; font-weight: 500; cursor: pointer; color: #555; }
-        .select-all-container input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-blue); }
+        
+        /* CUSTOM CHECKBOX - LEBIH JELAS */
+        .custom-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .custom-checkbox.checked {
+            background: white;
+            border-color: white;
+        }
+        .custom-checkbox.checked::after {
+            content: '✓';
+            color: #007bff;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .select-all-container .custom-checkbox {
+            border-color: #007bff;
+            background: white;
+        }
+        .select-all-container .custom-checkbox.checked {
+            background: #007bff;
+        }
+        .select-all-container .custom-checkbox.checked::after {
+            color: white;
+        }
 
         .product-grid { 
             padding: 10px;
@@ -48,7 +81,6 @@
             gap: 10px;
         }
         
-        /* CARD - LEBIH COMPACT */
         .product-card {
             background: white; 
             border-radius: 8px; 
@@ -62,16 +94,15 @@
             border-color: var(--primary-blue);
         }
         
-        /* HEADER - KURANGKAN TINGGI */
         .card-header {
             background: linear-gradient(135deg, #007bff 0%, #00a8ff 100%);
             color: white;
-            padding: 8px 12px;
+            padding: 10px 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
-            min-height: 40px;
+            min-height: 42px;
         }
         .card-title {
             font-size: 13px;
@@ -81,24 +112,16 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            padding-right: 30px;
         }
-        .card-checkbox {
+        .card-checkbox-wrapper {
             position: absolute;
             right: 10px;
             top: 50%;
             transform: translateY(-50%);
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            accent-color: white;
-            background: rgba(255,255,255,0.3);
-            border-radius: 3px;
-            padding: 2px;
             z-index: 10;
-            margin: 0;
         }
         
-        /* INFO - KURANGKAN PADDING */
         .card-info {
             padding: 8px 12px;
             background: #fafafa;
@@ -126,13 +149,13 @@
             word-break: break-all;
         }
         
-        /* BODY - KURANGKAN SAIZ GAMBAR & QR */
+        /* CARD BODY - BALANCE LAYOUT */
         .card-body {
             padding: 10px;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
-            align-items: center;
+            align-items: stretch;
         }
         .card-image {
             background: #f8f9fa;
@@ -141,17 +164,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 90px;
+            aspect-ratio: 1;
             cursor: pointer;
+            overflow: hidden;
         }
         .card-image img {
             max-width: 100%;
-            max-height: 80px;
+            max-height: 100%;
             object-fit: contain;
         }
         .card-image-placeholder {
             color: #ddd;
-            font-size: 36px;
+            font-size: 32px;
         }
         .card-qr {
             background: white;
@@ -161,10 +185,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            aspect-ratio: 1;
+            overflow: hidden;
         }
         .card-qr img {
-            width: 80px;
-            height: 80px;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
         }
         
@@ -250,7 +276,7 @@
                 margin: 0 !important;
             }
             
-            .page-header, .search-section, .bottom-action-bar, .toast, .card-checkbox {
+            .page-header, .search-section, .bottom-action-bar, .toast, .card-checkbox-wrapper {
                 display: none !important;
             }
             
@@ -308,19 +334,6 @@
                 padding: 10px !important;
                 gap: 8px !important;
             }
-            
-            .card-image {
-                min-height: 80px !important;
-            }
-            
-            .card-image img {
-                max-height: 80px !important;
-            }
-            
-            .card-qr img {
-                width: 75px !important;
-                height: 75px !important;
-            }
         }
         
         @media (min-width: 768px) {
@@ -331,9 +344,6 @@
             }
             .card-title { font-size: 15px; }
             .info-row { font-size: 14px; }
-            .card-image { min-height: 110px; }
-            .card-image img { max-height: 100px; }
-            .card-qr img { width: 95px; height: 95px; }
         }
         
         @media (min-width: 1024px) {
@@ -356,8 +366,8 @@
         <div class="search-container">
             <input type="text" class="search-input" id="searchInput" placeholder="Cari Part Name, No..." onkeyup="filterProducts()">
             <div class="select-all-container">
-                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
-                <label for="selectAll">Pilih Semua</label>
+                <div class="custom-checkbox" id="selectAllCheckbox" onclick="toggleSelectAll()"></div>
+                <label onclick="toggleSelectAll()">Pilih Semua</label>
             </div>
         </div>
     </div>
@@ -464,7 +474,9 @@
                     <div class="product-card ${isSelected}" id="card-${index}" data-partno="${product.partNo}" data-index="${index}">
                         <div class="card-header">
                             <div class="card-title">${product.partName}</div>
-                            <input type="checkbox" class="card-checkbox" data-index="${index}" ${isChecked}>
+                            <div class="card-checkbox-wrapper">
+                                <div class="custom-checkbox ${isChecked}" data-index="${index}" onclick="handleCheckboxClick(${index})"></div>
+                            </div>
                         </div>
                         
                         <div class="card-info card-clickable" onclick="goToProductDetail('${product.partNo}')">
@@ -496,17 +508,6 @@
             });
             container.innerHTML = html;
 
-            // Attach checkbox event listeners
-            products.forEach((product, index) => {
-                const checkbox = document.querySelector(`.card-checkbox[data-index="${index}"]`);
-                if (checkbox) {
-                    checkbox.addEventListener('change', function(e) {
-                        e.stopPropagation();
-                        handleCheckboxChange(index);
-                    });
-                }
-            });
-
             // Load images
             products.forEach(product => {
                 if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
@@ -524,22 +525,19 @@
             });
         }
 
-        // PERBAIKAN: Handle checkbox dengan event listener
-        function handleCheckboxChange(index) {
-            const checkbox = document.querySelector(`.card-checkbox[data-index="${index}"]`);
-            if (!checkbox) return;
+        // CUSTOM CHECKBOX HANDLER
+        function handleCheckboxClick(index) {
+            allProducts[index].selected = !allProducts[index].selected;
             
-            // Update state
-            allProducts[index].selected = checkbox.checked;
-            
-            // Update card border
             const card = document.getElementById(`card-${index}`);
-            if (card) {
-                if (checkbox.checked) {
-                    card.classList.add('selected');
-                } else {
-                    card.classList.remove('selected');
-                }
+            const checkbox = card.querySelector('.custom-checkbox');
+            
+            if (allProducts[index].selected) {
+                card.classList.add('selected');
+                checkbox.classList.add('checked');
+            } else {
+                card.classList.remove('selected');
+                checkbox.classList.remove('checked');
             }
             
             updateSelectAllCheckbox();
@@ -560,16 +558,24 @@
         }
 
         function toggleSelectAll() {
-            const selectAll = document.getElementById('selectAll').checked;
+            const selectAllDiv = document.getElementById('selectAllCheckbox');
+            const isChecked = selectAllDiv.classList.contains('checked');
+            const newState = !isChecked;
+            
             allProducts.forEach((product, index) => {
-                product.selected = selectAll;
+                product.selected = newState;
             });
             renderProducts(allProducts);
         }
 
         function updateSelectAllCheckbox() {
             const allChecked = allProducts.every(p => p.selected);
-            document.getElementById('selectAll').checked = allChecked;
+            const selectAllDiv = document.getElementById('selectAllCheckbox');
+            if (allChecked) {
+                selectAllDiv.classList.add('checked');
+            } else {
+                selectAllDiv.classList.remove('checked');
+            }
         }
 
         function getSelectedProducts() {
@@ -579,7 +585,7 @@
         function printSelected() {
             const selected = getSelectedProducts();
             if (selected.length === 0) {
-                showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
+                showToast('️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
                 return;
             }
             window.print();
@@ -588,7 +594,7 @@
         async function downloadSelected() {
             const selected = getSelectedProducts();
             if (selected.length === 0) {
-                showToast('️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
+                showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
                 return;
             }
 
@@ -624,7 +630,7 @@
         async function shareSelected() {
             const selected = getSelectedProducts();
             if (selected.length === 0) {
-                showToast('️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
+                showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning');
                 return;
             }
 
