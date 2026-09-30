@@ -25,13 +25,13 @@
             <!-- TAMBAH id="photoWrapper" DI SINI -->
             <div class="form-group">
                 <label class="form-label">Product Photo</label>
-                <div class="photo-upload-wrapper" id="photoWrapper">
-                    <div class="photo-placeholder" id="photoPlaceholder">
+                <div class="photo-upload-wrapper">
+                    <div class="photo-placeholder" id="photoPlaceholder" onclick="showPhotoMenu(event)">
                         <i class="fas fa-camera"></i>
                         <span>Tap to upload<br>or take photo</span>
                     </div>
-                    <img id="photoPreview" class="photo-preview-large" alt="Preview">
-                    <input type="file" id="photoInput" accept="image/*">
+                    img id="photoPreview" class="photo-preview-large" alt="Preview" onclick="showPhotoMenu(event)">
+                   <input type="file" id="photoInput" accept="image/*" style="display: none;">
                 </div>
             </div>
 
