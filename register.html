@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="register.css">
     
     <script src="config.js"></script>
-    <!-- PANGGIL FAIL PHOTO PICKER UNIVERSAL -->
+    <!-- PANGGIL FAIL PHOTO PICKER UNIVERSAL DI SINI -->
     <script src="photo-picker.js"></script>
 </head>
 <body>
@@ -51,7 +51,7 @@
         <div class="form-card">
             <div class="form-section-title">Profile & Status</div>
             
-            <!-- PHOTO UPLOAD MENGGUNAKAN PHOTO-PICKER -->
+            <!-- PHOTO UPLOAD MENGGUNAKAN PHOTO-PICKER (SAMA MACAM ADD PRODUCT) -->
             <div class="form-group">
                 <label class="form-label">Profile Picture</label>
                 <div class="photo-upload-wrapper" id="photoWrapper">
@@ -96,7 +96,7 @@
         const USER_IMAGE_CACHE_PREFIX = 'ma_user_img_';
         const CACHE_EXPIRY = 5 * 60 * 1000;
 
-        // === INIT PHOTO PICKER ===
+        // === INIT PHOTO PICKER UNIVERSAL ===
         document.addEventListener('DOMContentLoaded', () => {
             PhotoPicker.init('photoWrapper', 'photoInput', 'photoPreview', 'photoPlaceholder', (base64) => {
                 tempPhotoBase64 = base64;
@@ -344,7 +344,7 @@
             document.getElementById('userEmail').value = '';
             document.getElementById('userActive').checked = true;
             
-            // GUNA FUNGSI RESET DARI PHOTO PICKER
+            // GUNA FUNGSI RESET DARI PHOTO PICKER UNIVERSAL
             PhotoPicker.reset();
             
             tempPhotoBase64 = '';
