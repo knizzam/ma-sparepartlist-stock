@@ -27,18 +27,18 @@ const FloatingActions = {
         menuContainer.id = 'floatingActionMenu';
         menuContainer.className = 'floating-action-container';
         
-        // Position
+        // Position - SELARI DENGAN HEADER
         if (this.config.position === 'top-right') {
             menuContainer.style.cssText = `
                 position: fixed;
-                top: 70px;
+                top: 15px;
                 right: 15px;
                 z-index: 1001;
             `;
         } else {
             menuContainer.style.cssText = `
                 position: fixed;
-                top: 70px;
+                top: 15px;
                 left: 15px;
                 z-index: 1001;
             `;
@@ -53,8 +53,8 @@ const FloatingActions = {
             const menuItem = document.createElement('div');
             menuItem.className = 'floating-menu-item';
             menuItem.style.cssText = `
-                width: 48px;
-                height: 48px;
+                width: 44px;
+                height: 44px;
                 border-radius: 50%;
                 background: ${this.config.backgroundColor};
                 box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -69,7 +69,7 @@ const FloatingActions = {
                 pointer-events: none;
             `;
             
-            menuItem.innerHTML = `<i class="${btn.icon}" style="font-size: 20px; color: ${btn.color || this.config.iconColor};"></i>`;
+            menuItem.innerHTML = `<i class="${btn.icon}" style="font-size: 18px; color: ${btn.color || this.config.iconColor};"></i>`;
             menuItem.title = btn.title;
             
             menuItem.onclick = (e) => {
@@ -96,8 +96,8 @@ const FloatingActions = {
         triggerBtn.id = 'floatingTriggerBtn';
         triggerBtn.className = 'floating-trigger-btn';
         triggerBtn.style.cssText = `
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: white;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -108,7 +108,7 @@ const FloatingActions = {
             transition: all 0.2s;
         `;
         
-        triggerBtn.innerHTML = '<i class="fas fa-ellipsis-v" style="font-size: 20px; color: #333;"></i>';
+        triggerBtn.innerHTML = '<i class="fas fa-ellipsis-v" style="font-size: 18px; color: #333;"></i>';
         
         triggerBtn.onmouseenter = () => {
             triggerBtn.style.background = '#f0f0f0';
@@ -224,8 +224,8 @@ const FloatingActions = {
             const menuItem = document.createElement('div');
             menuItem.className = 'floating-menu-item';
             menuItem.style.cssText = `
-                width: 48px;
-                height: 48px;
+                width: 44px;
+                height: 44px;
                 border-radius: 50%;
                 background: ${this.config.backgroundColor};
                 box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -240,7 +240,7 @@ const FloatingActions = {
                 pointer-events: none;
             `;
             
-            menuItem.innerHTML = `<i class="${btn.icon}" style="font-size: 20px; color: ${btn.color || this.config.iconColor};"></i>`;
+            menuItem.innerHTML = `<i class="${btn.icon}" style="font-size: 18px; color: ${btn.color || this.config.iconColor};"></i>`;
             menuItem.title = btn.title;
             
             menuItem.onclick = (e) => {
