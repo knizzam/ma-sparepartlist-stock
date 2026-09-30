@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     
-    <!-- Config & Floating Actions Component -->
     <script src="config.js"></script>
     <script src="floating-actions.js"></script>
 
@@ -17,18 +16,19 @@
         :root { --primary-blue: #1a73e8; --bg-light: #f5f5f5; --header-blue: #007bff; }
         body { background: var(--bg-light); font-family: 'Segoe UI', sans-serif; margin: 0; }
 
+        /* PERBAIKAN: Header page dengan background biru */
         .page-header {
-            background: white;
-            color: #333; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100;
+            background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
+            color: white; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(26,115,232,0.2); position: sticky; top: 0; z-index: 100;
         }
         .header-left { display: flex; align-items: center; gap: 12px; }
         .back-btn {
-            background: none; border: none; color: #333;
+            background: rgba(255,255,255,0.2); border: none; color: white;
             width: 36px; height: 36px; border-radius: 50%; display: flex;
             align-items: center; justify-content: center; text-decoration: none;
         }
-        .page-title { font-size: 16px; font-weight: 600; margin: 0; }
+        .page-title { font-size: 16px; font-weight: 600; margin: 0; color: white; }
 
         .search-section { 
             padding: 10px 15px; background: white; 
@@ -43,7 +43,6 @@
         .select-all-container { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
         .select-all-container label { font-size: 13px; font-weight: 500; cursor: pointer; color: #555; }
         
-        /* Custom Checkbox */
         .custom-checkbox {
             width: 20px; height: 20px; border: 2px solid #fff; border-radius: 3px;
             background: rgba(255,255,255,0.3); display: flex; align-items: center;
@@ -95,13 +94,30 @@
             padding: 10px; display: grid; grid-template-columns: 1fr 1fr;
             gap: 8px; align-items: stretch;
         }
+        
+        /* PERBAIKAN: Image container tanpa img tag kosong */
         .card-image {
             background: #f8f9fa; border-radius: 6px; padding: 6px;
             display: flex; align-items: center; justify-content: center;
             aspect-ratio: 1; cursor: pointer; overflow: hidden;
+            position: relative;
         }
-        .card-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .card-image-placeholder { color: #ddd; font-size: 32px; }
+        .card-image img { 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain;
+            display: block;
+        }
+        .card-image-placeholder { 
+            color: #ddd; 
+            font-size: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+        
         .card-qr {
             background: white; border: 2px solid #f0f0f0; border-radius: 6px;
             padding: 6px; display: flex; align-items: center; justify-content: center;
@@ -132,57 +148,33 @@
         }
         .loading-container i { font-size: 32px; margin-bottom: 10px; color: var(--primary-blue); }
 
-        /* PRINT STYLES - DIPERBAIKI UNTUK WARNA BIRU */
         @media print {
-            @page {
-                size: A4 landscape;
-                margin: 10mm;
-            }
-            
-            body { 
-                background: white !important; 
-                padding: 0 !important; 
-                margin: 0 !important;
-            }
-            
+            @page { size: A4 landscape; margin: 10mm; }
+            body { background: white !important; padding: 0 !important; margin: 0 !important; }
             .page-header, .search-section, .toast, .card-checkbox-wrapper, 
             #floatingActionMenu, #floatingOverlay {
                 display: none !important;
             }
-            
             .product-grid { 
                 padding: 0 !important; 
                 grid-template-columns: repeat(3, 1fr) !important; 
                 gap: 8mm !important;
             }
-            
-            .product-card:not(.selected) { 
-                display: none !important; 
-            }
-            
+            .product-card:not(.selected) { display: none !important; }
             .product-card { 
                 box-shadow: none !important; 
                 border: 1px solid #ddd !important; 
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
-            
-            /* PAKSA WARNA BIRU CETAK */
             .card-header { 
                 background: #007bff !important; 
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
                 color-adjust: exact !important;
                 padding: 8px 10px !important;
-                min-height: 40px !important;
             }
-            
-            .card-title { 
-                font-size: 14px !important; 
-                font-weight: 700 !important;
-                color: white !important;
-            }
-            
+            .card-title { font-size: 14px !important; font-weight: 700 !important; color: white !important; }
             .card-info { padding: 8px 10px !important; }
             .info-row { font-size: 12px !important; margin-bottom: 4px !important; }
             .info-label { font-size: 12px !important; font-weight: 700 !important; }
@@ -306,6 +298,17 @@
                 const isSelected = product.selected ? 'selected' : '';
                 const isChecked = product.selected ? 'checked' : '';
 
+                // PERBAIKAN: Guna placeholder div, bukan img tag kosong
+                let imageContent = '';
+                if (cachedImg) {
+                    imageContent = `<img src="${cachedImg}" alt="${product.partName}">`;
+                } else if (product.pictureFileId) {
+                    // Guna div placeholder dengan id, bukan img tag
+                    imageContent = `<div class="card-image-placeholder" id="img-placeholder-${safePartNo}" data-fileid="${product.pictureFileId}"><i class="fas fa-spinner fa-spin"></i></div>`;
+                } else {
+                    imageContent = '<div class="card-image-placeholder"><i class="fas fa-box"></i></div>';
+                }
+
                 html += `
                     <div class="product-card ${isSelected}" id="card-${index}" data-partno="${product.partNo}" data-index="${index}">
                         <div class="card-header">
@@ -329,11 +332,8 @@
                         </div>
                         
                         <div class="card-body">
-                            <div class="card-image card-clickable" onclick="goToProductDetail('${product.partNo}')">
-                                ${cachedImg 
-                                    ? `<img src="${cachedImg}" alt="${product.partName}">` 
-                                    : (product.pictureFileId ? `<img id="img-${safePartNo}" data-fileid="${product.pictureFileId}" alt="${product.partName}">` : '<div class="card-image-placeholder"><i class="fas fa-box"></i></div>')
-                                }
+                            <div class="card-image card-clickable" id="card-img-${safePartNo}" onclick="goToProductDetail('${product.partNo}')">
+                                ${imageContent}
                             </div>
                             <div class="card-qr">
                                 <img src="${qrUrl}" alt="QR Code" crossorigin="anonymous">
@@ -344,15 +344,24 @@
             });
             container.innerHTML = html;
 
+            // PERBAIKAN: Load gambar dan replace placeholder
             products.forEach(product => {
                 if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
-                    const imgEl = document.getElementById(`img-${safePartNo}`);
-                    if (imgEl) {
+                    const placeholderEl = document.getElementById(`img-placeholder-${safePartNo}`);
+                    
+                    if (placeholderEl) {
                         APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
                             if (imgResult.success && imgResult.base64) {
                                 setCachedProductImage(product.partNo, imgResult.base64);
-                                imgEl.src = imgResult.base64;
+                                // Replace placeholder dengan img tag
+                                placeholderEl.outerHTML = `<img src="${imgResult.base64}" alt="${product.partName}">`;
+                            }
+                        }).catch(err => {
+                            console.error('Error loading image:', err);
+                            // Ganti spinner dengan icon box jika gagal
+                            if (placeholderEl) {
+                                placeholderEl.innerHTML = '<i class="fas fa-box"></i>';
                             }
                         });
                     }
@@ -443,7 +452,7 @@
         async function shareSelected() {
             const selected = getSelectedProducts();
             if (selected.length === 0) { showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning'); return; }
-            showToast('⏳ Sedang menyediakan fail...', 'info');
+            showToast(' Sedang menyediakan fail...', 'info');
             const files = [];
 
             for (const product of selected) {
@@ -492,7 +501,6 @@
             }
         }
 
-        // INITIALIZE FLOATING ACTION MENU
         window.addEventListener('DOMContentLoaded', function() {
             loadProducts();
             
