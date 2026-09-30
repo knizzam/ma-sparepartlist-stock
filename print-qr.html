@@ -20,8 +20,8 @@
             <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
             <h1 class="page-title">Print QR Code</h1>
         </div>
-        <div id="headerMenuTrigger" style="cursor: pointer; color: white; padding: 8px; -webkit-tap-highlight-color: transparent; user-select: none;">
-            <i class="fas fa-ellipsis-v" style="font-size: 22px;"></i>
+        <div id="headerMenuTrigger" style="cursor: pointer; color: white; padding: 10px;">
+            <i class="fas fa-ellipsis-v" style="font-size: 20px;"></i>
         </div>
     </div>
 
@@ -269,8 +269,8 @@
 
         async function shareSelected() {
             const selected = getSelectedProducts();
-            if (selected.length === 0) { showToast('️ Sila pilih sekurang-kurangnya satu produk!', 'warning'); return; }
-            showToast(' Sedang menyediakan fail...', 'info');
+            if (selected.length === 0) { showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning'); return; }
+            showToast('⏳ Sedang menyediakan fail...', 'info');
             const files = [];
 
             for (const product of selected) {
@@ -285,7 +285,7 @@
                 }
             }
 
-            if (files.length === 0) { showToast(' Gagal menjana imej!', 'error'); return; }
+            if (files.length === 0) { showToast('❌ Gagal menjana imej!', 'error'); return; }
 
             if (navigator.canShare && navigator.canShare({ files: files })) {
                 try {
