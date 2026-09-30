@@ -11,8 +11,6 @@ const PhotoPicker = {
         window.showPhotoMenu = this.showMenu.bind(this);
         window.closePhotoMenu = this.closeMenu.bind(this);
         window.openFilePicker = this.openFilePicker.bind(this);
-        
-        console.log('✅ PhotoPicker Ready');
     },
 
     showMenu: function(e) {
@@ -22,43 +20,74 @@ const PhotoPicker = {
         }
         this.closeMenu();
         
-        alert('🚨 MENU SEDANG DIBUKA!');
-        
         const menu = document.createElement('div');
         menu.id = 'photoOptionMenu';
         
-        // LETAK DI TENGAH SKRIN - PASTI KELUAR
+        // Kira posisi di BAWAH elemen yang diklik
+        const rect = e.currentTarget.getBoundingClientRect();
+        const top = rect.bottom + window.scrollY + 10;
+        const left = rect.left + window.scrollX + (rect.width / 2) - 55;
+        
         menu.style.cssText = `
             position: fixed !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            background: white !important;
-            padding: 30px !important;
-            border-radius: 15px !important;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
-            z-index: 9999999 !important;
+            top: ${top}px !important;
+            left: ${left}px !important;
+            background: transparent !important;
+            padding: 5px !important;
+            z-index: 999999 !important;
             display: flex !important;
             flex-direction: row !important;
-            gap: 20px !important;
-            border: 3px solid red !important;
+            gap: 15px !important;
         `;
 
+        // Butang Camera
         const cameraBtn = document.createElement('button');
-        cameraBtn.style.cssText = `width: 70px !important; height: 70px !important; border-radius: 50% !important; border: none !important; background: #6c757d !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; font-size: 30px !important; color: white !important;`;
-        cameraBtn.innerHTML = '📷';
+        cameraBtn.style.cssText = `
+            width: 50px !important;
+            height: 50px !important;
+            border-radius: 50% !important;
+            border: none !important;
+            background: #6c757d !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            transition: transform 0.2s !important;
+        `;
+        cameraBtn.innerHTML = '<i class="fas fa-camera" style="font-size: 22px !important; color: white !important;"></i>';
+        cameraBtn.onmouseenter = () => cameraBtn.style.transform = 'scale(1.1)';
+        cameraBtn.onmouseleave = () => cameraBtn.style.transform = 'scale(1)';
         cameraBtn.onclick = (ev) => { ev.stopPropagation(); this.openFilePicker('camera'); };
 
+        // Butang Gallery
         const galleryBtn = document.createElement('button');
-        galleryBtn.style.cssText = `width: 70px !important; height: 70px !important; border-radius: 50% !important; border: none !important; background: #1a73e8 !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; font-size: 30px !important; color: white !important;`;
-        galleryBtn.innerHTML = '🖼️';
+        galleryBtn.style.cssText = `
+            width: 50px !important;
+            height: 50px !important;
+            border-radius: 50% !important;
+            border: none !important;
+            background: #1a73e8 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            transition: transform 0.2s !important;
+        `;
+        galleryBtn.innerHTML = '<i class="fas fa-images" style="font-size: 22px !important; color: white !important;"></i>';
+        galleryBtn.onmouseenter = () => galleryBtn.style.transform = 'scale(1.1)';
+        galleryBtn.onmouseleave = () => galleryBtn.style.transform = 'scale(1)';
         galleryBtn.onclick = (ev) => { ev.stopPropagation(); this.openFilePicker('gallery'); };
 
         menu.appendChild(cameraBtn);
         menu.appendChild(galleryBtn);
         document.body.appendChild(menu);
-        
-        console.log('✅ Menu dicipta di DOM');
+
+        // Tutup menu bila klik di luar
+        setTimeout(() => {
+            document.addEventListener('click', this.closeMenu.bind(this), { once: true });
+        }, 100);
     },
 
     closeMenu: function() {
