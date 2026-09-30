@@ -1,7 +1,5 @@
 /**
  * Photo Picker Component
- * Menu floating dengan icon bulat berwarna (Camera & Gallery)
- * Konsep sama seperti HeaderMenu di print-qr
  */
 const PhotoPicker = {
     init(config = {}) {
@@ -20,11 +18,11 @@ const PhotoPicker = {
         this.placeholder = document.getElementById(this.config.placeholderId);
 
         if (!this.wrapper || !this.input) {
-            console.error('PhotoPicker: Wrapper atau Input tidak dijumpai!');
+            console.error('❌ PhotoPicker: ID tidak dijumpai! Sila semak HTML.');
             return;
         }
 
-        // Sembunyikan input file asal supaya tidak mengganggu layout
+        console.log('✅ PhotoPicker berjaya diinisialisasi.');
         this.input.style.display = 'none';
 
         this.createMenu();
@@ -32,7 +30,6 @@ const PhotoPicker = {
     },
 
     createMenu() {
-        // Buang menu lama jika ada
         const oldMenu = document.getElementById('photoOptionMenu');
         if (oldMenu) oldMenu.remove();
         
@@ -40,9 +37,11 @@ const PhotoPicker = {
         menu.id = 'photoOptionMenu';
         menu.style.cssText = `
             position: fixed;
-            background: transparent;
-            padding: 5px;
-            z-index: 10000;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 999999;
             display: none;
             flex-direction: row;
             gap: 15px;
@@ -51,38 +50,32 @@ const PhotoPicker = {
             transition: opacity 0.2s ease, transform 0.2s ease;
         `;
 
-        // --- BUTANG CAMERA ---
         const camBtn = document.createElement('button');
         camBtn.style.cssText = `
             width: 50px; height: 50px; border-radius: 50%; border: none;
             background: #6c757d; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            -webkit-tap-highlight-color: transparent;
+            cursor: pointer; transition: transform 0.2s;
         `;
         camBtn.innerHTML = '<i class="fas fa-camera" style="font-size: 22px; color: white;"></i>';
-        camBtn.onmouseenter = () => camBtn.style.transform = 'scale(1.1)';
-        camBtn.onmouseleave = () => camBtn.style.transform = 'scale(1)';
         camBtn.onclick = (e) => {
             e.stopPropagation();
+            console.log('📷 Kamera dipilih');
             this.input.setAttribute('capture', 'environment');
             this.input.value = '';
             this.input.click();
             this.close();
         };
 
-        // --- BUTANG GALLERY ---
         const galBtn = document.createElement('button');
         galBtn.style.cssText = `
             width: 50px; height: 50px; border-radius: 50%; border: none;
             background: #1a73e8; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            -webkit-tap-highlight-color: transparent;
+            cursor: pointer; transition: transform 0.2s;
         `;
         galBtn.innerHTML = '<i class="fas fa-images" style="font-size: 22px; color: white;"></i>';
-        galBtn.onmouseenter = () => galBtn.style.transform = 'scale(1.1)';
-        galBtn.onmouseleave = () => galBtn.style.transform = 'scale(1)';
         galBtn.onclick = (e) => {
             e.stopPropagation();
+            console.log('🖼️ Galeri dipilih');
             this.input.removeAttribute('capture');
             this.input.value = '';
             this.input.click();
@@ -92,18 +85,18 @@ const PhotoPicker = {
         menu.appendChild(camBtn);
         menu.appendChild(galBtn);
         document.body.appendChild(menu);
+        console.log('📦 Menu floating dicipta dalam DOM.');
     },
 
     attachEvents() {
-        // Fungsi untuk membuka menu
         const openMenu = (e) => {
             e.preventDefault();
             e.stopPropagation();
+            console.log('👆 Klik dikesan pada foto! Membuka menu...');
             
             const menu = document.getElementById('photoOptionMenu');
             if (!menu) return;
 
-            // Kira posisi di bawah wrapper
             const rect = this.wrapper.getBoundingClientRect();
             menu.style.top = (rect.bottom + window.scrollY + 10) + 'px';
             menu.style.left = (rect.left + window.scrollX + (rect.width / 2) - 55) + 'px';
@@ -114,25 +107,21 @@ const PhotoPicker = {
                 menu.style.transform = 'scale(1)';
             }, 10);
 
-            // Tutup bila klik di luar
             setTimeout(() => {
                 document.addEventListener('click', this.close.bind(this), { once: true });
             }, 100);
         };
 
-        // Bind click pada placeholder dan preview
         if (this.placeholder) {
-            this.placeholder.style.cursor = 'pointer';
             this.placeholder.addEventListener('click', openMenu);
         }
         if (this.preview) {
-            this.preview.style.cursor = 'pointer';
             this.preview.addEventListener('click', openMenu);
         }
 
-        // Handle bila fail dipilih
         this.input.addEventListener('change', (e) => {
             if (e.target.files && e.target.files[0]) {
+                console.log('📁 Fail dipilih, memproses...');
                 const reader = new FileReader();
                 reader.onload = (ev) => {
                     const base64 = ev.target.result;
@@ -155,6 +144,7 @@ const PhotoPicker = {
     close() {
         const menu = document.getElementById('photoOptionMenu');
         if (menu) {
+            console.log('🚪 Menu ditutup.');
             menu.style.opacity = '0';
             menu.style.transform = 'scale(0.8)';
             setTimeout(() => {
@@ -164,15 +154,8 @@ const PhotoPicker = {
     },
 
     reset() {
-        if (this.preview) {
-            this.preview.style.display = 'none';
-            this.preview.src = '';
-        }
-        if (this.placeholder) {
-            this.placeholder.style.display = 'flex';
-        }
-        if (this.input) {
-            this.input.value = '';
-        }
+        if (this.preview) { this.preview.style.display = 'none'; this.preview.src = ''; }
+        if (this.placeholder) { this.placeholder.style.display = 'flex'; }
+        if (this.input) { this.input.value = ''; }
     }
 };
