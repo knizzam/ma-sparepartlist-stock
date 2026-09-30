@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="add-product.css">
     <script src="config.js"></script>
-    <script src="photo-picker.js"></script>
+    <!-- JANGAN GUNA photo-picker.js LAGI -->
 </head>
 <body>
 
@@ -22,7 +22,7 @@
         <div class="form-card">
             <div class="form-section-title">Product Information</div>
             
-            <!-- TAMBAH id="photoWrapper" DI SINI -->
+            <!-- PHOTO UPLOAD -->
             <div class="form-group">
                 <label class="form-label">Product Photo</label>
                 <div class="photo-upload-wrapper">
@@ -30,8 +30,8 @@
                         <i class="fas fa-camera"></i>
                         <span>Tap to upload<br>or take photo</span>
                     </div>
-                    img id="photoPreview" class="photo-preview-large" alt="Preview" onclick="showPhotoMenu(event)">
-                   <input type="file" id="photoInput" accept="image/*" style="display: none;">
+                    <img id="photoPreview" class="photo-preview-large" alt="Preview" onclick="showPhotoMenu(event)">
+                    <input type="file" id="photoInput" accept="image/*">
                 </div>
             </div>
 
@@ -65,13 +65,72 @@
         let tempPhotoBase64 = '', editingPartNo = null, allProducts = [];
         const PRODUCT_LIST_CACHE_KEY = 'ma_inventory_product_list', CACHE_EXPIRY = 5 * 60 * 1000;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // GUNA 'photoWrapper' SEKARANG
-            PhotoPicker.init('photoWrapper', 'photoInput', 'photoPreview', 'photoPlaceholder', (base64) => {
-                tempPhotoBase64 = base64;
-            });
+        // === FUNGSI PHOTO MENU (DITANAM TERUS) ===
+        function showPhotoMenu(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closePhotoMenu();
+            
+            const menu = document.createElement('div');
+            menu.className = 'photo-option-menu';
+            menu.id = 'photoOptionMenu';
+
+            const rect = e.currentTarget.getBoundingClientRect();
+            menu.style.top = (rect.bottom + window.scrollY + 10) + 'px';
+            menu.style.left = (rect.left + window.scrollX + (rect.width / 2) - 55) + 'px';
+
+            const cameraBtn = document.createElement('button');
+            cameraBtn.className = 'photo-option-item';
+            cameraBtn.style.background = '#6c757d';
+            cameraBtn.innerHTML = '<i class="fas fa-camera"></i>';
+            cameraBtn.onclick = (ev) => { ev.stopPropagation(); openFilePicker('camera'); };
+
+            const galleryBtn = document.createElement('button');
+            galleryBtn.className = 'photo-option-item';
+            galleryBtn.style.background = '#1a73e8';
+            galleryBtn.innerHTML = '<i class="fas fa-images"></i>';
+            galleryBtn.onclick = (ev) => { ev.stopPropagation(); openFilePicker('gallery'); };
+
+            menu.appendChild(cameraBtn);
+            menu.appendChild(galleryBtn);
+            document.body.appendChild(menu);
+
+            setTimeout(() => {
+                document.addEventListener('click', closePhotoMenu, { once: true });
+            }, 100);
+        }
+
+        function closePhotoMenu() {
+            const menu = document.getElementById('photoOptionMenu');
+            if (menu) menu.remove();
+        }
+
+        function openFilePicker(source) {
+            const input = document.getElementById('photoInput');
+            if (source === 'camera') {
+                input.setAttribute('capture', 'environment');
+            } else {
+                input.removeAttribute('capture');
+            }
+            input.value = ''; // Reset supaya boleh pilih gambar sama
+            input.click();
+            closePhotoMenu();
+        }
+
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    tempPhotoBase64 = ev.target.result;
+                    document.getElementById('photoPreview').src = tempPhotoBase64;
+                    document.getElementById('photoPreview').style.display = 'block';
+                    document.getElementById('photoPlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
         });
 
+        // === FUNGSI LAIN ===
         function getCachedProductImage(partNo) {
             try {
                 const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -218,7 +277,7 @@
             const currentStock = document.getElementById('currentStock').value || 0;
             const minimumStock = document.getElementById('minimumStock').value || 0;
 
-            if (!partName || !partNo) { showToast('⚠️ Part Name dan Part No. wajib diisi!', 'warning'); return; }
+            if (!partName || !partNo) { showToast('️ Part Name dan Part No. wajib diisi!', 'warning'); return; }
 
             let userEmail = 'system@api';
             try {
