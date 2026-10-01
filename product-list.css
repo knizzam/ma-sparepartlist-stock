@@ -31,22 +31,72 @@
 
 /* Search & Filter */
 .search-filter-section {
-    background: white; padding: 15px; border-radius: 16px;
+    background: white; padding: 12px 15px; border-radius: 16px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px;
 }
-.search-input-wrapper { position: relative; margin-bottom: 15px; }
-.search-input-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
+.search-input-wrapper { position: relative; margin-bottom: 12px; }
+.search-input-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; font-size: 13px; }
 .search-input { 
-    width: 100%; padding: 12px 15px 12px 40px; 
+    width: 100%; padding: 10px 15px 10px 38px; 
     background: #f8f9fa; border: 1px solid transparent; border-radius: 10px; 
-    font-size: 14px; outline: none; box-sizing: border-box; 
+    font-size: 13px; outline: none; box-sizing: border-box; 
 }
 .search-input:focus { background: white; border-color: var(--primary-blue); }
 
-.category-filter-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; justify-content: center; flex-wrap: wrap; scrollbar-width: none; }
+/* Compact Chips Container */
+.filter-sort-container { 
+    display: flex; align-items: center; gap: 8px; 
+}
+.category-filter-container { 
+    display: flex; gap: 6px; overflow-x: auto; flex: 1;
+    scrollbar-width: none; padding-bottom: 2px;
+}
 .category-filter-container::-webkit-scrollbar { display: none; }
-.category-chip { padding: 8px 16px; border-radius: 20px; background: #f0f4f8; color: #666; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.category-chip.active { background: var(--primary-blue); color: white; box-shadow: 0 2px 8px rgba(26,115,232,0.3); }
+
+/* Compact Chips */
+.category-chip { 
+    padding: 6px 12px; border-radius: 16px; 
+    background: #f0f4f8; color: #666; 
+    font-size: 11px; font-weight: 600; 
+    cursor: pointer; transition: all 0.2s; 
+    white-space: nowrap; border: 1px solid transparent;
+}
+.category-chip.active { 
+    background: var(--primary-blue); color: white; 
+    box-shadow: 0 2px 6px rgba(26,115,232,0.3);
+}
+
+/* Sort Button */
+.sort-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: #f0f4f8; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+    position: relative;
+}
+.sort-btn i { font-size: 14px; color: #666; }
+.sort-btn:active { background: #e0e0e0; }
+.sort-btn.active { background: var(--primary-blue); }
+.sort-btn.active i { color: white; }
+
+/* Sort Dropdown Menu */
+.sort-dropdown {
+    position: absolute; top: 40px; right: 0;
+    background: white; border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    padding: 8px; min-width: 180px;
+    display: none; z-index: 100;
+}
+.sort-dropdown.show { display: block; }
+.sort-option {
+    padding: 10px 12px; border-radius: 8px;
+    font-size: 13px; color: #333; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    transition: background 0.2s;
+}
+.sort-option:hover { background: #f0f4f8; }
+.sort-option.active { background: #e7f1ff; color: var(--primary-blue); font-weight: 600; }
+.sort-option i { font-size: 12px; width: 16px; }
 
 /* Product List */
 .product-list-container { display: flex; flex-direction: column; gap: 12px; padding-bottom: 100px; }
@@ -91,7 +141,7 @@
 }
 .product-card-location i { color: #999; font-size: 10px; }
 
-/* Stock Section - FIXED WIDTH untuk alignment */
+/* Stock Section */
 .product-card-stock { 
     display: flex; flex-direction: column; align-items: center; 
     width: 45px; flex-shrink: 0;
