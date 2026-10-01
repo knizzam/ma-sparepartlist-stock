@@ -22,7 +22,7 @@
     display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 1.5px; 
 }
 
-/* Main Container - Background kelabu */
+/* Main Container */
 .main-container {
     padding: 20px 15px;
     max-width: 600px;
@@ -51,69 +51,68 @@
 /* Product List */
 .product-list-container { display: flex; flex-direction: column; gap: 12px; padding-bottom: 100px; }
 
-/* PRODUCT CARD */
+/* PRODUCT CARD - Susunan ikut gambar */
 .product-card {
-    background: white; border-radius: 16px; padding: 12px 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px;
-    border-left: 5px solid #e0e0e0;
+    background: white; border-radius: 16px; padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px;
+    border-left: 6px solid #e0e0e0;
     cursor: pointer; transition: transform 0.2s;
 }
 .product-card:active { transform: scale(0.98); }
 
-/* Border & Dot Color ikut Status */
-.product-card.status-high { border-left-color: #28a745; }
-.product-card.status-mid { border-left-color: #ffc107; }
-.product-card.status-low { border-left-color: #dc3545; }
+/* Border Color ikut Status */
+.product-card.status-high { border-left-color: #1a73e8; }  /* Biru */
+.product-card.status-mid { border-left-color: #ffc107; }   /* Kuning */
+.product-card.status-low { border-left-color: #dc3545; }   /* Merah */
 
 /* Gambar */
 .product-card-img {
-    width: 48px; height: 48px; border-radius: 12px; background: #f0f8ff;
+    width: 60px; height: 60px; border-radius: 12px; background: #f0f8ff;
     display: flex; align-items: center; justify-content: center;
     overflow: hidden; flex-shrink: 0;
 }
 .product-card-img img { width: 100%; height: 100%; object-fit: cover; }
-.product-card-img i { font-size: 20px; color: #1a73e8; }
+.product-card-img i { font-size: 24px; color: #1a73e8; }
 
-/* Info */
+/* Info Tengah */
 .product-card-info { flex: 1; min-width: 0; }
-.product-card-name { font-size: 14px; font-weight: 700; color: #000; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.product-card-name { font-size: 16px; font-weight: 700; color: #000; margin-bottom: 6px; }
 .product-card-partno { 
-    display: inline-block; font-size: 10px; font-weight: 700; 
-    color: var(--primary-blue); background: #e7f1ff;
-    padding: 2px 8px; border-radius: 4px; margin-right: 8px;
+    display: inline-block; font-size: 12px; font-weight: 700; 
+    color: white; background: #00d4ff; /* Cyan terang seperti gambar */
+    padding: 3px 10px; border-radius: 4px; margin-bottom: 6px;
 }
 .product-card-location { 
     display: inline-flex; align-items: center; gap: 4px; 
-    font-size: 12px; color: #666; font-weight: 500;
+    font-size: 14px; color: #1a73e8; font-weight: 500;
 }
+.product-card-location i { color: #999; }
 
-/* Stock & Dot */
+/* Stock Kanan - Susunan: Dot → Label → Nombor */
 .product-card-stock { 
-    display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-right: 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;
 }
 .status-dot { 
-    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
 }
-/* Dot warna SAMA dengan border */
-.status-dot.high { background: #28a745; }
-.status-dot.mid { background: #ffc107; }
-.status-dot.low { background: #dc3545; }
-.stock-info { text-align: left; }
-.stock-label { font-size: 10px; color: #888; margin-bottom: 2px; }
-.stock-number { font-size: 16px; font-weight: 800; color: #000; line-height: 1; }
+.status-dot.high { background: #1a73e8; }  /* Biru */
+.status-dot.mid { background: #ffc107; }   /* Kuning */
+.status-dot.low { background: #dc3545; }   /* Merah */
+.stock-label { font-size: 12px; color: #666; }
+.stock-number { font-size: 18px; font-weight: 800; color: #000; line-height: 1; }
 
-/* Delete Button */
+/* Delete Button - Bulat merah cair */
 .delete-btn-round {
-    width: 32px; height: 32px; border-radius: 50%; 
+    width: 40px; height: 40px; border-radius: 50%; 
     background: rgba(254, 226, 226, 0.7); border: none;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: all 0.2s; flex-shrink: 0;
 }
-.delete-btn-round i { font-size: 14px; color: #dc3545; }
+.delete-btn-round i { font-size: 18px; color: #dc3545; }
 .delete-btn-round:active { background: rgba(220, 53, 69, 0.8); }
 .delete-btn-round:active i { color: white; }
 
-/* MODAL - Standard Layout */
+/* MODAL */
 .modal-overlay { 
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
     background: rgba(0,0,0,0.5); z-index: 1000; display: none;
@@ -131,7 +130,7 @@
 .modal-title { font-size: 18px; font-weight: 800; color: #000; margin: 0; }
 .modal-close { background: none; border: none; font-size: 24px; color: #999; cursor: pointer; }
 
-/* Form Card dalam Modal - Standard Layout */
+/* Form Card */
 .form-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; }
 .form-section-title { 
     font-size: 12px; font-weight: 700; color: var(--primary-blue); 
