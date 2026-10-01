@@ -168,13 +168,18 @@
                 let avatarHTML = cachedImg ? `<img src="${cachedImg}" alt="${product.partName}">` : '';
                 
                 html += `
-                    <div class="product-card-add ${isEditing}" onclick="editProduct('${product.partNo}', '${product.partName}', '${product.noSpec}', '${product.location}', '${product.category}', ${product.currentStock}, ${product.minimumStock}, '${product.pictureFileId}')">
+                    <div class="product-card-add status-${statusClass} ${isEditing}" onclick="editProduct('${product.partNo}', '${product.partName}', '${product.noSpec}', '${product.location}', '${product.category}', ${product.currentStock}, ${product.minimumStock}, '${product.pictureFileId}')">
                         <div class="product-avatar-add" id="prod-avatar-${safePartNo}">${avatarHTML}</div>
                         <div class="product-info-add">
                             <div class="product-name-add">${product.partName}</div>
                             <span class="product-badge-add">${product.partNo}</span>
+                            <div class="product-location-add"><i class="fas fa-map-marker-alt"></i> ${product.location || '-'}</div>
                         </div>
-                        <div class="product-status-add ${statusClass}"></div>
+                        <div class="product-stock-add">
+                            <div class="product-status-add ${statusClass}"></div>
+                            <div class="stock-label-add">Stock</div>
+                            <div class="stock-number-add">${product.currentStock}</div>
+                        </div>    
                         <button class="delete-btn-add" onclick="event.stopPropagation(); deleteProduct('${product.partNo}')"><i class="fas fa-trash"></i></button>
                     </div>`;
             });
