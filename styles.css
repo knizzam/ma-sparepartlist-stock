@@ -97,11 +97,11 @@ body.index-page {
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
     color: white; 
     text-align: center; 
-    padding: 15px 20px 20px; /* SAMA MACAM add-product-header */
+    padding: 15px 20px 20px;
     position: sticky; 
     top: 0; 
     z-index: 100;
-    border-bottom-left-radius: 15px; /* SAMA MACAM add-product-header */
+    border-bottom-left-radius: 15px;
     border-bottom-right-radius: 15px;
     box-shadow: 0 4px 10px rgba(26,115,232,0.2); 
     margin-bottom: 10px;
@@ -109,7 +109,7 @@ body.index-page {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    min-height: 60px; /* SAMA MACAM add-product-header */
+    min-height: 60px;
 }
 
 .app-header .page-title {
@@ -122,8 +122,8 @@ body.index-page {
     background: white; 
     padding: 20px;
     display: flex; 
-    flex-direction: column; /* UBAH: supaya semua dalam satu column */
-    align-items: center; /* UBAH: center semua */
+    flex-direction: column;
+    align-items: center;
     border-bottom: 1px solid #e0e0e0;
     position: relative;
 }
@@ -168,7 +168,7 @@ body.index-page {
     height: 90px !important; 
     border-radius: 50% !important;
     object-fit: cover !important; 
-    border: 3px solid var(--primary-blue) !important;
+    /* border: 3px solid var(--primary-blue) !important; <-- DIBUANG */
     display: block !important; 
     background-color: #e0e0e0;
 }
@@ -254,7 +254,7 @@ body.index-page {
 .bg-product { background: linear-gradient(135deg, #0dcaf0, #0aa2c0); }
 .bg-order { background: linear-gradient(135deg, #ffc107, #e0a800); }
 .bg-transaction { background: linear-gradient(135deg, #dc3545, #b02a37); }
-.bg-dashboard { background: linear-gradient(135deg, #6610f2, #520dc2); }
+.bg-help { background: linear-gradient(135deg, #20c997, #17a085); } /* DITAMBAH */
 .bg-setting { background: linear-gradient(135deg, #495057, #343a40); }
 
 .menu-label { 
@@ -283,7 +283,7 @@ body.index-page {
     left: 0; 
     width: 100%; 
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%); 
-    height: 60px; /* SAMA MACAM HEADER ATAS (min-height: 60px) */
+    height: 60px;
     display: flex; 
     justify-content: center; 
     align-items: center; 
@@ -295,10 +295,10 @@ body.index-page {
 
 .fab-scan { 
     position: absolute; 
-    bottom: 5px; /* TURUNKAN LAGI (dari 20px kepada -15px) */
+    bottom: 5px;
     background: white; 
-    width: 80px; /* BESARKAN LAGI (dari 65px kepada 80px) */
-    height: 80px; /* BESARKAN LAGI (dari 65px kepada 80px) */
+    width: 80px;
+    height: 80px;
     border-radius: 50%; 
     display: flex; 
     flex-direction: column; 
@@ -307,14 +307,14 @@ body.index-page {
     box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
     text-decoration: none; 
     color: var(--primary-blue); 
-    border: 5px solid var(--primary-blue); /* BESARKAN BORDER */
+    border: 5px solid var(--primary-blue);
 }
 .fab-scan i { 
-    font-size: 2rem; /* BESARKAN ICON (dari 1.6rem kepada 2rem) */
-    margin-bottom: 0px; /* BUANG MARGIN BAWAH */
+    font-size: 2rem;
+    margin-bottom: 0px;
 }
 .fab-scan span { 
-    font-size: 0.7rem; /* BESARKAN TEXT (dari 0.6rem kepada 0.7rem) */
+    font-size: 0.7rem;
     font-weight: bold; 
 }
 
@@ -332,7 +332,7 @@ body.index-page {
 }
 
 .photo-option-item {
-    width: 600px; height: 600px; border-radius: 50%; border: none;
+    width: 50px; height: 50px; border-radius: 50%; border: none; /* DIBETULKAN DARI 600px */
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
