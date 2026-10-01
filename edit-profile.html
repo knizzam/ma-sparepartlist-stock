@@ -16,7 +16,6 @@
 </head>
 <body>
 
-    <!-- HEADER DENGAN ICON -->
     <div class="edit-profile-header">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <h1 class="edit-profile-title"><i class="fas fa-user-pen"></i>Edit Profile</h1>
@@ -27,14 +26,18 @@
         <div class="profile-photo-section">
             <div class="form-section-title" style="text-align: center; margin-bottom: 15px;">Profile Photo</div>
             
+            <!-- WRAPPER DENGAN ONCLICK -->
             <div class="photo-upload-wrapper" id="photoWrapper">
-                <div class="profile-pic-outer" id="profilePic">
-                    <div class="loading-spinner"></div>
+                <div class="profile-pic-outer" id="photoPlaceholder" onclick="showPhotoMenu(event)">
+                    <div class="profile-pic-default" id="profilePicDefault">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <img id="photoPreview" class="photo-preview-round" alt="Profile" onclick="showPhotoMenu(event)" style="display: none;">
                 </div>
                 <input type="file" id="photoInput" accept="image/*">
             </div>
             
-            <p class="photo-hint">Tap photo or camera icon to update</p>
+            <p class="photo-hint">Tap photo to update</p>
         </div>
 
         <!-- ACCOUNT INFORMATION -->
@@ -59,23 +62,30 @@
         let hasNewPhoto = false;
         let currentPictureFileId = '';
         
-        // Init Photo Picker
         document.addEventListener('DOMContentLoaded', function() {
+            // Init PhotoPicker
             PhotoPicker.init({
                 wrapperId: 'photoWrapper',
                 inputId: 'photoInput',
-                previewId: 'profilePic',
-                placeholderId: null // Kita guna profilePic sebagai preview
+                previewId: 'photoPreview',
+                placeholderId: 'photoPlaceholder'
             });
             
-            // Override PhotoPicker untuk update profile pic
+            // Handle bila fail dipilih
             document.getElementById('photoInput').addEventListener('change', function(e) {
                 if (e.target.files && e.target.files[0]) {
                     const reader = new FileReader();
                     reader.onload = function(ev) {
                         tempPhotoBase64 = ev.target.result;
                         hasNewPhoto = true;
-                        document.getElementById('profilePic').innerHTML = `<img src="${tempPhotoBase64}" alt="Profile">`;
+                        
+                        // Tunjuk preview bulat
+                        const preview = document.getElementById('photoPreview');
+                        const defaultIcon = document.getElementById('profilePicDefault');
+                        preview.src = tempPhotoBase64;
+                        preview.style.display = 'block';
+                        if (defaultIcon) defaultIcon.style.display = 'none';
+                        
                         Utils.showToast('📷 Gambar dipilih. Klik "Save Changes"', 'warning');
                     };
                     reader.readAsDataURL(e.target.files[0]);
@@ -102,9 +112,7 @@
                 currentPictureFileId = cachedProfile.pictureFileId || '';
                 
                 if (cachedImage && cachedProfile.pictureFileId) {
-                    document.getElementById('profilePic').innerHTML = `<img src="${cachedImage}" alt="Profile">`;
-                } else {
-                    document.getElementById('profilePic').innerHTML = `<div class="profile-pic-default"><i class="fas fa-user"></i></div>`;
+                    showProfileImage(cachedImage);
                 }
             }
             
@@ -129,18 +137,24 @@
                                         try {
                                             const imgResult = JSON.parse(imgText);
                                             if (imgResult.success && imgResult.base64 && imgResult.base64.length > 100) {
-                                                document.getElementById('profilePic').innerHTML = `<img src="${imgResult.base64}" alt="Profile">`;
+                                                showProfileImage(imgResult.base64);
                                                 CacheManager.set(CONFIG.IMAGE_CACHE_KEY, imgResult.base64);
                                             }
                                         } catch(e) {}
                                     });
-                            } else {
-                                document.getElementById('profilePic').innerHTML = `<div class="profile-pic-default"><i class="fas fa-user"></i></div>`;
                             }
                         }
                     } catch (e) {}
                 })
                 .catch(error => { console.error("Network Error:", error); });
+        }
+
+        function showProfileImage(base64) {
+            const preview = document.getElementById('photoPreview');
+            const defaultIcon = document.getElementById('profilePicDefault');
+            preview.src = base64;
+            preview.style.display = 'block';
+            if (defaultIcon) defaultIcon.style.display = 'none';
         }
 
         function saveProfilePicture() {
@@ -167,10 +181,7 @@
             })
             .then(() => {
                 Utils.showToast('✅ Profil berjaya dikemaskini!', 'success');
-                
                 CacheManager.set(CONFIG.IMAGE_CACHE_KEY, tempPhotoBase64);
-                document.getElementById('profilePic').innerHTML = `<img src="${tempPhotoBase64}" alt="Profile" style="width:100%; height:100%; object-fit:cover;">`;
-                
                 hasNewPhoto = false;
                 tempPhotoBase64 = '';
                 document.getElementById('photoInput').value = '';
