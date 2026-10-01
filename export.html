@@ -16,7 +16,7 @@
 </head>
 <body>
 
-    <!-- Header dengan 3-dot di kanan -->
+    <!-- Header -->
     <div class="export-header">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <h1 class="export-title"><i class="fas fa-file-export"></i>Export Report</h1>
@@ -30,6 +30,7 @@
         
         <!-- Filter Section -->
         <div class="filter-section">
+            <!-- Report Type Chips -->
             <div class="filter-sort-container">
                 <div class="category-filter-container" id="categoryFilter">
                     <div class="category-chip active" onclick="setReportFilter('Products', this)">Products</div>
@@ -38,7 +39,7 @@
                 </div>
             </div>
             
-            <!-- Date Filter (Auto-show untuk Transactions & StockTake) -->
+            <!-- Date Filter -->
             <div id="dateFilterSection" style="display: none; margin-top: 15px;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div>
@@ -50,8 +51,8 @@
                         <input type="date" class="form-input" id="endDate">
                     </div>
                 </div>
-                <div style="margin-top: 8px; font-size: 11px; color: #999;">
-                    <i class="fas fa-info-circle"></i> Date filter applies to Transactions & Stock Take
+                <div id="dateWarning" style="display: none; margin-top: 8px; padding: 8px; background: #fff3cd; border-radius: 6px; font-size: 11px; color: #856404;">
+                    <i class="fas fa-exclamation-triangle"></i> <span id="dateWarningText"></span>
                 </div>
             </div>
 
@@ -59,6 +60,17 @@
             <button class="search-btn" onclick="loadDataForFilter(currentFilter)">
                 <i class="fas fa-search"></i> Search
             </button>
+        </div>
+
+        <!-- Global Search Box (Muncul selepas data loaded) -->
+        <div class="global-search-wrapper" id="globalSearchWrapper" style="display: none;">
+            <div class="global-search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="globalSearchInput" placeholder="Search Part Name, Part No, or Location..." onkeyup="filterTableData()">
+            </div>
+            <div class="search-result-info">
+                <i class="fas fa-info-circle"></i> <span id="searchResultCount">0</span> results found
+            </div>
         </div>
 
         <!-- Data Table Container -->
@@ -81,47 +93,58 @@
     <script>
         let currentFilter = 'Products';
         let currentData = [];
+        let filteredData = [];
         let lastGeneratedCSV = null;
         let lastGeneratedFileName = 'report.csv';
         let sortColumn = -1;
         let sortDirection = 'asc';
+        const MAX_DISPLAY_ROWS = 100;
+        const MAX_DATE_RANGE_MONTHS = 3;
 
-        // Set default dates
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const threeMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 3, today.getDate());
             
             document.getElementById('endDate').valueAsDate = today;
-            document.getElementById('startDate').valueAsDate = firstDay;
+            document.getElementById('startDate').valueAsDate = threeMonthsAgo;
             
-            // Initialize Floating Action Menu - 3 BUTTONS ONLY
+            document.getElementById('startDate').addEventListener('change', validateDateRange);
+            document.getElementById('endDate').addEventListener('change', validateDateRange);
+            
             HeaderMenu.init({
                 triggerId: 'headerMenuTrigger',
                 buttons: [
-                    { 
-                        icon: 'fas fa-download', 
-                        title: 'Download CSV', 
-                        color: '#1a73e8', 
-                        action: downloadReport 
-                    },
-                    { 
-                        icon: 'fas fa-share-alt', 
-                        title: 'Share Report', 
-                        color: '#28a745', 
-                        action: shareReport 
-                    },
-                    { 
-                        icon: 'fas fa-print', 
-                        title: 'Print Report', 
-                        color: '#6c757d', 
-                        action: printReport 
-                    }
+                    { icon: 'fas fa-download', title: 'Download CSV', color: '#1a73e8', action: downloadReport },
+                    { icon: 'fas fa-share-alt', title: 'Share Report', color: '#28a745', action: shareReport },
+                    { icon: 'fas fa-print', title: 'Print Report', color: '#6c757d', action: printReport }
                 ]
             });
             
-            // Auto-load Products data on page load
             loadDataForFilter('Products');
         });
+
+        function validateDateRange() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            const warningDiv = document.getElementById('dateWarning');
+            const warningText = document.getElementById('dateWarningText');
+            
+            if (startDate && endDate && endDate > startDate) {
+                const diffTime = Math.abs(endDate - startDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const diffMonths = diffDays / 30;
+                
+                if (diffMonths > MAX_DATE_RANGE_MONTHS) {
+                    warningText.textContent = `Date range exceeds ${MAX_DATE_RANGE_MONTHS} months. Consider using shorter periods.`;
+                    warningDiv.style.display = 'block';
+                    return false;
+                } else {
+                    warningDiv.style.display = 'none';
+                    return true;
+                }
+            }
+            return true;
+        }
 
         function setReportFilter(filter, element) {
             currentFilter = filter;
@@ -129,15 +152,18 @@
             element.classList.add('active');
             
             const dateSection = document.getElementById('dateFilterSection');
+            const searchWrapper = document.getElementById('globalSearchWrapper');
             
-            // Auto-show date filter untuk Transactions & StockTake
             if (filter === 'Transactions' || filter === 'StockTake') {
                 dateSection.style.display = 'block';
             } else {
                 dateSection.style.display = 'none';
             }
             
-            // Clear previous data
+            searchWrapper.style.display = 'none';
+            document.getElementById('globalSearchInput').value = '';
+            document.getElementById('dateWarning').style.display = 'none';
+            
             document.getElementById('dataTableContainer').innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-hand-pointer" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
@@ -148,8 +174,13 @@
 
         async function loadDataForFilter(filter) {
             const container = document.getElementById('dataTableContainer');
+            const searchWrapper = document.getElementById('globalSearchWrapper');
             
-            // Show loading
+            if (filter !== 'Products' && !validateDateRange()) {
+                Utils.showToast('⚠️ Date range too large! Max 3 months recommended.', 'warning');
+                return;
+            }
+            
             container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size: 32px; color: var(--primary-blue);"></i><div style="margin-top: 10px;">Loading data...</div></div>';
             
             let sheetName = filter;
@@ -158,7 +189,6 @@
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
             
-            // Validate date untuk Transactions & StockTake
             if ((filter === 'Transactions' || filter === 'StockTake') && (!startDate || !endDate)) {
                 container.innerHTML = `
                     <div class="empty-state">
@@ -166,7 +196,7 @@
                         <div style="font-size: 14px; color: #888;">Please select date range above</div>
                     </div>
                 `;
-                Utils.showToast('️ Please select date range!', 'warning');
+                Utils.showToast('⚠️ Please select date range!', 'warning');
                 return;
             }
             
@@ -190,8 +220,14 @@
                     lastGeneratedCSV = result.csv;
                     lastGeneratedFileName = result.fileName;
                     currentData = result.csv.split('\n');
+                    filteredData = [...currentData];
                     
-                    renderDataTable(currentData, filter);
+                    // Show global search box
+                    searchWrapper.style.display = 'block';
+                    document.getElementById('globalSearchInput').value = '';
+                    document.getElementById('searchResultCount').textContent = currentData.length - 1;
+                    
+                    renderDataTable(filteredData, filter);
                 } else {
                     container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div style="color: #dc3545;">${result.message}</div></div>`;
                 }
@@ -199,6 +235,22 @@
                 console.error(error);
                 container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div style="color: #dc3545;">Failed to load data</div></div>';
             }
+        }
+
+        function filterTableData() {
+            const searchTerm = document.getElementById('globalSearchInput').value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                filteredData = [...currentData];
+            } else {
+                filteredData = currentData.filter((row, index) => {
+                    if (index === 0) return true;
+                    return row.toLowerCase().includes(searchTerm);
+                });
+            }
+            
+            document.getElementById('searchResultCount').textContent = filteredData.length - 1;
+            renderDataTable(filteredData, currentFilter);
         }
 
         function renderDataTable(data, filter) {
@@ -210,12 +262,17 @@
             }
 
             const headers = data[0].split(',').map(h => h.replace(/"/g, '').trim());
-            const rows = data.slice(1).map(row => row.split(',').map(cell => cell.replace(/"/g, '').trim()));
+            const allRows = data.slice(1).map(row => row.split(',').map(cell => cell.replace(/"/g, '').trim()));
+            const displayRows = allRows.slice(0, MAX_DISPLAY_ROWS);
+            const hasMore = allRows.length > MAX_DISPLAY_ROWS;
 
             let html = `
                 <div class="data-table-header">
                     <div class="data-table-title">${filter} Report</div>
-                    <div class="data-table-count">${rows.length} records</div>
+                    <div class="data-table-count">
+                        ${displayRows.length} of ${allRows.length} records
+                        ${hasMore ? `<br><small style="font-size: 9px; color: #999;">(Showing first ${MAX_DISPLAY_ROWS})</small>` : ''}
+                    </div>
                 </div>
                 <div class="data-table-wrapper">
                     <table class="data-table">
@@ -230,7 +287,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            ${rows.map(row => `
+                            ${displayRows.map(row => `
                                 <tr>
                                     ${row.map(cell => `<td>${cell}</td>`).join('')}
                                 </tr>
@@ -238,17 +295,18 @@
                         </tbody>
                     </table>
                 </div>
+                ${hasMore ? '<div style="padding: 15px; text-align: center; background: #fff9e6; color: #856404; font-size: 12px; border-top: 1px solid #f0f0f0;"><i class="fas fa-info-circle"></i> Use search to find specific records</div>' : ''}
             `;
             
             container.innerHTML = html;
         }
 
         function sortTable(columnIndex) {
-            if (!currentData || currentData.length <= 1) return;
+            if (!filteredData || filteredData.length <= 1) return;
             
-            const rows = currentData.slice(1);
+            const header = filteredData[0];
+            const rows = filteredData.slice(1);
             
-            // Toggle sort direction
             if (sortColumn === columnIndex) {
                 sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
             } else {
@@ -256,12 +314,10 @@
                 sortDirection = 'asc';
             }
             
-            // Sort rows
             rows.sort((a, b) => {
                 const cellA = a.split(',')[columnIndex].replace(/"/g, '').trim();
                 const cellB = b.split(',')[columnIndex].replace(/"/g, '').trim();
                 
-                // Check if numeric
                 const numA = parseFloat(cellA);
                 const numB = parseFloat(cellB);
                 
@@ -269,7 +325,6 @@
                     return sortDirection === 'asc' ? numA - numB : numB - numA;
                 }
                 
-                // String comparison
                 if (sortDirection === 'asc') {
                     return cellA.localeCompare(cellB);
                 } else {
@@ -277,20 +332,11 @@
                 }
             });
             
-            // Rebuild data
-            currentData = [currentData[0], ...rows];
-            lastGeneratedCSV = currentData.join('\n');
-            
-            // Re-render
-            renderDataTable(currentData, currentFilter);
+            filteredData = [header, ...rows];
+            renderDataTable(filteredData, currentFilter);
         }
 
-        function showLoading(show) {
-            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-        }
-
-        // 1. DOWNLOAD
-        async function downloadReport() {
+        function downloadReport() {
             if (!lastGeneratedCSV) {
                 Utils.showToast('⚠️ Please search for data first!', 'warning');
                 return;
@@ -309,7 +355,6 @@
             Utils.showToast(`✅ Downloaded ${lastGeneratedFileName}!`, 'success');
         }
 
-        // 2. SHARE
         async function shareReport() {
             if (!lastGeneratedCSV) {
                 Utils.showToast('⚠️ Please search for data first!', 'warning');
@@ -347,10 +392,9 @@
             }
         }
 
-        // 3. PRINT
         async function printReport() {
             if (!lastGeneratedCSV) {
-                Utils.showToast('️ Please search for data first!', 'warning');
+                Utils.showToast('⚠️ Please search for data first!', 'warning');
                 return;
             }
             
