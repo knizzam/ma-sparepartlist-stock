@@ -12,6 +12,7 @@
     
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="config.js"></script>
+    <script src="utils.js"></script>
     <script src="floating-actions.js"></script>
 </head>
 <body>
@@ -65,16 +66,6 @@
                 const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
                 localStorage.setItem(key, JSON.stringify({ base64: base64, timestamp: new Date().getTime() }));
             } catch(e) { console.warn('Cache failed:', e); }
-        }
-
-        function showToast(message, type = 'info') {
-            const oldToast = document.querySelector('.toast');
-            if (oldToast) oldToast.remove();
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
         async function loadProducts() {
