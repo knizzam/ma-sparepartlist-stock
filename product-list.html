@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Product List - MA Inventory</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="product-list.css">
+    
+    <script src="config.js"></script>
+    <script src="utils.js"></script>
+    <script src="photo-picker.js"></script>
+    <script src="floating-actions.js"></script>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="product-list-header">
+        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="product-list-title"><i class="fas fa-boxes-stacked"></i>Product List</h1>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="search-filter-section">
+        <div class="search-input-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" class="search-input" id="searchInput" placeholder="Cari Part Name, Part No, atau Location..." onkeyup="filterProducts()">
+        </div>
+        <div class="category-filter-container" id="categoryFilter">
+            <div class="category-chip active" data-category="all" onclick="setCategoryFilter('all', this)">Semua</div>
+            <div class="category-chip" data-category="Maintenance" onclick="setCategoryFilter('Maintenance', this)">Maintenance</div>
+            <div class="category-chip" data-category="Consumable" onclick="setCategoryFilter('Consumable', this)">Consumable</div>
+            <div class="category-chip" data-category="Tools" onclick="setCategoryFilter('Tools', this)">Tools</div>
+            <div class="category-chip" data-category="Safety" onclick="setCategoryFilter('Safety', this)">Safety</div>
+            <div class="category-chip" data-category="Kaizen" onclick="setCategoryFilter('Kaizen', this)">Kaizen</div>
+        </div>
+    </div>
+
+    <!-- Product List -->
+    <div class="product-list-container" id="productListContainer">
+        <div class="empty-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <div>Memuatkan produk...</div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Produk</h2>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Gambar Produk</label>
+                <div class="photo-upload-wrapper" id="editPhotoWrapper">
+                    <div class="photo-placeholder" id="editPhotoPlaceholder" onclick="showPhotoMenu(event)">
+                        <i class="fas fa-camera"></i>
+                        <span>Tap untuk upload</span>
+                    </div>
+                    <img id="editPhotoPreview" class="photo-preview-large" alt="Preview" onclick="showPhotoMenu(event)">
+                    <input type="file" id="editPhotoInput" accept="image/*">
+                </div>
+            </div>
+
+            <div class="form-group"><label class="form-label">Part Name</label><input type="text" class="form-input" id="editPartName"></div>
+            <div class="form-group"><label class="form-label">Part No.</label><input type="text" class="form-input" id="editPartNo" disabled style="background:#e9ecef;"></div>
+            <div class="form-group"><label class="form-label">No. Spec</label><input type="text" class="form-input" id="editNoSpec"></div>
+            <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-input" id="editLocation"></div>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-input" id="editCategory">
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Consumable">Consumable</option>
+                    <option value="Tools">Tools</option>
+                    <option value="Safety">Safety</option>
+                    <option value="Kaizen">Kaizen</option>
+                    <option value="Uncategorized">Uncategorized</option>
+                </select>
+            </div>
+            <div class="form-group"><label class="form-label">Current Stock</label><input type="number" class="form-input" id="editCurrentStock" min="0"></div>
+            <div class="form-group"><label class="form-label">Minimum Stock</label><input type="number" class="form-input" id="editMinimumStock" min="0"></div>
+
+            <div class="modal-btn-group">
+                <button class="modal-btn cancel" onclick="closeEditModal()">Batal</button>
+                <button class="modal-btn save" onclick="saveEditProduct()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav FAB -->
+    <div class="bottom-nav">
+        <a href="scanner.html" class="fab-scan">
+            <i class="fas fa-qrcode"></i>
+            <span>Scan</span>
+        </a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allProducts = [];
+        let currentCategory = 'all';
+        let currentSearch = '';
+        let editingPartNo = null;
+        let tempEditPhotoBase64 = '';
+        let userRole = 'User'; // Default role
+
+        // Check User Role
+        function checkUserRole() {
+            const profile = CacheManager.get(CONFIG.PROFILE_CACHE_KEY);
+            if (profile && profile.role) {
+                userRole = profile.role.toLowerCase();
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkUserRole();
+            loadProducts();
+            
+            // Init Photo Picker for Edit Modal
+            PhotoPicker.init({
+                wrapperId: 'editPhotoWrapper',
+                inputId: 'editPhotoInput',
+                previewId: 'editPhotoPreview',
+                placeholderId: 'editPhotoPlaceholder'
+            });
+
+            document.getElementById('editPhotoInput').addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) { tempEditPhotoBase64 = ev.target.result; };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        });
+
+        // Load Products
+        async function loadProducts() {
+            try {
+                const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
+                const result = await res.json();
+                if (result.success && result.products) {
+                    allProducts = result.products;
+                    renderProducts();
+                } else {
+                    document.getElementById('productListContainer').innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><div>Tiada produk</div></div>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('productListContainer').innerHTML = '<div class="empty-state" style="color:#dc3545;"><i class="fas fa-exclamation-triangle"></i><div>Gagal memuatkan data</div></div>';
+            }
+        }
+
+        // Calculate Stock Status (50% Buffer Logic)
+        function getStockStatus(current, min) {
+            const thresholdOK = min + (min * 0.5);
+            if (current > thresholdOK) return 'high';
+            if (current > min) return 'mid';
+            return 'low';
+        }
+
+        // Render Products
+        function renderProducts() {
+            const container = document.getElementById('productListContainer');
+            
+            let filtered = allProducts.filter(p => {
+                const matchCategory = currentCategory === 'all' || p.category === currentCategory;
+                const searchLower = currentSearch.toLowerCase();
+                const matchSearch = p.partName.toLowerCase().includes(searchLower) || 
+                                    p.partNo.toLowerCase().includes(searchLower) || 
+                                    (p.location && p.location.toLowerCase().includes(searchLower));
+                return matchCategory && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><div>Tiada hasil carian</div></div>';
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(product => {
+                const statusClass = getStockStatus(parseInt(product.currentStock), parseInt(product.minimumStock));
+                const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
+                
+                // Role-based action buttons
+                let actionButtons = '';
+                if (userRole === 'admin') {
+                    actionButtons = `
+                        <div class="product-card-actions">
+                            <button class="action-btn edit" onclick="openEditModal('${product.partNo}')"><i class="fas fa-pen"></i></button>
+                            <button class="action-btn delete" onclick="deleteProduct('${product.partNo}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    `;
+                }
+
+                let imgContent = product.pictureFileId ? 
+                    `<img src="https://drive.google.com/uc?export=view&id=${product.pictureFileId}" alt="${product.partName}" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-box\\'></i>';">` : 
+                    '<i class="fas fa-box"></i>';
+
+                html += `
+                    <div class="product-card">
+                        <div class="product-card-img">${imgContent}</div>
+                        <div class="product-card-info">
+                            <div class="product-card-name">${product.partName}</div>
+                            <span class="product-card-partno">${product.partNo}</span>
+                            <div class="product-card-location"><i class="fas fa-map-marker-alt"></i> ${product.location || '-'}</div>
+                        </div>
+                        <div class="product-card-stock">
+                            <div class="stock-label">Stok</div>
+                            <div class="stock-number">${product.currentStock}</div>
+                            <div class="status-dot ${statusClass}"></div>
+                        </div>
+                        ${actionButtons}
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // Filter Functions
+        function filterProducts() {
+            currentSearch = document.getElementById('searchInput').value;
+            renderProducts();
+        }
+
+        function setCategoryFilter(category, element) {
+            currentCategory = category;
+            document.querySelectorAll('.category-chip').forEach(chip => chip.classList.remove('active'));
+            element.classList.add('active');
+            renderProducts();
+        }
+
+        // Edit Modal Functions
+        function openEditModal(partNo) {
+            const product = allProducts.find(p => p.partNo === partNo);
+            if (!product) return;
+
+            editingPartNo = partNo;
+            tempEditPhotoBase64 = '';
+
+            document.getElementById('editPartName').value = product.partName;
+            document.getElementById('editPartNo').value = product.partNo;
+            document.getElementById('editNoSpec').value = product.noSpec;
+            document.getElementById('editLocation').value = product.location;
+            document.getElementById('editCategory').value = product.category || 'Uncategorized';
+            document.getElementById('editCurrentStock').value = product.currentStock;
+            document.getElementById('editMinimumStock').value = product.minimumStock;
+
+            const preview = document.getElementById('editPhotoPreview');
+            const placeholder = document.getElementById('editPhotoPlaceholder');
+            
+            if (product.pictureFileId) {
+                preview.src = `https://drive.google.com/uc?export=view&id=${product.pictureFileId}`;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+            } else {
+                preview.style.display = 'none';
+                placeholder.style.display = 'flex';
+            }
+
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+            editingPartNo = null;
+            tempEditPhotoBase64 = '';
+        }
+
+        async function saveEditProduct() {
+            if (!editingPartNo) return;
+
+            const partName = document.getElementById('editPartName').value.trim();
+            const noSpec = document.getElementById('editNoSpec').value.trim();
+            const location = document.getElementById('editLocation').value.trim();
+            const category = document.getElementById('editCategory').value.trim();
+            const currentStock = document.getElementById('editCurrentStock').value || 0;
+            const minimumStock = document.getElementById('editMinimumStock').value || 0;
+
+            if (!partName) { Utils.showToast('⚠️ Part Name wajib diisi!', 'warning'); return; }
+
+            const btn = document.querySelector('.modal-btn.save');
+            btn.innerText = 'Menyimpan...'; btn.disabled = true;
+
+            const payload = { 
+                action: 'updateProduct', 
+                data: { 
+                    partName, partNo: editingPartNo, noSpec, location, category, 
+                    currentStock, minimumStock, originalPartNo: editingPartNo 
+                } 
+            };
+
+            try {
+                await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+                
+                if (tempEditPhotoBase64) {
+                    await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'uploadProductPicture', data: { base64: tempEditPhotoBase64, partNo: editingPartNo } }) });
+                }
+                
+                Utils.showToast('✅ Produk berjaya dikemaskini!', 'success');
+                closeEditModal();
+                loadProducts();
+            } catch (error) {
+                Utils.showToast('❌ Ralat semasa menyimpan', 'error');
+                btn.innerText = 'Simpan'; btn.disabled = false;
+            }
+        }
+
+        // Delete Function
+        async function deleteProduct(partNo) {
+            if (!confirm('⚠️ Adakah anda pasti ingin memadam produk ini?')) return;
+            
+            try {
+                await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'deleteProduct', data: { partNo } }) });
+                Utils.showToast('✅ Produk berjaya dipadam', 'success');
+                loadProducts();
+            } catch (error) { Utils.showToast('❌ Gagal memadam produk', 'error'); }
+        }
+    </script>
+</body>
+</html>
