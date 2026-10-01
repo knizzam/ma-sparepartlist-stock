@@ -36,7 +36,7 @@
                 <div class="category-chip" onclick="setReportFilter('StockTake', this)">Stock Take</div>
             </div>
             
-            <!-- Sort Button -->
+            <!-- Date Filter Button -->
             <div style="position: relative;">
                 <button class="sort-btn" id="sortBtn" onclick="toggleDateFilter()">
                     <i class="fas fa-calendar"></i>
@@ -44,7 +44,7 @@
             </div>
         </div>
         
-        <!-- Date Filter (Hidden by default) -->
+        <!-- Date Filter Section -->
         <div id="dateFilterSection" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div>
@@ -84,6 +84,8 @@
     <script>
         let currentFilter = 'all';
         let currentSearch = '';
+        let lastGeneratedCSV = null;
+        let lastGeneratedFileName = 'report.csv';
 
         // Set default dates
         document.addEventListener('DOMContentLoaded', function() {
@@ -95,21 +97,27 @@
             
             renderReports();
             
-            // Initialize Floating Action Menu
+            // Initialize Floating Action Menu - ONLY 3 BUTTONS
             HeaderMenu.init({
                 triggerId: 'headerMenuTrigger',
                 buttons: [
                     { 
                         icon: 'fas fa-download', 
-                        title: 'Download Selected', 
+                        title: 'Download CSV', 
                         color: '#1a73e8', 
                         action: downloadSelectedReport 
                     },
                     { 
-                        icon: 'fas fa-envelope', 
-                        title: 'Email Report', 
+                        icon: 'fas fa-share-alt', 
+                        title: 'Share Report', 
                         color: '#28a745', 
-                        action: emailReport 
+                        action: shareReport 
+                    },
+                    { 
+                        icon: 'fas fa-print', 
+                        title: 'Print Report', 
+                        color: '#6c757d', 
+                        action: printReport 
                     }
                 ]
             });
@@ -118,6 +126,12 @@
         function toggleDateFilter() {
             const section = document.getElementById('dateFilterSection');
             section.style.display = section.style.display === 'none' ? 'block' : 'none';
+            const sortBtn = document.getElementById('sortBtn');
+            if (section.style.display === 'block') {
+                sortBtn.classList.add('active');
+            } else {
+                sortBtn.classList.remove('active');
+            }
         }
 
         function filterReports() {
@@ -179,10 +193,11 @@
 
             let html = '';
             filtered.forEach(report => {
+                const isSelected = window.selectedReportType === report.type ? 'selected' : '';
                 html += `
-                    <div class="product-card" onclick="selectReport('${report.type}', ${report.hasDate})">
-                        <div class="product-card-img">
-                            <i class="fas ${report.icon}" style="color: white;"></i>
+                    <div class="product-card ${isSelected}" onclick="selectReport('${report.type}', ${report.hasDate})">
+                        <div class="product-card-img ${report.color}">
+                            <i class="fas ${report.icon}"></i>
                         </div>
                         <div class="product-card-info">
                             <div class="product-card-name">${report.name}</div>
@@ -199,17 +214,16 @@
         }
 
         function selectReport(reportType, hasDate) {
+            window.selectedReportType = reportType;
+            renderReports(); // Re-render to show selection
+            
             if (hasDate) {
-                // Show date filter first
                 document.getElementById('dateFilterSection').style.display = 'block';
+                document.getElementById('sortBtn').classList.add('active');
                 document.getElementById('dateFilterSection').scrollIntoView({ behavior: 'smooth' });
-                Utils.showToast(' Please select date range, then click menu below to download', 'info');
-                
-                // Store selected report type for download
-                window.selectedReportType = reportType;
+                Utils.showToast('📅 Select date range, then use menu below to Download/Share/Print', 'info');
             } else {
-                // Direct download for Products
-                downloadReport('Products', '', '');
+                Utils.showToast('✅ Product Master selected. Use menu below to export.', 'info');
             }
         }
 
@@ -217,11 +231,11 @@
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
         }
 
-        async function downloadSelectedReport() {
+        function getSelectedReportConfig() {
             const reportType = window.selectedReportType || currentFilter;
             if (!reportType || reportType === 'all') {
                 Utils.showToast('⚠️ Please select a report type first!', 'warning');
-                return;
+                return null;
             }
             
             const startDate = document.getElementById('startDate').value;
@@ -229,21 +243,25 @@
             
             if (reportType !== 'Products' && (!startDate || !endDate)) {
                 Utils.showToast('⚠️ Please select date range!', 'warning');
-                return;
+                return null;
             }
             
-            await downloadReport(reportType, startDate, endDate);
+            return { reportType, startDate, endDate };
         }
 
-        async function downloadReport(sheetName, startDate, endDate) {
+        // Generate CSV from server
+        async function generateCSVFromServer() {
+            const config = getSelectedReportConfig();
+            if (!config) return null;
+            
             showLoading(true);
             
             try {
                 const payload = {
                     action: 'generateExportCSV',
-                    sheetName: sheetName,
-                    startDate: startDate,
-                    endDate: endDate
+                    sheetName: config.reportType,
+                    startDate: config.startDate,
+                    endDate: config.endDate
                 };
 
                 const res = await fetch(CONFIG.API_URL, {
@@ -255,70 +273,142 @@
                 const result = await res.json();
 
                 if (result.success) {
-                    const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8;' });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.setAttribute('download', result.fileName);
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-
-                    Utils.showToast(`✅ Downloaded ${result.count} records!`, 'success');
+                    lastGeneratedCSV = result.csv;
+                    lastGeneratedFileName = result.fileName;
+                    return result;
                 } else {
                     Utils.showToast('❌ ' + result.message, 'error');
+                    return null;
                 }
             } catch (error) {
                 console.error(error);
-                Utils.showToast('❌ Failed to download', 'error');
+                Utils.showToast('❌ Failed to generate report', 'error');
+                return null;
             } finally {
                 showLoading(false);
             }
         }
 
-        async function emailReport() {
-            const email = prompt('Enter recipient email:');
-            if (!email) return;
+        // 1. DOWNLOAD
+        async function downloadSelectedReport() {
+            const result = await generateCSVFromServer();
+            if (!result) return;
             
-            const reportType = window.selectedReportType || currentFilter;
-            if (!reportType || reportType === 'all') {
-                Utils.showToast('⚠️ Please select a report type first!', 'warning');
-                return;
-            }
-            
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            
-            showLoading(true);
+            const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', result.fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            Utils.showToast(`✅ Downloaded ${result.count} records!`, 'success');
+        }
+
+        // 2. SHARE (Email, WhatsApp, Telegram, etc.)
+        async function shareReport() {
+            const result = await generateCSVFromServer();
+            if (!result) return;
             
             try {
-                const payload = {
-                    action: 'sendReportEmailAPI',
-                    sheetName: reportType,
-                    startDate: startDate,
-                    endDate: endDate,
-                    recipientEmail: email
-                };
-
-                const res = await fetch(CONFIG.API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify(payload)
-                });
+                const blob = new Blob([result.csv], { type: 'text/csv' });
+                const file = new File([blob], result.fileName, { type: 'text/csv' });
                 
-                const result = await res.json();
-
-                if (result.success) {
-                    Utils.showToast('✅ Report sent to ' + email, 'success');
+                // Check if Web Share API is supported with files
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'MA Inventory Report',
+                        text: `Report: ${result.fileName} (${result.count} records)`
+                    });
+                    Utils.showToast('✅ Report shared successfully!', 'success');
                 } else {
-                    Utils.showToast(' ' + result.message, 'error');
+                    // Fallback: Share via URL/text only
+                    const shareText = `MA Inventory Report\nType: ${result.fileName}\nRecords: ${result.count}\n\nDownload the CSV file from the system.`;
+                    
+                    if (navigator.share) {
+                        await navigator.share({
+                            title: 'MA Inventory Report',
+                            text: shareText
+                        });
+                        Utils.showToast('✅ Share dialog opened!', 'success');
+                    } else {
+                        // Final fallback: Copy to clipboard
+                        await navigator.clipboard.writeText(shareText);
+                        Utils.showToast(' Report info copied to clipboard. Share manually via WhatsApp/Email.', 'info');
+                    }
                 }
             } catch (error) {
-                Utils.showToast('❌ Failed to send email', 'error');
-            } finally {
-                showLoading(false);
+                if (error.name !== 'AbortError') {
+                    console.error(error);
+                    Utils.showToast('❌ Failed to share report', 'error');
+                }
             }
+        }
+
+        // 3. PRINT
+        async function printReport() {
+            const result = await generateCSVFromServer();
+            if (!result) return;
+            
+            // Convert CSV to HTML table for printing
+            const rows = result.csv.split('\n');
+            const headers = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
+            const dataRows = rows.slice(1).map(row => row.split(',').map(cell => cell.replace(/"/g, '').trim()));
+            
+            let tableHTML = `
+                <html>
+                <head>
+                    <title>MA Inventory Report - ${result.fileName}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h1 { color: #1a73e8; font-size: 20px; margin-bottom: 5px; }
+                        .meta { color: #666; font-size: 12px; margin-bottom: 20px; }
+                        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+                        th { background: #1a73e8; color: white; padding: 8px; text-align: left; border: 1px solid #ddd; }
+                        td { padding: 6px 8px; border: 1px solid #ddd; }
+                        tr:nth-child(even) { background: #f9f9f9; }
+                        tr:hover { background: #f0f8ff; }
+                        @media print {
+                            body { padding: 10px; }
+                            table { font-size: 10px; }
+                            th { background: #1a73e8 !important; -webkit-print-color-adjust: exact; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>MA Inventory Report</h1>
+                    <div class="meta">
+                        <strong>Report Type:</strong> ${result.fileName.replace('.csv', '').replace(/_/g, ' ')}<br>
+                        <strong>Total Records:</strong> ${result.count}<br>
+                        <strong>Generated:</strong> ${new Date().toLocaleString('en-GB')}
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody>
+                            ${dataRows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+            
+            // Open in new window and print
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(tableHTML);
+            printWindow.document.close();
+            
+            // Wait for content to load then print
+            printWindow.onload = function() {
+                printWindow.focus();
+                printWindow.print();
+            };
+            
+            Utils.showToast('🖨️ Print dialog opened!', 'info');
         }
     </script>
 </body>
