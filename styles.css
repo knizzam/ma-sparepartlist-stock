@@ -276,14 +276,14 @@ body.index-page {
     font-weight: bold; 
 }
 
-/* BOTTOM NAV - KEKAL SAIZ STANDARD */
+/* BOTTOM NAV - SAMA SAIZ DENGAN HEADER ATAS */
 .bottom-nav { 
     position: fixed; 
     bottom: 0; 
     left: 0; 
     width: 100%; 
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%); 
-    height: 75px; /* KEKAL SAIZ ASAL */
+    height: 60px; /* SAMA MACAM HEADER ATAS (min-height: 60px) */
     display: flex; 
     justify-content: center; 
     align-items: center; 
@@ -295,26 +295,26 @@ body.index-page {
 
 .fab-scan { 
     position: absolute; 
-    bottom: 20px; 
+    bottom: -15px; /* TURUNKAN LAGI (dari 20px kepada -15px) */
     background: white; 
-    width: 65px; /* KEKAL SAIZ ASAL */
-    height: 65px; /* KEKAL SAIZ ASAL */
+    width: 80px; /* BESARKAN LAGI (dari 65px kepada 80px) */
+    height: 80px; /* BESARKAN LAGI (dari 65px kepada 80px) */
     border-radius: 50%; 
     display: flex; 
     flex-direction: column; 
     align-items: center; 
     justify-content: center; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
     text-decoration: none; 
     color: var(--primary-blue); 
-    border: 4px solid var(--primary-blue); 
+    border: 5px solid var(--primary-blue); /* BESARKAN BORDER */
 }
 .fab-scan i { 
-    font-size: 1.6rem; 
-    margin-bottom: 2px; 
+    font-size: 2rem; /* BESARKAN ICON (dari 1.6rem kepada 2rem) */
+    margin-bottom: 0px; /* BUANG MARGIN BAWAH */
 }
 .fab-scan span { 
-    font-size: 0.6rem; 
+    font-size: 0.7rem; /* BESARKAN TEXT (dari 0.6rem kepada 0.7rem) */
     font-weight: bold; 
 }
 
