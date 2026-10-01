@@ -1,9 +1,9 @@
 /* =========================================
-   PRINT QR CODE SPECIFIC
+   PRODUCT LIST SPECIFIC
    ========================================= */
 
-/* HEADER CENTER DENGAN ICON */
-.print-qr-header {
+/* Header */
+.product-list-header {
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
     color: white; text-align: center; padding: 15px 20px 20px;
     position: sticky; top: 0; z-index: 100;
@@ -11,85 +11,139 @@
     box-shadow: 0 4px 10px rgba(26,115,232,0.2); margin-bottom: 10px;
     display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px;
 }
-.print-qr-header .back-btn {
+.product-list-header .back-btn {
     position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
     background: rgba(255,255,255,0.2); border: none; color: white;
     width: 36px; height: 36px; border-radius: 50%; display: flex;
     align-items: center; justify-content: center; text-decoration: none;
 }
-.print-qr-title { 
+.product-list-title { 
     font-size: 1.0rem; font-weight: 800; margin: 0; color: white; 
     display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 1.5px; 
 }
-.print-qr-title i { font-size: 1.2rem; }
 
-.search-section { padding: 10px 15px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.search-container { display: flex; gap: 8px; align-items: center; }
-.search-input { flex: 1; padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; outline: none; background: #f5f5f5; }
-.search-input:focus { border-color: var(--primary-blue); background: white; }
-.select-all-container { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.select-all-container label { font-size: 13px; font-weight: 500; cursor: pointer; color: #555; }
+/* Search & Filter */
+.search-filter-section {
+    background: white; padding: 15px; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin: 0 15px 15px;
+}
+.search-input-wrapper { position: relative; margin-bottom: 15px; }
+.search-input-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
+.search-input { width: 100%; padding: 12px 15px 12px 40px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; }
+.search-input:focus { border-color: var(--primary-blue); }
 
-.custom-checkbox {
-    width: 20px; height: 20px; border: 2px solid #fff; border-radius: 3px;
-    background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
-}
-.custom-checkbox.checked { background: white; border-color: white; }
-.custom-checkbox.checked::after { content: '✓'; color: #007bff; font-size: 14px; font-weight: bold; }
-.select-all-container .custom-checkbox { border-color: #007bff; background: white; }
-.select-all-container .custom-checkbox.checked { background: #007bff; }
-.select-all-container .custom-checkbox.checked::after { color: white; }
+.category-filter-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; justify-content: center; flex-wrap: wrap; scrollbar-width: none; }
+.category-filter-container::-webkit-scrollbar { display: none; }
+.category-chip { padding: 8px 16px; border-radius: 20px; background: #f0f4f8; color: #666; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.category-chip.active { background: var(--primary-blue); color: white; box-shadow: 0 2px 8px rgba(26,115,232,0.3); }
 
-.product-grid { padding: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+/* Product List Container */
+.product-list-container { padding: 0 15px 100px; display: flex; flex-direction: column; gap: 12px; }
 
-.print-card {
-    background: white; border-radius: 8px; overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1); border: 2px solid transparent;
-    position: relative; transition: border-color 0.2s;
+/* PRODUCT CARD - Sama seperti gambar 1 */
+.product-card {
+    background: white; border-radius: 16px; padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px;
+    border-left: 6px solid #1a73e8; /* Biru tebal di kiri */
+    cursor: pointer; transition: transform 0.2s;
 }
-.print-card.selected { border-color: var(--primary-blue); }
-.print-card-header {
-    background: linear-gradient(135deg, #007bff 0%, #00a8ff 100%);
-    color: white; padding: 10px 12px; display: flex; align-items: center; justify-content: center; position: relative; min-height: 42px;
-}
-.print-card-title { font-size: 13px; font-weight: 600; text-align: center; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 30px; }
-.print-card-checkbox { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); z-index: 10; }
-.print-card-info { padding: 8px 12px; background: #fafafa; border-bottom: 1px solid #f0f0f0; }
-.print-info-row { display: grid; grid-template-columns: 65px 12px 1fr; margin-bottom: 4px; font-size: 12px; align-items: baseline; }
-.print-info-row:last-child { margin-bottom: 0; }
-.print-info-label { font-weight: 600; color: #555; }
-.print-info-colon { text-align: center; color: #888; }
-.print-info-value { color: #333; font-weight: 500; word-break: break-all; }
-.print-card-body { padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: stretch; }
-.print-card-image { background: #f8f9fa; border-radius: 6px; padding: 6px; display: flex; align-items: center; justify-content: center; aspect-ratio: 1; overflow: hidden; position: relative; }
-.print-card-image img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
-.print-card-image-placeholder { color: #ddd; font-size: 32px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
-.print-card-qr { background: white; border: 2px solid #f0f0f0; border-radius: 6px; padding: 6px; display: flex; align-items: center; justify-content: center; aspect-ratio: 1; overflow: hidden; }
-.print-card-qr img { width: 100%; height: 100%; object-fit: contain; }
-.loading-container { grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #888; }
-.loading-container i { font-size: 32px; margin-bottom: 10px; color: var(--primary-blue); }
+.product-card:active { transform: scale(0.98); }
 
-/* PRINT MEDIA QUERIES */
-@media print {
-    @page { size: A4 landscape; margin: 10mm; }
-    body { background: white !important; padding: 0 !important; margin: 0 !important; }
-    .print-qr-header, .search-section, .toast, .print-card-checkbox, #headerMenuTrigger, #headerDropdownMenu { display: none !important; }
-    .product-grid { padding: 0 !important; grid-template-columns: repeat(3, 1fr) !important; gap: 8mm !important; }
-    .print-card:not(.selected) { display: none !important; }
-    .print-card { box-shadow: none !important; border: 1px solid #ddd !important; page-break-inside: avoid !important; break-inside: avoid !important; }
-    .print-card-header { background: #007bff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; padding: 8px 10px !important; }
-    .print-card-title { font-size: 14px !important; font-weight: 700 !important; color: white !important; }
-    .print-card-info { padding: 8px 10px !important; }
-    .print-info-row { font-size: 12px !important; margin-bottom: 4px !important; }
-    .print-info-label { font-size: 12px !important; font-weight: 700 !important; }
-    .print-info-value { font-size: 12px !important; font-weight: 500 !important; }
-    .print-card-body { padding: 10px !important; gap: 8px !important; }
+/* Gambar kecil di kiri */
+.product-card-img {
+    width: 50px; height: 50px; border-radius: 8px; background: #f0f8ff;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; flex-shrink: 0;
 }
-@media (min-width: 768px) {
-    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; }
-    .print-card-title { font-size: 15px; }
-    .print-info-row { font-size: 14px; }
+.product-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.product-card-img i { font-size: 24px; color: #1a73e8; }
+
+/* Info di tengah */
+.product-card-info { flex: 1; min-width: 0; }
+.product-card-name { font-size: 16px; font-weight: 700; color: #000; margin-bottom: 6px; }
+.product-card-partno { 
+    display: inline-block; font-size: 12px; font-weight: 600; 
+    color: white; background: #00d4ff; /* Biru terang seperti gambar */
+    padding: 3px 10px; border-radius: 4px; margin-right: 10px;
 }
-@media (min-width: 1024px) {
-    .product-grid { grid-template-columns: repeat(3, 1fr); }
+.product-card-location { 
+    display: inline-flex; align-items: center; gap: 4px; 
+    font-size: 14px; color: #1a73e8; font-weight: 500;
 }
+
+/* Stock di kanan */
+.product-card-stock { 
+    display: flex; align-items: center; gap: 12px; flex-shrink: 0; margin-right: 10px;
+}
+.status-dot { 
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+}
+.status-dot.high { background: #28a745; }
+.status-dot.mid { background: #ffc107; }
+.status-dot.low { background: #dc3545; }
+.stock-info { text-align: left; }
+.stock-label { font-size: 12px; color: #888; margin-bottom: 2px; }
+.stock-number { font-size: 20px; font-weight: 800; color: #000; }
+
+/* Delete Button - Bulat merah muda seperti gambar 2 */
+.delete-btn-round {
+    width: 40px; height: 40px; border-radius: 50%; 
+    background: #fee2e2; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+}
+.delete-btn-round i { font-size: 18px; color: #dc3545; }
+.delete-btn-round:active { background: #dc3545; }
+.delete-btn-round:active i { color: white; }
+
+/* MODAL - Sama design dengan Add Product */
+.modal-overlay { 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.5); z-index: 1000; display: none;
+    align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
+    animation: fadeIn 0.2s ease;
+}
+.modal-overlay.show { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-content { 
+    background: #f0f4f8; border-radius: 16px; width: 100%; max-width: 500px;
+    max-height: 90vh; overflow-y: auto; padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-title { font-size: 18px; font-weight: 800; color: #000; margin: 0; }
+.modal-close { background: none; border: none; font-size: 24px; color: #999; cursor: pointer; }
+
+/* Form Card dalam Modal */
+.form-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; }
+.form-section-title { font-size: 12px; font-weight: 700; color: var(--primary-blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #f0f8ff; }
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px; text-transform: uppercase; }
+.form-input { width: 100%; padding: 12px 15px; background: #f8f9fa; border: 1px solid transparent; border-radius: 10px; font-size: 15px; color: #333; box-sizing: border-box; }
+.form-input:focus { background: white; border-color: var(--primary-blue); outline: none; }
+
+/* Photo Upload dalam Modal */
+.photo-upload-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; position: relative !important; overflow: visible !important; margin-bottom: 10px !important; }
+.photo-placeholder { width: 100%; max-width: 150px; aspect-ratio: 4 / 3; border-radius: 8px; border: 2px dashed #ddd; background: #fafafa; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+.photo-placeholder i { font-size: 24px; color: #666; margin-bottom: 5px; }
+.photo-placeholder span { font-size: 11px; color: #666; text-align: center; }
+.photo-preview-large { width: 100%; max-width: 150px; aspect-ratio: 4 / 3; border-radius: 8px; object-fit: cover; cursor: pointer; display: none; }
+#editPhotoInput { display: none !important; }
+
+/* Modal Buttons */
+.modal-btn-group { display: flex; gap: 10px; margin-top: 20px; }
+.modal-btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; }
+.modal-btn.cancel { background: #f5f5f5; color: #666; }
+.modal-btn.save { background: linear-gradient(to right, #1a73e8, #1557b0); color: white; }
+
+/* Bottom Nav FAB */
+.bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%); height: 60px; display: flex; justify-content: center; align-items: center; z-index: 1000; box-shadow: 0 -4px 15px rgba(26,115,232,0.3); border-top-left-radius: 30px; border-top-right-radius: 30px; }
+.fab-scan { position: absolute; bottom: 5px; background: white; width: 80px; height: 80px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-decoration: none; color: var(--primary-blue); border: 5px solid var(--primary-blue); }
+.fab-scan i { font-size: 2rem; margin-bottom: 0px; }
+.fab-scan span { font-size: 0.7rem; font-weight: bold; }
+
+.empty-state { text-align: center; padding: 40px 20px; color: #888; }
