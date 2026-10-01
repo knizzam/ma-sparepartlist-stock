@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="add-product.css">
     <script src="config.js"></script>
+    <script src="utils.js"></script>
     <script src="photo-picker.js"></script>
 </head>
 <body>
@@ -84,15 +85,6 @@
 
             loadProductList();
         });
-
-        function showToast(message, type = 'info') {
-            const oldToast = document.querySelector('.toast');
-            if (oldToast) oldToast.remove();
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`; toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
-        }
 
         function getCachedProductImage(partNo) {
             try {
