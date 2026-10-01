@@ -40,11 +40,11 @@
             <div class="form-group"><label class="form-label">No. Spec</label><input type="text" class="form-input" id="noSpec" placeholder="e.g., M6x1.0"></div>
             <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-input" id="location" placeholder="e.g., Rack A-01"></div>
             
-            <!-- DROPDOWN CATEGORY BAHARU -->
+            <!-- DROPDOWN CATEGORY -->
             <div class="form-group">
                 <label class="form-label">Category</label>
                 <select class="form-input" id="category" style="cursor: pointer;">
-                    <option value="">-- Pilih Kategori --</option>
+                    <option value="Uncategorized">-- Pilih Kategori --</option>
                     <option value="Maintenance">Maintenance</option>
                     <option value="Consumable">Consumable</option>
                     <option value="Tools">Tools</option>
@@ -80,22 +80,15 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             PhotoPicker.init({
-                wrapperId: 'photoWrapper',
-                inputId: 'photoInput',
-                previewId: 'photoPreview',
-                placeholderId: 'photoPlaceholder'
+                wrapperId: 'photoWrapper', inputId: 'photoInput', previewId: 'photoPreview', placeholderId: 'photoPlaceholder'
             });
-            
             document.getElementById('photoInput').addEventListener('change', function(e) {
                 if (e.target.files && e.target.files[0]) {
                     const reader = new FileReader();
-                    reader.onload = function(ev) {
-                        tempPhotoBase64 = ev.target.result;
-                    };
+                    reader.onload = function(ev) { tempPhotoBase64 = ev.target.result; };
                     reader.readAsDataURL(e.target.files[0]);
                 }
             });
-
             loadProductList();
         });
 
@@ -114,13 +107,15 @@
             try {
                 const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
                 localStorage.setItem(key, JSON.stringify({ base64: base64, timestamp: new Date().getTime() }));
-            } catch(e) { console.warn('Cache failed:', e); }
+            } catch(e) {}
         }
 
         function isWithinLast5Days(dateStr) {
             if (!dateStr) return false;
-            try { return new Date(dateStr) >= new Date(new Date().getTime() - (5 * 24 * 60 * 60 * 1000)); } 
-            catch (e) { return false; }
+            try { 
+                const date = new Date(dateStr);
+                return date >= new Date(new Date().getTime() - (5 * 24 * 60 * 60 * 1000)); 
+            } catch (e) { return false; }
         }
 
         async function loadProductList(forceRefresh = false) {
@@ -131,7 +126,7 @@
                     if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
                         allProducts = parsed.data; renderProductList(allProducts); return;
                     }
-                } catch(e) { console.error("Cache error:", e); }
+                } catch(e) {}
             }
             try {
                 const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
@@ -150,21 +145,22 @@
             const productList = document.getElementById('productList');
             const recentProducts = products.filter(p => isWithinLast5Days(p.lastUpdateDate));
             document.getElementById('productCount').textContent = recentProducts.length;
+            
             if (recentProducts.length === 0) {
                 productList.innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tiada produk dalam 5 hari terkini</div>'; return;
             }
+            
             let html = '';
             recentProducts.forEach(product => {
                 const currentStock = parseInt(product.currentStock) || 0;
                 const minimumStock = parseInt(product.minimumStock) || 0;
                 
-                // LOGIK WARNA STATUS (SAMA MACAM APPS SCRIPT)
-                let statusClass = 'high'; // Default Hijau
-                if (currentStock === 0) {
-                    statusClass = 'low'; // Merah
-                } else if (currentStock <= minimumStock) {
-                    statusClass = 'mid'; // Kuning
-                }
+                // LOGIK WARNA 50% BUFFER
+                const thresholdOK = minimumStock + (minimumStock * 0.5);
+                let statusClass = 'high';
+                if (currentStock > thresholdOK) statusClass = 'high';
+                else if (currentStock > minimumStock) statusClass = 'mid';
+                else statusClass = 'low';
 
                 const isEditing = editingPartNo === product.partNo ? 'editing' : '';
                 const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -206,10 +202,9 @@
             document.getElementById('partNo').value = partNo;
             document.getElementById('noSpec').value = noSpec;
             document.getElementById('location').value = location;
-            document.getElementById('category').value = category || '';
+            document.getElementById('category').value = category || 'Uncategorized';
             document.getElementById('currentStock').value = currentStock;
             document.getElementById('minimumStock').value = minimumStock;
-            
             document.getElementById('saveBtn').innerText = 'Update Product';
             
             const preview = document.getElementById('photoPreview');
@@ -277,7 +272,7 @@
             document.getElementById('partNo').value = '';
             document.getElementById('noSpec').value = '';
             document.getElementById('location').value = '';
-            document.getElementById('category').value = '';
+            document.getElementById('category').value = 'Uncategorized';
             document.getElementById('currentStock').value = '';
             document.getElementById('minimumStock').value = '';
             PhotoPicker.reset();
