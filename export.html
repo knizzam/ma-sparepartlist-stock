@@ -12,7 +12,6 @@
     
     <script src="config.js"></script>
     <script src="utils.js"></script>
-    <script src="floating-actions.js"></script>
 </head>
 <body>
 
@@ -25,19 +24,10 @@
     <!-- Main Container -->
     <div class="main-container">
         
-        <!-- Configuration Card -->
-        <div class="form-card">
-            <div class="form-section-title">Report Configuration</div>
+        <!-- Date Filter Card (Hidden by default) -->
+        <div class="form-card" id="dateFilterCard" style="display: none;">
+            <div class="form-section-title">Date Range</div>
             
-            <div class="form-group">
-                <label class="form-label">Select Report Type</label>
-                <select class="form-input" id="sheetSelect" onchange="updateDateInputs()">
-                    <option value="Products">Products Master List</option>
-                    <option value="Transactions">Transactions History</option>
-                    <option value="StockTake_Log">Stock Take Log</option>
-                </select>
-            </div>
-
             <div class="form-group">
                 <label class="form-label">Start Date</label>
                 <input type="date" class="form-input" id="startDate">
@@ -47,20 +37,62 @@
                 <label class="form-label">End Date</label>
                 <input type="date" class="form-input" id="endDate">
             </div>
-            
-            <div class="form-group">
-                <label class="form-label">Recipient Email (Optional for Email Export)</label>
-                <input type="email" class="form-input" id="recipientEmail" placeholder="admin@company.com">
+
+            <div class="btn-group">
+                <button class="cancel-btn" onclick="backToCards()">Cancel</button>
+                <button class="submit-btn" onclick="downloadSelectedReport()">
+                    <i class="fas fa-download"></i> Download CSV
+                </button>
             </div>
         </div>
 
-    </div>
+        <!-- Report Type Cards -->
+        <div class="report-cards-container" id="reportCardsContainer">
+            
+            <!-- Product Master List Card -->
+            <div class="report-card" onclick="downloadProductMaster()">
+                <div class="report-card-icon bg-blue">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <div class="report-card-info">
+                    <div class="report-card-title">Product Master List</div>
+                    <div class="report-card-desc">All products with current stock</div>
+                </div>
+                <div class="report-card-action">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
 
-    <!-- Bottom Nav FAB -->
-    <div class="bottom-nav">
-        <div id="headerMenuTrigger" style="cursor: pointer; color: white; padding: 10px;">
-            <i class="fas fa-ellipsis-v" style="font-size: 20px;"></i>
+            <!-- Transaction History Card -->
+            <div class="report-card" onclick="showDateFilter('Transactions')">
+                <div class="report-card-icon bg-green">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div class="report-card-info">
+                    <div class="report-card-title">Transaction History</div>
+                    <div class="report-card-desc">Receive, Out, Return records</div>
+                </div>
+                <div class="report-card-action">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+            </div>
+
+            <!-- Stock Take Log Card -->
+            <div class="report-card" onclick="showDateFilter('StockTake_Log')">
+                <div class="report-card-icon bg-purple">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <div class="report-card-info">
+                    <div class="report-card-title">Stock Take Log</div>
+                    <div class="report-card-desc">Stock take records & approvals</div>
+                </div>
+                <div class="report-card-action">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+            </div>
+
         </div>
+
     </div>
 
     <!-- Loading Overlay -->
@@ -71,74 +103,83 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Set default dates to current month
+        let selectedReportType = '';
+
+        // Set default dates
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
             
             document.getElementById('endDate').valueAsDate = today;
             document.getElementById('startDate').valueAsDate = firstDay;
-            
-            updateDateInputs();
-            
-            // Initialize Floating Action Menu
-            HeaderMenu.init({
-                triggerId: 'headerMenuTrigger',
-                buttons: [
-                    { 
-                        icon: 'fas fa-download', 
-                        title: 'Download CSV', 
-                        color: '#1a73e8', 
-                        action: downloadCSV 
-                    },
-                    { 
-                        icon: 'fas fa-envelope', 
-                        title: 'Send via Email', 
-                        color: '#28a745', 
-                        action: sendViaEmail 
-                    }
-                ]
-            });
         });
 
-        function updateDateInputs() {
-            const sheet = document.getElementById('sheetSelect').value;
-            const startDateInput = document.getElementById('startDate');
-            const endDateInput = document.getElementById('endDate');
-            
-            if (sheet === 'Products') {
-                startDateInput.disabled = true;
-                endDateInput.disabled = true;
-                startDateInput.value = '';
-                endDateInput.value = '';
-                startDateInput.style.opacity = '0.5';
-                endDateInput.style.opacity = '0.5';
-            } else {
-                startDateInput.disabled = false;
-                endDateInput.disabled = false;
-                startDateInput.style.opacity = '1';
-                endDateInput.style.opacity = '1';
-                
-                if (!startDateInput.value) {
-                    const today = new Date();
-                    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-                    startDateInput.valueAsDate = firstDay;
-                    endDateInput.valueAsDate = today;
-                }
-            }
+        function showDateFilter(reportType) {
+            selectedReportType = reportType;
+            document.getElementById('reportCardsContainer').style.display = 'none';
+            document.getElementById('dateFilterCard').style.display = 'block';
+        }
+
+        function backToCards() {
+            document.getElementById('dateFilterCard').style.display = 'none';
+            document.getElementById('reportCardsContainer').style.display = 'block';
+            selectedReportType = '';
         }
 
         function showLoading(show) {
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
         }
 
-        async function downloadCSV() {
-            const sheetName = document.getElementById('sheetSelect').value;
+        async function downloadProductMaster() {
+            showLoading(true);
+            
+            try {
+                const payload = {
+                    action: 'generateExportCSV',
+                    sheetName: 'Products',
+                    startDate: '',
+                    endDate: ''
+                };
+
+                const res = await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await res.json();
+
+                if (result.success) {
+                    const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', result.fileName);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+
+                    Utils.showToast(`✅ Downloaded ${result.count} products!`, 'success');
+                } else {
+                    Utils.showToast('❌ ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                Utils.showToast('❌ Failed to download', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function downloadSelectedReport() {
+            if (!selectedReportType) return;
+
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
 
-            if (sheetName !== 'Products' && (!startDate || !endDate)) {
-                Utils.showToast('⚠️ Please select a date range!', 'warning');
+            if (!startDate || !endDate) {
+                Utils.showToast('⚠️ Please select date range!', 'warning');
                 return;
             }
 
@@ -147,7 +188,7 @@
             try {
                 const payload = {
                     action: 'generateExportCSV',
-                    sheetName: sheetName,
+                    sheetName: selectedReportType,
                     startDate: startDate,
                     endDate: endDate
                 };
@@ -161,7 +202,6 @@
                 const result = await res.json();
 
                 if (result.success) {
-                    // Create Blob and Download
                     const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8;' });
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
@@ -173,62 +213,13 @@
                     URL.revokeObjectURL(url);
 
                     Utils.showToast(`✅ Downloaded ${result.count} records!`, 'success');
+                    backToCards();
                 } else {
                     Utils.showToast('❌ ' + result.message, 'error');
                 }
             } catch (error) {
                 console.error(error);
-                Utils.showToast('❌ Failed to generate report', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        async function sendViaEmail() {
-            const sheetName = document.getElementById('sheetSelect').value;
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            const email = document.getElementById('recipientEmail').value.trim();
-
-            if (!email) {
-                Utils.showToast('⚠️ Please enter recipient email!', 'warning');
-                document.getElementById('recipientEmail').focus();
-                return;
-            }
-
-            if (sheetName !== 'Products' && (!startDate || !endDate)) {
-                Utils.showToast('⚠️ Please select a date range!', 'warning');
-                return;
-            }
-
-            showLoading(true);
-
-            try {
-                const payload = {
-                    action: 'sendReportEmailAPI',
-                    sheetName: sheetName,
-                    startDate: startDate,
-                    endDate: endDate,
-                    recipientEmail: email
-                };
-
-                const res = await fetch(CONFIG.API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify(payload)
-                });
-                
-                const result = await res.json();
-
-                if (result.success) {
-                    Utils.showToast('✅ Sent to ' + email, 'success');
-                    document.getElementById('recipientEmail').value = '';
-                } else {
-                    Utils.showToast(' ' + result.message, 'error');
-                }
-            } catch (error) {
-                console.error(error);
-                Utils.showToast('❌ Failed to send email', 'error');
+                Utils.showToast('❌ Failed to download', 'error');
             } finally {
                 showLoading(false);
             }
