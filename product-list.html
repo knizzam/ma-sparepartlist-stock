@@ -14,28 +14,35 @@
 </head>
 <body>
 
+    <!-- Header Standard -->
     <div class="product-list-header">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <h1 class="product-list-title"><i class="fas fa-boxes-stacked"></i>Product List</h1>
     </div>
 
-    <div class="search-filter-section">
-        <div class="search-input-wrapper">
-            <i class="fas fa-search"></i>
-            <input type="text" class="search-input" id="searchInput" placeholder="Search Part Name, Part No, or Location..." onkeyup="filterProducts()">
+    <!-- Main Container -->
+    <div class="main-container">
+        
+        <!-- Search & Filter Card -->
+        <div class="search-filter-section">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search Part Name, Part No, or Location..." onkeyup="filterProducts()">
+            </div>
+            <div class="category-filter-container">
+                <div class="category-chip active" onclick="setCategoryFilter('all', this)">All</div>
+                <div class="category-chip" onclick="setCategoryFilter('Maintenance', this)">Maintenance</div>
+                <div class="category-chip" onclick="setCategoryFilter('Consumable', this)">Consumable</div>
+                <div class="category-chip" onclick="setCategoryFilter('Tools', this)">Tools</div>
+                <div class="category-chip" onclick="setCategoryFilter('Safety', this)">Safety</div>
+                <div class="category-chip" onclick="setCategoryFilter('Kaizen', this)">Kaizen</div>
+            </div>
         </div>
-        <div class="category-filter-container">
-            <div class="category-chip active" onclick="setCategoryFilter('all', this)">All</div>
-            <div class="category-chip" onclick="setCategoryFilter('Maintenance', this)">Maintenance</div>
-            <div class="category-chip" onclick="setCategoryFilter('Consumable', this)">Consumable</div>
-            <div class="category-chip" onclick="setCategoryFilter('Tools', this)">Tools</div>
-            <div class="category-chip" onclick="setCategoryFilter('Safety', this)">Safety</div>
-            <div class="category-chip" onclick="setCategoryFilter('Kaizen', this)">Kaizen</div>
-        </div>
-    </div>
 
-    <div class="product-list-container" id="productListContainer">
-        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>
+        <!-- Product List -->
+        <div class="product-list-container" id="productListContainer">
+            <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>
+        </div>
     </div>
 
     <!-- EDIT MODAL -->
@@ -60,7 +67,7 @@
                     </div>
                 </div>
                 <div class="form-group"><label class="form-label">Part Name</label><input type="text" class="form-input" id="editPartName"></div>
-                <div class="form-group"><label class="form-label">Part No.</label><input type="text" class="form-input" id="editPartNo" disabled style="background:#e9ecef;"></div>
+                <div class="form-group"><label class="form-label">Part No.</label><input type="text" class="form-input" id="editPartNo" disabled></div>
                 <div class="form-group"><label class="form-label">No. Spec</label><input type="text" class="form-input" id="editNoSpec"></div>
                 <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-input" id="editLocation"></div>
                 <div class="form-group">
@@ -89,6 +96,7 @@
         </div>
     </div>
 
+    <!-- Bottom Nav FAB -->
     <div class="bottom-nav">
         <a href="scanner.html" class="fab-scan"><i class="fas fa-qrcode"></i><span>Scan</span></a>
     </div>
@@ -118,14 +126,13 @@
                     const reader = new FileReader();
                     reader.onload = function(ev) { 
                         tempEditPhotoBase64 = ev.target.result;
-                        Utils.showToast('📷 Photo selected', 'info');
+                        Utils.showToast(' Photo selected', 'info');
                     };
                     reader.readAsDataURL(e.target.files[0]);
                 }
             });
         });
 
-        // CACHE FUNCTIONS
         function getCachedProductImage(partNo) {
             try {
                 const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -142,7 +149,6 @@
             localStorage.setItem(key, JSON.stringify({ base64: base64, timestamp: new Date().getTime() }));
         }
 
-        // LOAD WITH CACHE
         async function loadProductList(forceRefresh = false) {
             const cachedData = localStorage.getItem(PRODUCT_LIST_CACHE_KEY);
             if (!forceRefresh && cachedData) {
@@ -153,7 +159,7 @@
                         renderProducts();
                         return;
                     }
-                } catch(e) { console.error("Cache error:", e); }
+                } catch(e) {}
             }
             
             try {
@@ -208,7 +214,7 @@
                 }
 
                 html += `
-                    <div class="product-card" onclick="openEditModal('${product.partNo}')">
+                    <div class="product-card status-${statusClass}" onclick="openEditModal('${product.partNo}')">
                         <div class="product-card-img" id="card-img-${safePartNo}">${imgContent}</div>
                         <div class="product-card-info">
                             <div class="product-card-name">${product.partName}</div>
@@ -230,7 +236,6 @@
             });
             container.innerHTML = html;
 
-            // Load images asynchronously
             filtered.forEach(product => {
                 if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -256,7 +261,6 @@
             renderProducts();
         }
 
-        // EDIT MODAL
         function openEditModal(partNo) {
             const product = allProducts.find(p => p.partNo === partNo);
             if (!product) return;
@@ -316,7 +320,7 @@
         async function saveEditProduct() {
             if (!editingPartNo) return;
             const partName = document.getElementById('editPartName').value.trim();
-            if (!partName) { Utils.showToast('️ Part Name is required!', 'warning'); return; }
+            if (!partName) { Utils.showToast('⚠️ Part Name is required!', 'warning'); return; }
 
             const btn = document.querySelector('.modal-btn.save');
             btn.innerText = 'Saving...'; btn.disabled = true;
