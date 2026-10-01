@@ -37,14 +37,9 @@
                     <div class="category-chip" onclick="setReportFilter('Transactions', this)">Transactions</div>
                     <div class="category-chip" onclick="setReportFilter('StockTake', this)">Stock Take</div>
                 </div>
-                
-                <!-- Sort Button di kanan -->
-                <button class="sort-btn" id="sortBtn" onclick="toggleDateFilter()">
-                    <i class="fas fa-calendar"></i>
-                </button>
             </div>
             
-            <!-- Date Filter (Hidden by default) -->
+            <!-- Date Filter (Auto-show untuk Transactions & StockTake) -->
             <div id="dateFilterSection" style="display: none; margin-top: 15px;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div>
@@ -60,13 +55,18 @@
                     <i class="fas fa-info-circle"></i> Date filter applies to Transactions & Stock Take
                 </div>
             </div>
+
+            <!-- Search Button -->
+            <button class="search-btn" id="searchBtn" onclick="loadDataForFilter(currentFilter)">
+                <i class="fas fa-search"></i> Search
+            </button>
         </div>
 
         <!-- Data Table Container -->
         <div class="data-table-container" id="dataTableContainer">
             <div class="empty-state">
                 <i class="fas fa-hand-pointer" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
-                <div style="font-size: 14px; color: #888;">Select a report type above to view data</div>
+                <div style="font-size: 14px; color: #888;">Select a report type and click Search to view data</div>
             </div>
         </div>
 
@@ -84,6 +84,8 @@
         let currentData = [];
         let lastGeneratedCSV = null;
         let lastGeneratedFileName = 'report.csv';
+        let sortColumn = -1;
+        let sortDirection = 'asc';
 
         // Set default dates
         document.addEventListener('DOMContentLoaded', function() {
@@ -119,24 +121,27 @@
             });
         });
 
-        function toggleDateFilter() {
-            const section = document.getElementById('dateFilterSection');
-            section.style.display = section.style.display === 'none' ? 'block' : 'none';
-            const sortBtn = document.getElementById('sortBtn');
-            if (section.style.display === 'block') {
-                sortBtn.classList.add('active');
-            } else {
-                sortBtn.classList.remove('active');
-            }
-        }
-
         function setReportFilter(filter, element) {
             currentFilter = filter;
             document.querySelectorAll('.category-chip').forEach(chip => chip.classList.remove('active'));
             element.classList.add('active');
             
-            // Load data immediately when filter is clicked
-            loadDataForFilter(filter);
+            const dateSection = document.getElementById('dateFilterSection');
+            
+            // Auto-show date filter untuk Transactions & StockTake
+            if (filter === 'Transactions' || filter === 'StockTake') {
+                dateSection.style.display = 'block';
+            } else {
+                dateSection.style.display = 'none';
+            }
+            
+            // Clear previous data
+            document.getElementById('dataTableContainer').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-hand-pointer" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
+                    <div style="font-size: 14px; color: #888;">Click Search button to load ${filter} data</div>
+                </div>
+            `;
         }
 
         async function loadDataForFilter(filter) {
@@ -147,21 +152,23 @@
             
             let sheetName = filter;
             if (filter === 'StockTake') sheetName = 'StockTake_Log';
+            if (filter === 'all') {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle" style="font-size: 48px; color: #ffc107; margin-bottom: 15px;"></i><div style="font-size: 14px; color: #888;">Please select a specific report type (Products, Transactions, or Stock Take)</div></div>';
+                return;
+            }
             
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
             
-            // For Products, no date filter
-            if (filter === 'Products') {
-                sheetName = 'Products';
-            } else if (filter !== 'all' && (!startDate || !endDate)) {
-                // Show message to select date
+            // Validate date untuk Transactions & StockTake
+            if ((filter === 'Transactions' || filter === 'StockTake') && (!startDate || !endDate)) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-calendar-alt" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
+                        <i class="fas fa-calendar-alt" style="font-size: 48px; color: #ffc107; margin-bottom: 15px;"></i>
                         <div style="font-size: 14px; color: #888;">Please select date range above</div>
                     </div>
                 `;
+                Utils.showToast('️ Please select date range!', 'warning');
                 return;
             }
             
@@ -216,7 +223,12 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                ${headers.map(h => `<th>${h}</th>`).join('')}
+                                ${headers.map((h, index) => `
+                                    <th onclick="sortTable(${index})" style="cursor: pointer;">
+                                        ${h}
+                                        ${sortColumn === index ? (sortDirection === 'asc' ? '<i class="fas fa-sort-up"></i>' : '<i class="fas fa-sort-down"></i>') : '<i class="fas fa-sort" style="opacity: 0.3;"></i>'}
+                                    </th>
+                                `).join('')}
                             </tr>
                         </thead>
                         <tbody>
@@ -233,6 +245,49 @@
             container.innerHTML = html;
         }
 
+        function sortTable(columnIndex) {
+            if (!currentData || currentData.length <= 1) return;
+            
+            const headers = currentData[0].split(',');
+            const rows = currentData.slice(1);
+            
+            // Toggle sort direction
+            if (sortColumn === columnIndex) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = columnIndex;
+                sortDirection = 'asc';
+            }
+            
+            // Sort rows
+            rows.sort((a, b) => {
+                const cellA = a.split(',')[columnIndex].replace(/"/g, '').trim();
+                const cellB = b.split(',')[columnIndex].replace(/"/g, '').trim();
+                
+                // Check if numeric
+                const numA = parseFloat(cellA);
+                const numB = parseFloat(cellB);
+                
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return sortDirection === 'asc' ? numA - numB : numB - numA;
+                }
+                
+                // String comparison
+                if (sortDirection === 'asc') {
+                    return cellA.localeCompare(cellB);
+                } else {
+                    return cellB.localeCompare(cellA);
+                }
+            });
+            
+            // Rebuild data
+            currentData = [currentData[0], ...rows];
+            lastGeneratedCSV = currentData.join('\n');
+            
+            // Re-render
+            renderDataTable(currentData, currentFilter);
+        }
+
         function showLoading(show) {
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
         }
@@ -240,7 +295,7 @@
         // 1. DOWNLOAD
         async function downloadReport() {
             if (!lastGeneratedCSV) {
-                Utils.showToast('⚠️ Please select a report type first!', 'warning');
+                Utils.showToast('⚠️ Please search for data first!', 'warning');
                 return;
             }
             
@@ -260,7 +315,7 @@
         // 2. SHARE
         async function shareReport() {
             if (!lastGeneratedCSV) {
-                Utils.showToast('⚠️ Please select a report type first!', 'warning');
+                Utils.showToast('️ Please search for data first!', 'warning');
                 return;
             }
             
@@ -298,7 +353,7 @@
         // 3. PRINT
         async function printReport() {
             if (!lastGeneratedCSV) {
-                Utils.showToast('⚠️ Please select a report type first!', 'warning');
+                Utils.showToast('⚠️ Please search for data first!', 'warning');
                 return;
             }
             
