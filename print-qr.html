@@ -17,14 +17,10 @@
 </head>
 <body>
 
-    <div class="page-header">
-        <div class="header-left">
-            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-            <h1 class="page-title">Print QR Code</h1>
-        </div>
-        <div id="headerMenuTrigger" style="cursor: pointer; color: white; padding: 10px;">
-            <i class="fas fa-ellipsis-v" style="font-size: 20px;"></i>
-        </div>
+    <!-- HEADER CENTER DENGAN ICON -->
+    <div class="print-qr-header">
+        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="print-qr-title"><i class="fas fa-qrcode"></i>Print QR Code</h1>
     </div>
 
     <div class="search-section">
@@ -131,7 +127,7 @@
                             </div>
                         </div>
                         
-                        <div class="print-card-info card-clickable" onclick="goToProductDetail('${product.partNo}')">
+                        <div class="print-card-info">
                             <div class="print-info-row">
                                 <span class="print-info-label">Part No.</span>
                                 <span class="print-info-colon">:</span>
@@ -145,7 +141,7 @@
                         </div>
                         
                         <div class="print-card-body">
-                            <div class="print-card-image card-clickable" id="card-img-${safePartNo}" onclick="goToProductDetail('${product.partNo}')">
+                            <div class="print-card-image" id="card-img-${safePartNo}">
                                 ${imageContent}
                             </div>
                             <div class="print-card-qr">
@@ -194,10 +190,6 @@
             updateSelectAllCheckbox();
         }
 
-        function goToProductDetail(partNo) {
-            window.location.href = `product-list.html?partno=${encodeURIComponent(partNo)}`;
-        }
-
         function filterProducts() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const filtered = allProducts.filter(p => 
@@ -227,14 +219,14 @@
 
         function printSelected() {
             const selected = getSelectedProducts();
-            if (selected.length === 0) { showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning'); return; }
+            if (selected.length === 0) { Utils.showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning'); return; }
             window.print();
         }
 
         async function downloadSelected() {
             const selected = getSelectedProducts();
-            if (selected.length === 0) { showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning'); return; }
-            showToast('⏳ Sedang menjana imej...', 'info');
+            if (selected.length === 0) { Utils.showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning'); return; }
+            Utils.showToast('⏳ Sedang menjana imej...', 'info');
             let downloadCount = 0;
 
             for (const product of selected) {
@@ -256,13 +248,13 @@
                     } catch (err) { console.error('Error:', err); }
                 }
             }
-            showToast(`✅ Berjaya memuat turun ${downloadCount} imej!`, 'success');
+            Utils.showToast(`✅ Berjaya memuat turun ${downloadCount} imej!`, 'success');
         }
 
         async function shareSelected() {
             const selected = getSelectedProducts();
-            if (selected.length === 0) { showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning'); return; }
-            showToast('⏳ Sedang menyediakan fail...', 'info');
+            if (selected.length === 0) { Utils.showToast('⚠️ Sila pilih sekurang-kurangnya satu produk!', 'warning'); return; }
+            Utils.showToast(' Sedang menyediakan fail...', 'info');
             const files = [];
 
             for (const product of selected) {
@@ -277,12 +269,12 @@
                 }
             }
 
-            if (files.length === 0) { showToast('❌ Gagal menjana imej!', 'error'); return; }
+            if (files.length === 0) { Utils.showToast('❌ Gagal menjana imej!', 'error'); return; }
 
             if (navigator.canShare && navigator.canShare({ files: files })) {
                 try {
                     await navigator.share({ files: files, title: 'MA Inventory QR Codes', text: `${files.length} product QR code(s)` });
-                    showToast(`✅ Berjaya share ${files.length} imej!`, 'success');
+                    Utils.showToast(`✅ Berjaya share ${files.length} imej!`, 'success');
                 } catch (err) {
                     if (err.name !== 'AbortError') {
                         for (const file of files) {
@@ -294,7 +286,7 @@
                             URL.revokeObjectURL(url);
                             await new Promise(r => setTimeout(r, 500));
                         }
-                        showToast(`✅ ${files.length} imej dimuat turun`, 'info');
+                        Utils.showToast(`✅ ${files.length} imej dimuat turun`, 'info');
                     }
                 }
             } else {
@@ -307,7 +299,7 @@
                     URL.revokeObjectURL(url);
                     await new Promise(r => setTimeout(r, 500));
                 }
-                showToast(`✅ ${files.length} imej dimuat turun!`, 'success');
+                Utils.showToast(`✅ ${files.length} imej dimuat turun!`, 'success');
             }
         }
 
