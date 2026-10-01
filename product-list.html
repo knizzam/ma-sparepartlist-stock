@@ -100,11 +100,12 @@
         let currentSearch = '';
         let editingPartNo = null;
         let tempEditPhotoBase64 = '';
+        const PRODUCT_LIST_CACHE_KEY = 'ma_inventory_product_list';
+        const CACHE_EXPIRY = 5 * 60 * 1000;
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadProducts();
+            loadProductList();
             
-            // Init Photo Picker
             PhotoPicker.init({
                 wrapperId: 'editPhotoWrapper',
                 inputId: 'editPhotoInput',
@@ -117,19 +118,50 @@
                     const reader = new FileReader();
                     reader.onload = function(ev) { 
                         tempEditPhotoBase64 = ev.target.result;
-                        Utils.showToast(' Photo selected', 'info');
+                        Utils.showToast('📷 Photo selected', 'info');
                     };
                     reader.readAsDataURL(e.target.files[0]);
                 }
             });
         });
 
-        async function loadProducts() {
+        // CACHE FUNCTIONS
+        function getCachedProductImage(partNo) {
+            try {
+                const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
+                const item = localStorage.getItem(key);
+                if (!item) return null;
+                const parsed = JSON.parse(item);
+                if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) return parsed.base64;
+                return null;
+            } catch(e) { return null; }
+        }
+
+        function setCachedProductImage(partNo, base64) {
+            const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
+            localStorage.setItem(key, JSON.stringify({ base64: base64, timestamp: new Date().getTime() }));
+        }
+
+        // LOAD WITH CACHE
+        async function loadProductList(forceRefresh = false) {
+            const cachedData = localStorage.getItem(PRODUCT_LIST_CACHE_KEY);
+            if (!forceRefresh && cachedData) {
+                try {
+                    const parsed = JSON.parse(cachedData);
+                    if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
+                        allProducts = parsed.data;
+                        renderProducts();
+                        return;
+                    }
+                } catch(e) { console.error("Cache error:", e); }
+            }
+            
             try {
                 const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
                 const result = await res.json();
                 if (result.success && result.products) {
                     allProducts = result.products;
+                    localStorage.setItem(PRODUCT_LIST_CACHE_KEY, JSON.stringify({ data: allProducts, timestamp: new Date().getTime() }));
                     renderProducts();
                 } else {
                     document.getElementById('productListContainer').innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><div>No products found</div></div>';
@@ -168,7 +200,7 @@
                 const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
                 const cachedImg = getCachedProductImage(product.partNo);
                 
-                let imgContent = '<i class="fas fa-box"></i>'; // Default icon (tiada crack effect)
+                let imgContent = '<i class="fas fa-box"></i>';
                 if (cachedImg) {
                     imgContent = `<img src="${cachedImg}" alt="${product.partName}">`;
                 } else if (product.pictureFileId) {
@@ -176,22 +208,23 @@
                 }
 
                 html += `
-                    <div class="product-card status-${statusClass}">
+                    <div class="product-card" onclick="openEditModal('${product.partNo}')">
                         <div class="product-card-img" id="card-img-${safePartNo}">${imgContent}</div>
                         <div class="product-card-info">
                             <div class="product-card-name">${product.partName}</div>
                             <span class="product-card-partno">${product.partNo}</span>
-                            <div class="product-card-location"><i class="fas fa-map-marker-alt"></i> ${product.location || '-'}</div>
+                            <span class="product-card-location"><i class="fas fa-map-marker-alt"></i> ${product.location || '-'}</span>
                         </div>
                         <div class="product-card-stock">
-                            <div class="stock-label">Stock</div>
-                            <div class="stock-number">${product.currentStock}</div>
                             <div class="status-dot ${statusClass}"></div>
+                            <div class="stock-info">
+                                <div class="stock-label">Stock</div>
+                                <div class="stock-number">${product.currentStock}</div>
+                            </div>
                         </div>
-                        <div class="product-card-actions">
-                            <button class="action-btn edit" onclick="openEditModal('${product.partNo}')"><i class="fas fa-pen"></i></button>
-                            <button class="action-btn delete" onclick="deleteProduct('${product.partNo}')"><i class="fas fa-trash"></i></button>
-                        </div>
+                        <button class="delete-btn-round" onclick="event.stopPropagation(); deleteProduct('${product.partNo}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 `;
             });
@@ -215,22 +248,6 @@
             });
         }
 
-        function getCachedProductImage(partNo) {
-            try {
-                const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
-                const item = localStorage.getItem(key);
-                if (!item) return null;
-                const parsed = JSON.parse(item);
-                if (new Date().getTime() - parsed.timestamp < 5 * 60 * 1000) return parsed.base64;
-                return null;
-            } catch(e) { return null; }
-        }
-
-        function setCachedProductImage(partNo, base64) {
-            const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
-            localStorage.setItem(key, JSON.stringify({ base64: base64, timestamp: new Date().getTime() }));
-        }
-
         function filterProducts() { currentSearch = document.getElementById('searchInput').value; renderProducts(); }
         function setCategoryFilter(category, element) {
             currentCategory = category;
@@ -239,7 +256,7 @@
             renderProducts();
         }
 
-        // EDIT MODAL LOGIC
+        // EDIT MODAL
         function openEditModal(partNo) {
             const product = allProducts.find(p => p.partNo === partNo);
             if (!product) return;
@@ -325,7 +342,7 @@
                 }
                 Utils.showToast('✅ Product updated!', 'success');
                 closeEditModal();
-                loadProducts();
+                loadProductList(true);
             } catch (error) {
                 Utils.showToast('❌ Failed to save', 'error');
                 btn.innerText = 'Save Changes'; btn.disabled = false;
@@ -337,11 +354,10 @@
             try {
                 await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'deleteProduct', data: { partNo } }) });
                 Utils.showToast('✅ Product deleted', 'success');
-                loadProducts();
-            } catch (error) { Utils.showToast(' Failed to delete', 'error'); }
+                loadProductList(true);
+            } catch (error) { Utils.showToast('❌ Failed to delete', 'error'); }
         }
 
-        // Close modal on outside click
         document.getElementById('editModal').addEventListener('click', function(e) {
             if (e.target === this) closeEditModal();
         });
