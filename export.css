@@ -2,7 +2,7 @@
    EXPORT REPORT SPECIFIC
    ========================================= */
 
-/* Header dengan 3-dot di kanan */
+/* Header */
 .export-header {
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
     color: white; text-align: center; padding: 15px 20px 20px;
@@ -39,11 +39,8 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px;
 }
 
-.filter-sort-container { 
-    display: flex; align-items: center; gap: 8px; 
-}
 .category-filter-container { 
-    display: flex; gap: 6px; overflow-x: auto; flex: 1;
+    display: flex; gap: 6px; overflow-x: auto;
     scrollbar-width: none; padding-bottom: 2px;
 }
 .category-filter-container::-webkit-scrollbar { display: none; }
@@ -70,244 +67,98 @@
 
 /* Search Button */
 .search-btn {
-    width: 100%;
-    margin-top: 15px;
-    padding: 12px;
+    width: 100%; margin-top: 15px; padding: 12px;
     background: linear-gradient(to right, #1a73e8, #1557b0);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+    color: white; border: none; border-radius: 10px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.2s; box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
 }
-.search-btn:active {
-    transform: scale(0.98);
-}
-.search-btn i {
-    font-size: 14px;
-}
+.search-btn:active { transform: scale(0.98); }
 
-/* Data Table Container - Modern Card Style */
+/* Global Search Box - Modern */
+.global-search-wrapper {
+    background: white; border-radius: 16px; padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px;
+}
+.global-search-box {
+    position: relative; display: flex; align-items: center;
+    background: #f0f4f8; border-radius: 12px; padding: 14px 18px;
+    border: 1px solid transparent; transition: all 0.2s;
+}
+.global-search-box:focus-within {
+    background: white; border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+.global-search-box i { color: #999; font-size: 15px; margin-right: 12px; }
+.global-search-box input {
+    flex: 1; border: none; background: transparent;
+    font-size: 14px; color: #333; outline: none;
+    font-family: 'Segoe UI', sans-serif;
+}
+.global-search-box input::placeholder { color: #999; }
+.search-result-info {
+    margin-top: 10px; font-size: 11px; color: #999;
+    display: flex; align-items: center; gap: 5px; padding-left: 5px;
+}
+.search-result-info i { font-size: 10px; }
+
+/* Data Table Container */
 .data-table-container {
-    background: white;
-    border-radius: 16px;
+    background: white; border-radius: 16px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    overflow: hidden;
-    margin-top: 15px;
+    overflow: hidden; margin-top: 15px;
 }
-
 .data-table-header {
     padding: 18px 20px;
     background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
     border-bottom: 1px solid #f0f0f0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
 }
-
-.data-table-title {
-    font-size: 15px;
-    font-weight: 700;
-    color: #000;
-    letter-spacing: 0.5px;
-}
-
+.data-table-title { font-size: 15px; font-weight: 700; color: #000; letter-spacing: 0.5px; }
 .data-table-count {
-    font-size: 11px;
-    color: var(--primary-blue);
-    background: #e7f1ff;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-weight: 600;
+    font-size: 11px; color: var(--primary-blue);
+    background: #e7f1ff; padding: 4px 12px; border-radius: 12px; font-weight: 600;
 }
+.data-table-wrapper { overflow-x: auto; max-height: 500px; overflow-y: auto; }
 
-/* Table Wrapper - Scrollable */
-.data-table-wrapper {
-    overflow-x: auto;
-    max-height: 500px;
-    overflow-y: auto;
-}
-
-/* Modern Data Table - NO EXCEL LOOK */
+/* Modern Data Table */
 .data-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: 13px;
-    font-family: 'Segoe UI', sans-serif;
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    font-size: 13px; font-family: 'Segoe UI', sans-serif;
 }
-
-.data-table thead {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: #ffffff;
-}
-
+.data-table thead { position: sticky; top: 0; z-index: 10; background: #ffffff; }
 .data-table th {
-    background: #ffffff;
-    color: #666;
-    padding: 14px 16px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid #f0f0f0;
-    cursor: pointer;
-    user-select: none;
-    white-space: nowrap;
-    transition: color 0.2s;
+    background: #ffffff; color: #666; padding: 14px 16px;
+    text-align: left; font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 2px solid #f0f0f0; white-space: nowrap;
 }
-
-.data-table th:hover {
-    color: var(--primary-blue);
-}
-
-.data-table th i {
-    margin-left: 6px;
-    font-size: 10px;
-    opacity: 0.4;
-}
-
-.data-table th.active-sort {
-    color: var(--primary-blue);
-}
-
-.data-table th.active-sort i {
-    opacity: 1;
-}
-
 .data-table td {
-    padding: 14px 16px;
-    border-bottom: 1px solid #f5f5f5;
-    color: #333;
-    white-space: nowrap;
-    transition: background 0.15s;
+    padding: 14px 16px; border-bottom: 1px solid #f5f5f5;
+    color: #333; white-space: nowrap; transition: background 0.15s;
 }
-
-.data-table tbody tr {
-    transition: background 0.15s;
-}
-
-.data-table tbody tr:hover {
-    background: #f8fbff;
-}
-
-.data-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-/* Highlight first column */
-.data-table td:first-child {
-    font-weight: 600;
-    color: #000;
-}
+.data-table tbody tr { transition: background 0.15s; }
+.data-table tbody tr:hover { background: #f8fbff; }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table td:first-child { font-weight: 600; color: #000; }
 
 /* Empty State */
-.empty-state { 
-    text-align: center; 
-    padding: 60px 20px; 
-    color: #888; 
-}
-.empty-state i { 
-    font-size: 48px; 
-    margin-bottom: 15px; 
-    color: #e0e0e0; 
-}
-.empty-state div {
-    font-size: 14px;
-    color: #999;
-}
+.empty-state { text-align: center; padding: 60px 20px; color: #888; }
+.empty-state i { font-size: 48px; margin-bottom: 15px; color: #e0e0e0; }
+.empty-state div { font-size: 14px; color: #999; }
 
 /* Loading Overlay */
 .loading-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 9999;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6); z-index: 9999;
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
     backdrop-filter: blur(4px);
 }
-
 .loading-spinner {
     border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid #ffffff;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
+    border-top: 4px solid #ffffff; border-radius: 50%;
+    width: 40px; height: 40px; animation: spin 1s linear infinite;
 }
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Global Search Box - Seperti gambar */
-.global-search-wrapper {
-    background: white;
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    margin-bottom: 15px;
-}
-
-.global-search-box {
-    position: relative;
-    display: flex;
-    align-items: center;
-    background: #f8f9fa;
-    border-radius: 10px;
-    padding: 12px 15px;
-    border: 1px solid transparent;
-    transition: all 0.2s;
-}
-
-.global-search-box:focus-within {
-    background: white;
-    border-color: var(--primary-blue);
-    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
-}
-
-.global-search-box i {
-    color: #999;
-    font-size: 14px;
-    margin-right: 10px;
-}
-
-.global-search-box input {
-    flex: 1;
-    border: none;
-    background: transparent;
-    font-size: 14px;
-    color: #333;
-    outline: none;
-}
-
-.global-search-box input::placeholder {
-    color: #999;
-}
-
-.search-result-info {
-    margin-top: 8px;
-    font-size: 11px;
-    color: #999;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.search-result-info i {
-    font-size: 10px;
-}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
