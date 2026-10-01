@@ -39,6 +39,19 @@
             <div class="form-group"><label class="form-label">Part No.</label><input type="text" class="form-input" id="partNo" placeholder="e.g., BTM-M6"></div>
             <div class="form-group"><label class="form-label">No. Spec</label><input type="text" class="form-input" id="noSpec" placeholder="e.g., M6x1.0"></div>
             <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-input" id="location" placeholder="e.g., Rack A-01"></div>
+            
+            <!-- DROPDOWN CATEGORY BAHARU -->
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-input" id="category" style="cursor: pointer;">
+                    <option value="">-- Pilih Kategori --</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Consumable">Consumable</option>
+                    <option value="Tools">Tools</option>
+                    <option value="Safety">Safety</option>
+                    <option value="Kaizen">Kaizen</option>
+                </select>
+            </div>
         </div>
 
         <div class="form-card">
@@ -142,16 +155,24 @@
             }
             let html = '';
             recentProducts.forEach(product => {
-                const isLowStock = parseInt(product.currentStock) <= parseInt(product.minimumStock);
-                const cardClass = isLowStock ? 'low-stock' : '';
+                const currentStock = parseInt(product.currentStock) || 0;
+                const minimumStock = parseInt(product.minimumStock) || 0;
+                
+                // LOGIK WARNA STATUS (SAMA MACAM APPS SCRIPT)
+                let statusClass = 'high'; // Default Hijau
+                if (currentStock === 0) {
+                    statusClass = 'low'; // Merah
+                } else if (currentStock <= minimumStock) {
+                    statusClass = 'mid'; // Kuning
+                }
+
                 const isEditing = editingPartNo === product.partNo ? 'editing' : '';
-                const statusClass = isLowStock ? 'low' : '';
                 const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
                 const cachedImg = getCachedProductImage(product.partNo);
                 let avatarHTML = cachedImg ? `<img src="${cachedImg}" alt="${product.partName}">` : '';
                 
                 html += `
-                    <div class="product-card-add ${cardClass} ${isEditing}" onclick="editProduct('${product.partNo}', '${product.partName}', '${product.noSpec}', '${product.location}', ${product.currentStock}, ${product.minimumStock}, '${product.pictureFileId}')">
+                    <div class="product-card-add ${isEditing}" onclick="editProduct('${product.partNo}', '${product.partName}', '${product.noSpec}', '${product.location}', '${product.category}', ${product.currentStock}, ${product.minimumStock}, '${product.pictureFileId}')">
                         <div class="product-avatar-add" id="prod-avatar-${safePartNo}">${avatarHTML}</div>
                         <div class="product-info-add">
                             <div class="product-name-add">${product.partName}</div>
@@ -179,12 +200,13 @@
             });
         }
 
-        function editProduct(partNo, partName, noSpec, location, currentStock, minimumStock, pictureFileId) {
+        function editProduct(partNo, partName, noSpec, location, category, currentStock, minimumStock, pictureFileId) {
             editingPartNo = partNo;
             document.getElementById('partName').value = partName;
             document.getElementById('partNo').value = partNo;
             document.getElementById('noSpec').value = noSpec;
             document.getElementById('location').value = location;
+            document.getElementById('category').value = category || '';
             document.getElementById('currentStock').value = currentStock;
             document.getElementById('minimumStock').value = minimumStock;
             
@@ -207,29 +229,24 @@
             renderProductList(allProducts);
         }
 
-        function cancelEdit() { resetForm(); renderProductList(allProducts); showToast('Form dikosongkan', 'info'); }
+        function cancelEdit() { resetForm(); renderProductList(allProducts); Utils.showToast('Form dikosongkan', 'info'); }
 
         async function saveProduct() {
             const partName = document.getElementById('partName').value.trim();
             const partNo = document.getElementById('partNo').value.trim();
             const noSpec = document.getElementById('noSpec').value.trim();
             const location = document.getElementById('location').value.trim();
+            const category = document.getElementById('category').value.trim();
             const currentStock = document.getElementById('currentStock').value || 0;
             const minimumStock = document.getElementById('minimumStock').value || 0;
 
-            if (!partName || !partNo) { showToast('⚠️ Part Name dan Part No. wajib diisi!', 'warning'); return; }
-
-            let userEmail = 'system@api';
-            try {
-                const profileData = localStorage.getItem(CONFIG.PROFILE_CACHE_KEY);
-                if (profileData) userEmail = JSON.parse(profileData).email || 'system@api';
-            } catch(e) {}
+            if (!partName || !partNo) { Utils.showToast('⚠️ Part Name dan Part No. wajib diisi!', 'warning'); return; }
 
             const btn = document.getElementById('saveBtn');
             btn.innerText = 'Saving...'; btn.disabled = true;
 
             const action = editingPartNo ? 'updateProduct' : 'addProduct';
-            const payload = { action, data: { partName, partNo, noSpec, location, currentStock, minimumStock, originalPartNo: editingPartNo, userEmail } };
+            const payload = { action, data: { partName, partNo, noSpec, location, category, currentStock, minimumStock, originalPartNo: editingPartNo } };
 
             try {
                 await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
@@ -237,10 +254,10 @@
                     await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'uploadProductPicture', data: { base64: tempPhotoBase64, partNo } }) });
                     setCachedProductImage(partNo, tempPhotoBase64);
                 }
-                showToast('✅ Produk berjaya disimpan!', 'success');
+                Utils.showToast('✅ Produk berjaya disimpan!', 'success');
                 resetForm(); loadProductList(true);
             } catch (error) {
-                showToast(' Ralat semasa menyimpan', 'error');
+                Utils.showToast('❌ Ralat semasa menyimpan', 'error');
                 btn.innerText = editingPartNo ? 'Update Product' : 'Add Product'; btn.disabled = false;
             }
         }
@@ -250,9 +267,9 @@
             try {
                 await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'deleteProduct', data: { partNo } }) });
                 localStorage.removeItem('ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, ''));
-                showToast('✅ Produk berjaya dipadam', 'success');
+                Utils.showToast('✅ Produk berjaya dipadam', 'success');
                 loadProductList(true);
-            } catch (error) { showToast('❌ Gagal memadam produk', 'error'); }
+            } catch (error) { Utils.showToast('❌ Gagal memadam produk', 'error'); }
         }
 
         function resetForm() {
@@ -260,6 +277,7 @@
             document.getElementById('partNo').value = '';
             document.getElementById('noSpec').value = '';
             document.getElementById('location').value = '';
+            document.getElementById('category').value = '';
             document.getElementById('currentStock').value = '';
             document.getElementById('minimumStock').value = '';
             PhotoPicker.reset();
