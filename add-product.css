@@ -48,46 +48,6 @@
 }
 #photoInput { display: none !important; }
 
-/* === PRODUCT LIST === */
-.list-header-add { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px; }
-.list-title-add { font-size: 16px; font-weight: bold; color: #000; }
-.list-badge-add { background: var(--primary-blue); color: white; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
-.product-list-add { display: flex; flex-direction: column; gap: 10px; }
-
-.product-card-add { 
-    background: white; border-radius: 12px; padding: 12px 15px; 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px; 
-    border-left: 4px solid var(--primary-blue); transition: all 0.2s; cursor: pointer; 
-}
-.product-card-add:hover { transform: translateX(3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.product-card-add.editing { border-left-color: #ffc107; background: #fffbeb; }
-.product-card-add.low-stock { border-left-color: #dc3545; }
-
-/* AVATAR SEGEMPAT ROUNDED (SAMA MACAM REGISTER) */
-.product-avatar-add {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: #f0f8ff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    flex-shrink: 0;
-    overflow: hidden;
-    border: 2px solid white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-.product-avatar-add img { width: 100%; height: 100%; object-fit: cover; }
-
-.product-info-add { flex: 1; min-width: 0; }
-.product-name-add { font-size: 15px; font-weight: 600; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
-.product-badge-add { display: inline-block; font-size: 10px; font-weight: 700; color: var(--primary-blue); background: #e7f1ff; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
-.product-status-add { width: 10px; height: 10px; border-radius: 50%; background: #28a745; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2); }
-.product-status-add.low { background: #dc3545; box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2); }
-.delete-btn-add { width: 32px; height: 32px; border-radius: 50%; background: #fee2e2; border: none; color: #dc3545; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-.delete-btn-add:hover { background: #dc3545; color: white; }
-
 /* === INPUT FORM === */
 .form-input { 
     width: 100%; padding: 12px 15px; background: #ffffff; border: 1px solid #e0e0e0; 
@@ -101,29 +61,95 @@
     font-size: 15px; font-weight: bold; cursor: pointer; display: block !important; 
 }
 
-/* STATUS WARNA STOK (3 TAHAP) */
+/* =========================================
+   RECENT PRODUCT LIST (SAMA KONSEP DENGAN PRODUCT LIST)
+   ========================================= */
+
+/* List Header */
+.list-header-add { 
+    display: flex; justify-content: space-between; align-items: center; 
+    margin-bottom: 15px; padding: 0 5px; 
+}
+.list-title-add { font-size: 16px; font-weight: bold; color: #000; }
+.list-badge-add { 
+    background: var(--primary-blue); color: white; 
+    font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; 
+}
+.product-list-add { display: flex; flex-direction: column; gap: 12px; }
+
+/* PRODUCT CARD - Sama konsep dengan Product List */
+.product-card-add {
+    background: white; border-radius: 16px; padding: 12px 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px;
+    border-left: 5px solid #e0e0e0;
+    cursor: pointer; transition: transform 0.2s;
+}
+.product-card-add:active { transform: scale(0.98); }
+
+/* Border Color ikut Status */
+.product-card-add.status-high { border-left-color: #1a73e8; }
+.product-card-add.status-mid { border-left-color: #ffc107; }
+.product-card-add.status-low { border-left-color: #dc3545; }
+
+/* Editing State */
+.product-card-add.editing { 
+    border-left-color: #ffc107; 
+    background: #fffbeb; 
+}
+
+/* Gambar */
+.product-avatar-add {
+    width: 50px; height: 50px; border-radius: 10px; background: #f0f8ff;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; flex-shrink: 0;
+}
+.product-avatar-add img { width: 100%; height: 100%; object-fit: cover; }
+.product-avatar-add i { font-size: 20px; color: #1a73e8; }
+
+/* Info Tengah */
+.product-info-add { flex: 1; min-width: 0; }
+.product-name-add { 
+    font-size: 14px; font-weight: 700; color: #000; 
+    margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+}
+.product-badge-add { 
+    display: inline-block; font-size: 10px; font-weight: 700; 
+    color: white; background: #00d4ff;
+    padding: 2px 8px; border-radius: 4px; margin-bottom: 3px;
+}
+.product-location-add { 
+    display: flex; align-items: center; gap: 3px; 
+    font-size: 11px; color: #1a73e8; font-weight: 500;
+}
+.product-location-add i { color: #999; font-size: 10px; }
+
+/* Stock Section */
+.product-stock-add { 
+    display: flex; flex-direction: column; align-items: center; 
+    width: 45px; flex-shrink: 0;
+}
 .product-status-add { 
-    width: 12px; 
-    height: 12px; 
-    border-radius: 50%; 
-    flex-shrink: 0; 
-    box-shadow: 0 0 0 3px rgba(0,0,0,0.05); 
+    width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    margin-bottom: 2px;
+}
+.product-status-add.high { background: #1a73e8; }
+.product-status-add.mid { background: #ffc107; }
+.product-status-add.low { background: #dc3545; }
+.stock-label-add { 
+    font-size: 10px; color: #666; line-height: 1; margin-bottom: 2px; 
+}
+.stock-number-add { 
+    font-size: 15px; font-weight: 800; color: #000; line-height: 1; 
+    text-align: center; width: 100%;
 }
 
-/* 🟢 High Stock (OK) - Hijau */
-.product-status-add.high { 
-    background: #28a745; 
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2); 
+/* Delete Button - Sama dengan Product List */
+.delete-btn-add {
+    width: 36px; height: 36px; border-radius: 50%; 
+    background: rgba(254, 226, 226, 0.7); border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
 }
-
-/* 🟡 Mid Stock (Warning) - Kuning */
-.product-status-add.mid { 
-    background: #ffc107; 
-    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2); 
-}
-
-/* 🔴 Low Stock (Critical) - Merah */
-.product-status-add.low { 
-    background: #dc3545; 
-    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2); 
-}
+.delete-btn-add i { font-size: 16px; color: #dc3545; }
+.delete-btn-add:active { background: rgba(220, 53, 69, 0.8); }
+.delete-btn-add:active i { color: white; }
