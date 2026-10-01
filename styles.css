@@ -295,7 +295,7 @@ body.index-page {
 
 .fab-scan { 
     position: absolute; 
-    bottom: -25px; /* TURUNKAN LAGI (dari 20px kepada -15px) */
+    bottom: -30px; /* TURUNKAN LAGI (dari 20px kepada -15px) */
     background: white; 
     width: 80px; /* BESARKAN LAGI (dari 65px kepada 80px) */
     height: 80px; /* BESARKAN LAGI (dari 65px kepada 80px) */
