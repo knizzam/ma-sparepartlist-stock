@@ -1,8 +1,8 @@
 /* =========================================
-   EXPORT REPORT SPECIFIC (SAME AS PRODUCT LIST)
+   EXPORT REPORT SPECIFIC
    ========================================= */
 
-/* Header */
+/* Header dengan 3-dot di kanan */
 .export-header {
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
     color: white; text-align: center; padding: 15px 20px 20px;
@@ -17,20 +17,27 @@
     width: 36px; height: 36px; border-radius: 50%; display: flex;
     align-items: center; justify-content: center; text-decoration: none;
 }
+.export-header #headerMenuTrigger {
+    position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+}
 .export-title { 
     font-size: 1.0rem; font-weight: 800; margin: 0; color: white; 
     display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 1.5px; 
 }
 
-/* Search & Filter */
-.search-filter-section {
-    background: white; padding: 15px; border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin: 0 15px 15px;
+/* Main Container */
+.main-container {
+    padding: 20px 15px;
+    max-width: 600px;
+    margin: 0 auto;
+    padding-bottom: 40px;
 }
-.search-input-wrapper { position: relative; margin-bottom: 15px; }
-.search-input-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
-.search-input { width: 100%; padding: 12px 15px 12px 40px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; }
-.search-input:focus { border-color: var(--primary-blue); }
+
+/* Filter Section */
+.filter-section {
+    background: white; padding: 15px; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px;
+}
 
 .filter-sort-container { 
     display: flex; align-items: center; gap: 8px; 
@@ -65,48 +72,100 @@
 .sort-btn.active { background: var(--primary-blue); }
 .sort-btn.active i { color: white; }
 
-/* Product List Container */
-.product-list-container { padding: 0 15px 100px; display: flex; flex-direction: column; gap: 12px; }
-
-/* Report Card (Same as Product Card) */
-.product-card {
-    background: white; border-radius: 16px; padding: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px;
-    border-left: 6px solid #e0e0e0;
-    cursor: pointer; transition: transform 0.2s;
+/* Form Input */
+.form-label { display: block; font-size: 11px; font-weight: 600; color: #666; margin-bottom: 4px; text-transform: uppercase; }
+.form-input { 
+    width: 100%; padding: 10px 12px; background: #f8f9fa; border: 1px solid transparent; 
+    border-radius: 8px; font-size: 14px; color: #333; box-sizing: border-box;
 }
-.product-card:active { transform: scale(0.98); }
+.form-input:focus { background: white; border-color: var(--primary-blue); outline: none; }
 
-/* Card Icon Background */
-.product-card-img {
-    width: 60px; height: 60px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden; flex-shrink: 0;
-}
-.product-card-img.bg-blue { background: linear-gradient(135deg, #1a73e8, #4a90e2); }
-.product-card-img.bg-green { background: linear-gradient(135deg, #28a745, #20c997); }
-.product-card-img.bg-purple { background: linear-gradient(135deg, #6f42c1, #a562d6); }
-
-.product-card-img i { font-size: 28px; color: white; }
-
-/* Info */
-.product-card-info { flex: 1; min-width: 0; }
-.product-card-name { font-size: 16px; font-weight: 700; color: #000; margin-bottom: 4px; }
-
-/* Action */
-.report-card-action {
-    color: #999;
-    font-size: 18px;
+/* Data Table Container */
+.data-table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    overflow: hidden;
 }
 
-/* Bottom Nav FAB */
-.bottom-nav { 
-    position: fixed; bottom: 0; left: 0; width: 100%; 
-    background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%); 
-    height: 60px; display: flex; justify-content: flex-end; align-items: center; 
-    z-index: 1000; box-shadow: 0 -4px 15px rgba(26,115,232,0.3); 
-    border-top-left-radius: 30px; border-top-right-radius: 30px; 
-    padding-right: 20px;
+.data-table-header {
+    padding: 15px;
+    border-bottom: 2px solid #f0f8ff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.data-table-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.data-table-count {
+    font-size: 12px;
+    color: #666;
+    background: #f0f4f8;
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+/* Table Wrapper - Scrollable */
+.data-table-wrapper {
+    overflow-x: auto;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* Data Table */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.data-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.data-table th {
+    background: #1a73e8;
+    color: white;
+    padding: 10px 8px;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1px solid #0d5bb5;
+}
+
+.data-table td {
+    padding: 8px;
+    border: 1px solid #e0e0e0;
+    white-space: nowrap;
+}
+
+.data-table tbody tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.data-table tbody tr:hover {
+    background: #f0f8ff;
+}
+
+/* Empty State */
+.empty-state { 
+    text-align: center; 
+    padding: 40px 20px; 
+    color: #888; 
+}
+.empty-state i { 
+    font-size: 48px; 
+    margin-bottom: 15px; 
+    color: #ddd; 
 }
 
 /* Loading Overlay */
@@ -134,13 +193,4 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-}
-
-.empty-state { text-align: center; padding: 40px 20px; color: #888; }
-
-/* Selected Report Card State */
-.product-card.selected {
-    border-left: 6px solid var(--primary-blue) !important;
-    background: #f0f8ff;
-    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.15);
 }
