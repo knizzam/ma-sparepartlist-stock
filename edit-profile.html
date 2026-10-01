@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="edit-profile.css">
     
     <script src="config.js"></script>
+    <script src="utils.js"></script>
 </head>
 <body>
     <div class="page-header">
@@ -46,17 +47,7 @@
         const API_URL = CONFIG.API_URL;
         let tempPhotoBase64 = '';
         let hasNewPhoto = false;
-
-        function showToast(message, type = 'info') {
-            const oldToast = document.querySelector('.toast');
-            if (oldToast) oldToast.remove();
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
-        }
-
+        
         function loadProfile() {
             document.getElementById('userName').value = 'Loading...';
             document.getElementById('userNoKad').value = 'Loading...';
