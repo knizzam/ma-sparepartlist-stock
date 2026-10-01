@@ -89,40 +89,50 @@ body {
    INDEX / DASHBOARD SPECIFIC
    ========================================= */
 body.index-page { 
-    padding-bottom: 0; /* Buang padding bawah supaya card nampak penuh */
+    padding-bottom: 0;
 }
 
-/* HEADER YANG LEBIH RENDAH & STANDARD */
+/* HEADER SAMA SAIZ DENGAN PAGE LAIN */
 .app-header {
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
     color: white; 
     text-align: center; 
-    padding: 12px 20px; /* Kurangkan padding (dari 22px 20px 30px) */
-    font-size: 1.2rem; /* Saiz font lebih kecil */
-    font-weight: 700; 
-    letter-spacing: 1px;
-    border-bottom-left-radius: 20px; /* Kurangkan radius */
-    border-bottom-right-radius: 20px;
+    padding: 15px 20px 20px; /* SAMA MACAM add-product-header */
+    position: sticky; 
+    top: 0; 
+    z-index: 100;
+    border-bottom-left-radius: 15px; /* SAMA MACAM add-product-header */
+    border-bottom-right-radius: 15px;
     box-shadow: 0 4px 10px rgba(26,115,232,0.2); 
     margin-bottom: 10px;
-    min-height: 50px; /* Tinggi minimum lebih kecil */
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 10px;
+    min-height: 60px; /* SAMA MACAM add-product-header */
 }
 
 .app-header .page-title {
     margin: 0;
-    font-size: inherit;
+    font-size: 1.2rem;
+    font-weight: 700;
 }
 
 .profile-section {
     background: white; 
-    padding: 15px 20px 20px;
+    padding: 20px;
     display: flex; 
-    justify-content: space-between; 
-    align-items: flex-start;
+    flex-direction: column; /* UBAH: supaya semua dalam satu column */
+    align-items: center; /* UBAH: center semua */
     border-bottom: 1px solid #e0e0e0;
+    position: relative;
+}
+
+/* Logout button di penjuru kanan atas */
+.profile-section .logout-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
 }
 
 .round-icon-btn {
@@ -134,23 +144,23 @@ body.index-page {
     justify-content: center;
     cursor: pointer; 
     transition: transform 0.2s; 
-    margin-top: 5px;
 }
 .round-icon-btn:active { transform: scale(0.9); }
-.help-btn { background: #e9ecef; color: #333; }
 .logout-btn { background: #ffe0e3; color: #dc3545; }
 
 .profile-center { 
     display: flex; 
     flex-direction: column; 
     align-items: center; 
-    flex-grow: 1; 
+    text-align: center;
+    width: 100%;
 }
 
 .profile-img-container { 
     position: relative; 
     width: 90px; 
     height: 90px; 
+    margin-bottom: 15px;
 }
 
 .profile-img {
@@ -183,13 +193,16 @@ body.index-page {
 .profile-name { 
     font-weight: bold; 
     font-size: 1.15rem; 
-    margin-top: 12px; 
-    margin-bottom: 3px; 
+    margin: 0 0 5px 0;
+    text-align: center;
+    width: 100%;
+    word-wrap: break-word;
 }
 
 .profile-role { 
     font-size: 0.9rem; 
     color: #666; 
+    text-align: center;
 }
 
 /* DASHBOARD GRID */
@@ -197,7 +210,7 @@ body.index-page {
     display: grid; 
     grid-template-columns: repeat(3, 1fr); 
     gap: 12px; 
-    padding: 20px 15px 100px 15px; /* Tambah padding bawah supaya card terakhir nampak */
+    padding: 20px 15px 110px 15px;
     max-width: 600px; 
     margin: 0 auto; 
 }
@@ -231,7 +244,6 @@ body.index-page {
     color: white; 
 }
 
-/* WARNA ICON */
 .bg-scan { background: linear-gradient(135deg, #198754, #146c43); }
 .bg-confirm { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
 .bg-history { background: linear-gradient(135deg, #6f42c1, #5a32a3); }
@@ -241,8 +253,8 @@ body.index-page {
 .bg-print { background: linear-gradient(135deg, #6c757d, #565e64); }
 .bg-product { background: linear-gradient(135deg, #0dcaf0, #0aa2c0); }
 .bg-order { background: linear-gradient(135deg, #ffc107, #e0a800); }
-.bg-transaction { background: linear-gradient(135deg, #dc3545, #b02a37); } /* WARNA BARU */
-.bg-dashboard { background: linear-gradient(135deg, #6610f2, #520dc2); } /* WARNA BARU */
+.bg-transaction { background: linear-gradient(135deg, #dc3545, #b02a37); }
+.bg-dashboard { background: linear-gradient(135deg, #6610f2, #520dc2); }
 .bg-setting { background: linear-gradient(135deg, #495057, #343a40); }
 
 .menu-label { 
@@ -264,14 +276,14 @@ body.index-page {
     font-weight: bold; 
 }
 
-/* BOTTOM NAV YANG LEBIH BESAR */
+/* BOTTOM NAV - KEKAL SAIZ STANDARD */
 .bottom-nav { 
     position: fixed; 
     bottom: 0; 
     left: 0; 
     width: 100%; 
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%); 
-    height: 85px; /* BESARKAN (dari 75px) */
+    height: 75px; /* KEKAL SAIZ ASAL */
     display: flex; 
     justify-content: center; 
     align-items: center; 
@@ -283,10 +295,10 @@ body.index-page {
 
 .fab-scan { 
     position: absolute; 
-    bottom: 25px; /* NAIK SEDIKIT */
+    bottom: 20px; 
     background: white; 
-    width: 70px; /* BESARKAN (dari 65px) */
-    height: 70px; /* BESARKAN (dari 65px) */
+    width: 65px; /* KEKAL SAIZ ASAL */
+    height: 65px; /* KEKAL SAIZ ASAL */
     border-radius: 50%; 
     display: flex; 
     flex-direction: column; 
@@ -298,22 +310,22 @@ body.index-page {
     border: 4px solid var(--primary-blue); 
 }
 .fab-scan i { 
-    font-size: 1.8rem; /* BESARKAN ICON (dari 1.6rem) */
+    font-size: 1.6rem; 
     margin-bottom: 2px; 
 }
 .fab-scan span { 
-    font-size: 0.65rem; /* BESARKAN TEXT (dari 0.6rem) */
+    font-size: 0.6rem; 
     font-weight: bold; 
 }
+
 /* =========================================
    UNIVERSAL PHOTO PICKER FLOATING MENU
-   (Diletak di Global CSS supaya auto load di semua page)
    ========================================= */
 .photo-option-menu {
     position: fixed; 
     background: transparent; 
     padding: 5px; 
-    z-index: 10000; /* Z-index sangat tinggi supaya tidak tertutup header atau modal */
+    z-index: 10000;
     display: flex; 
     gap: 15px; 
     animation: popIn 0.2s ease;
