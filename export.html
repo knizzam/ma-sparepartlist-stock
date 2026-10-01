@@ -32,8 +32,7 @@
         <div class="filter-section">
             <div class="filter-sort-container">
                 <div class="category-filter-container" id="categoryFilter">
-                    <div class="category-chip active" onclick="setReportFilter('all', this)">All</div>
-                    <div class="category-chip" onclick="setReportFilter('Products', this)">Products</div>
+                    <div class="category-chip active" onclick="setReportFilter('Products', this)">Products</div>
                     <div class="category-chip" onclick="setReportFilter('Transactions', this)">Transactions</div>
                     <div class="category-chip" onclick="setReportFilter('StockTake', this)">Stock Take</div>
                 </div>
@@ -57,7 +56,7 @@
             </div>
 
             <!-- Search Button -->
-            <button class="search-btn" id="searchBtn" onclick="loadDataForFilter(currentFilter)">
+            <button class="search-btn" onclick="loadDataForFilter(currentFilter)">
                 <i class="fas fa-search"></i> Search
             </button>
         </div>
@@ -80,7 +79,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let currentFilter = 'all';
+        let currentFilter = 'Products';
         let currentData = [];
         let lastGeneratedCSV = null;
         let lastGeneratedFileName = 'report.csv';
@@ -119,6 +118,9 @@
                     }
                 ]
             });
+            
+            // Auto-load Products data on page load
+            loadDataForFilter('Products');
         });
 
         function setReportFilter(filter, element) {
@@ -152,10 +154,6 @@
             
             let sheetName = filter;
             if (filter === 'StockTake') sheetName = 'StockTake_Log';
-            if (filter === 'all') {
-                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle" style="font-size: 48px; color: #ffc107; margin-bottom: 15px;"></i><div style="font-size: 14px; color: #888;">Please select a specific report type (Products, Transactions, or Stock Take)</div></div>';
-                return;
-            }
             
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
@@ -224,9 +222,9 @@
                         <thead>
                             <tr>
                                 ${headers.map((h, index) => `
-                                    <th onclick="sortTable(${index})" style="cursor: pointer;">
+                                    <th onclick="sortTable(${index})" class="${sortColumn === index ? 'active-sort' : ''}">
                                         ${h}
-                                        ${sortColumn === index ? (sortDirection === 'asc' ? '<i class="fas fa-sort-up"></i>' : '<i class="fas fa-sort-down"></i>') : '<i class="fas fa-sort" style="opacity: 0.3;"></i>'}
+                                        <i class="fas ${sortColumn === index ? (sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></i>
                                     </th>
                                 `).join('')}
                             </tr>
@@ -248,7 +246,6 @@
         function sortTable(columnIndex) {
             if (!currentData || currentData.length <= 1) return;
             
-            const headers = currentData[0].split(',');
             const rows = currentData.slice(1);
             
             // Toggle sort direction
@@ -315,7 +312,7 @@
         // 2. SHARE
         async function shareReport() {
             if (!lastGeneratedCSV) {
-                Utils.showToast('️ Please search for data first!', 'warning');
+                Utils.showToast('⚠️ Please search for data first!', 'warning');
                 return;
             }
             
@@ -353,7 +350,7 @@
         // 3. PRINT
         async function printReport() {
             if (!lastGeneratedCSV) {
-                Utils.showToast('⚠️ Please search for data first!', 'warning');
+                Utils.showToast('️ Please search for data first!', 'warning');
                 return;
             }
             
