@@ -160,7 +160,7 @@
             const searchWrapper = document.getElementById('globalSearchWrapper');
             
             if (filter !== 'Products' && !validateDateRange()) {
-                Utils.showToast('️ Date range too large! Max 3 months recommended.', 'warning');
+                Utils.showToast('⚠️ Date range too large! Max 3 months recommended.', 'warning');
                 return;
             }
             
@@ -230,6 +230,11 @@
             }
             
             document.getElementById('searchResultCount').textContent = filteredData.length - 1;
+            
+            // UPDATE lastGeneratedCSV dengan data yang telah difilter
+            lastGeneratedCSV = filteredData.join('\n');
+            lastGeneratedFileName = `${currentFilter}_Filtered_${filteredData.length - 1}records_${new Date().getTime()}.csv`;
+            
             renderDataTable(filteredData, currentFilter);
         }
 
