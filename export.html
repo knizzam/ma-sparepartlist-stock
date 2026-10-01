@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Export Report - MA Inventory</title>
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="export.css">
-    
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="floating-actions.js"></script>
@@ -25,21 +23,16 @@
         </div>
     </div>
 
-    <!-- Main Container -->
     <div class="main-container">
         
         <!-- Filter Section -->
         <div class="filter-section">
-            <!-- Report Type Chips -->
-            <div class="filter-sort-container">
-                <div class="category-filter-container" id="categoryFilter">
-                    <div class="category-chip active" onclick="setReportFilter('Products', this)">Products</div>
-                    <div class="category-chip" onclick="setReportFilter('Transactions', this)">Transactions</div>
-                    <div class="category-chip" onclick="setReportFilter('StockTake', this)">Stock Take</div>
-                </div>
+            <div class="category-filter-container">
+                <div class="category-chip active" onclick="setReportFilter('Products', this)">Products</div>
+                <div class="category-chip" onclick="setReportFilter('Transactions', this)">Transactions</div>
+                <div class="category-chip" onclick="setReportFilter('StockTake', this)">Stock Take</div>
             </div>
             
-            <!-- Date Filter -->
             <div id="dateFilterSection" style="display: none; margin-top: 15px;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div>
@@ -56,13 +49,12 @@
                 </div>
             </div>
 
-            <!-- Search Button -->
             <button class="search-btn" onclick="loadDataForFilter(currentFilter)">
                 <i class="fas fa-search"></i> Search
             </button>
         </div>
 
-        <!-- Global Search Box (Muncul selepas data loaded) -->
+        <!-- Global Search Box -->
         <div class="global-search-wrapper" id="globalSearchWrapper" style="display: none;">
             <div class="global-search-box">
                 <i class="fas fa-search"></i>
@@ -73,11 +65,11 @@
             </div>
         </div>
 
-        <!-- Data Table Container -->
+        <!-- Data Table -->
         <div class="data-table-container" id="dataTableContainer">
             <div class="empty-state">
                 <i class="fas fa-hand-pointer" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
-                <div style="font-size: 14px; color: #888;">Select a report type and click Search to view data</div>
+                <div style="font-size: 14px; color: #888;">Select a report type and click Search</div>
             </div>
         </div>
 
@@ -96,8 +88,6 @@
         let filteredData = [];
         let lastGeneratedCSV = null;
         let lastGeneratedFileName = 'report.csv';
-        let sortColumn = -1;
-        let sortDirection = 'asc';
         const MAX_DISPLAY_ROWS = 100;
         const MAX_DATE_RANGE_MONTHS = 3;
 
@@ -130,9 +120,7 @@
             const warningText = document.getElementById('dateWarningText');
             
             if (startDate && endDate && endDate > startDate) {
-                const diffTime = Math.abs(endDate - startDate);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                const diffMonths = diffDays / 30;
+                const diffMonths = Math.ceil(Math.abs(endDate - startDate) / (1000 * 60 * 60 * 24)) / 30;
                 
                 if (diffMonths > MAX_DATE_RANGE_MONTHS) {
                     warningText.textContent = `Date range exceeds ${MAX_DATE_RANGE_MONTHS} months. Consider using shorter periods.`;
@@ -154,12 +142,7 @@
             const dateSection = document.getElementById('dateFilterSection');
             const searchWrapper = document.getElementById('globalSearchWrapper');
             
-            if (filter === 'Transactions' || filter === 'StockTake') {
-                dateSection.style.display = 'block';
-            } else {
-                dateSection.style.display = 'none';
-            }
-            
+            dateSection.style.display = (filter === 'Transactions' || filter === 'StockTake') ? 'block' : 'none';
             searchWrapper.style.display = 'none';
             document.getElementById('globalSearchInput').value = '';
             document.getElementById('dateWarning').style.display = 'none';
@@ -177,15 +160,13 @@
             const searchWrapper = document.getElementById('globalSearchWrapper');
             
             if (filter !== 'Products' && !validateDateRange()) {
-                Utils.showToast('⚠️ Date range too large! Max 3 months recommended.', 'warning');
+                Utils.showToast('️ Date range too large! Max 3 months recommended.', 'warning');
                 return;
             }
             
             container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size: 32px; color: var(--primary-blue);"></i><div style="margin-top: 10px;">Loading data...</div></div>';
             
-            let sheetName = filter;
-            if (filter === 'StockTake') sheetName = 'StockTake_Log';
-            
+            let sheetName = filter === 'StockTake' ? 'StockTake_Log' : filter;
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
             
@@ -222,7 +203,6 @@
                     currentData = result.csv.split('\n');
                     filteredData = [...currentData];
                     
-                    // Show global search box
                     searchWrapper.style.display = 'block';
                     document.getElementById('globalSearchInput').value = '';
                     document.getElementById('searchResultCount').textContent = currentData.length - 1;
@@ -278,12 +258,7 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                ${headers.map((h, index) => `
-                                    <th onclick="sortTable(${index})" class="${sortColumn === index ? 'active-sort' : ''}">
-                                        ${h}
-                                        <i class="fas ${sortColumn === index ? (sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></i>
-                                    </th>
-                                `).join('')}
+                                ${headers.map(h => `<th>${h}</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody>
@@ -299,41 +274,6 @@
             `;
             
             container.innerHTML = html;
-        }
-
-        function sortTable(columnIndex) {
-            if (!filteredData || filteredData.length <= 1) return;
-            
-            const header = filteredData[0];
-            const rows = filteredData.slice(1);
-            
-            if (sortColumn === columnIndex) {
-                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortColumn = columnIndex;
-                sortDirection = 'asc';
-            }
-            
-            rows.sort((a, b) => {
-                const cellA = a.split(',')[columnIndex].replace(/"/g, '').trim();
-                const cellB = b.split(',')[columnIndex].replace(/"/g, '').trim();
-                
-                const numA = parseFloat(cellA);
-                const numB = parseFloat(cellB);
-                
-                if (!isNaN(numA) && !isNaN(numB)) {
-                    return sortDirection === 'asc' ? numA - numB : numB - numA;
-                }
-                
-                if (sortDirection === 'asc') {
-                    return cellA.localeCompare(cellB);
-                } else {
-                    return cellB.localeCompare(cellA);
-                }
-            });
-            
-            filteredData = [header, ...rows];
-            renderDataTable(filteredData, currentFilter);
         }
 
         function downloadReport() {
@@ -366,29 +306,19 @@
                 const file = new File([blob], lastGeneratedFileName, { type: 'text/csv' });
                 
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: 'MA Inventory Report',
-                        text: `Report: ${lastGeneratedFileName}`
-                    });
+                    await navigator.share({ files: [file], title: 'MA Inventory Report', text: `Report: ${lastGeneratedFileName}` });
                     Utils.showToast('✅ Report shared!', 'success');
                 } else {
                     const shareText = `MA Inventory Report\nFile: ${lastGeneratedFileName}\n\nDownload from system.`;
-                    
                     if (navigator.share) {
-                        await navigator.share({
-                            title: 'MA Inventory Report',
-                            text: shareText
-                        });
+                        await navigator.share({ title: 'MA Inventory Report', text: shareText });
                     } else {
                         await navigator.clipboard.writeText(shareText);
                         Utils.showToast('📋 Report info copied to clipboard', 'info');
                     }
                 }
             } catch (error) {
-                if (error.name !== 'AbortError') {
-                    Utils.showToast('❌ Failed to share', 'error');
-                }
+                if (error.name !== 'AbortError') Utils.showToast('❌ Failed to share', 'error');
             }
         }
 
@@ -403,50 +333,28 @@
             const dataRows = rows.slice(1).map(row => row.split(',').map(cell => cell.replace(/"/g, '').trim()));
             
             let tableHTML = `
-                <html>
-                <head>
-                    <title>MA Inventory Report</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 20px; }
-                        h1 { color: #1a73e8; font-size: 20px; margin-bottom: 5px; }
-                        .meta { color: #666; font-size: 12px; margin-bottom: 20px; }
-                        table { width: 100%; border-collapse: collapse; font-size: 11px; }
-                        th { background: #1a73e8; color: white; padding: 8px; text-align: left; border: 1px solid #ddd; }
-                        td { padding: 6px 8px; border: 1px solid #ddd; }
-                        tr:nth-child(even) { background: #f9f9f9; }
-                        @media print {
-                            th { background: #1a73e8 !important; -webkit-print-color-adjust: exact; }
-                        }
-                    </style>
-                </head>
-                <body>
+                <html><head><title>MA Inventory Report</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    h1 { color: #1a73e8; font-size: 20px; margin-bottom: 5px; }
+                    .meta { color: #666; font-size: 12px; margin-bottom: 20px; }
+                    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+                    th { background: #1a73e8; color: white; padding: 8px; text-align: left; border: 1px solid #ddd; }
+                    td { padding: 6px 8px; border: 1px solid #ddd; }
+                    tr:nth-child(even) { background: #f9f9f9; }
+                    @media print { th { background: #1a73e8 !important; -webkit-print-color-adjust: exact; } }
+                </style></head><body>
                     <h1>MA Inventory Report</h1>
-                    <div class="meta">
-                        <strong>File:</strong> ${lastGeneratedFileName}<br>
-                        <strong>Records:</strong> ${dataRows.length}<br>
-                        <strong>Generated:</strong> ${new Date().toLocaleString('en-GB')}
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
-                        </thead>
-                        <tbody>
-                            ${dataRows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}
-                        </tbody>
-                    </table>
-                </body>
-                </html>
+                    <div class="meta"><strong>File:</strong> ${lastGeneratedFileName}<br><strong>Records:</strong> ${dataRows.length}<br><strong>Generated:</strong> ${new Date().toLocaleString('en-GB')}</div>
+                    <table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                    <tbody>${dataRows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody></table>
+                </body></html>
             `;
             
             const printWindow = window.open('', '_blank');
             printWindow.document.write(tableHTML);
             printWindow.document.close();
-            
-            printWindow.onload = function() {
-                printWindow.focus();
-                printWindow.print();
-            };
-            
+            printWindow.onload = function() { printWindow.focus(); printWindow.print(); };
             Utils.showToast('🖨️ Print dialog opened!', 'info');
         }
     </script>
