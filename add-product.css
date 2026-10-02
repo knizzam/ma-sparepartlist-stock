@@ -275,3 +275,56 @@ html, body {
 .delete-btn-add i { font-size: 14px; color: #dc3545; }
 .delete-btn-add:hover { background: rgba(220, 53, 69, 0.9); }
 .delete-btn-add:hover i { color: white; }
+
+/* =========================================
+   FAB BUTTON (FLOATING ACTION BUTTON)
+   ========================================= */
+.fab-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 15px rgba(26, 115, 232, 0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    z-index: 999;
+    transition: all 0.3s ease;
+    animation: fabPulse 2s infinite;
+}
+
+.fab-button:hover {
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: 0 6px 20px rgba(26, 115, 232, 0.6);
+}
+
+.fab-button:active {
+    transform: scale(0.95);
+}
+
+@keyframes fabPulse {
+    0% { box-shadow: 0 4px 15px rgba(26, 115, 232, 0.4); }
+    50% { box-shadow: 0 4px 25px rgba(26, 115, 232, 0.7); }
+    100% { box-shadow: 0 4px 15px rgba(26, 115, 232, 0.4); }
+}
+
+/* Tooltip untuk FAB */
+.fab-button[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    right: 70px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+}
