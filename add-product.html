@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="add-product.css">
     
+    <!-- HTML2CANVAS SCRIPT - PENTING UNTUK FULL WIDTH -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="photo-picker.js"></script>
@@ -79,6 +82,14 @@
                 <i class="fas fa-plus"></i> Add New Product
             </button>
 
+            <!-- SEARCH BOX FOR RECENT PRODUCTS -->
+            <div class="product-search-section">
+                <div class="product-search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="product-search-input" id="recentProductSearch" placeholder="Search by Part Name, Part No, or Location..." onkeyup="filterRecentProducts()">
+                </div>
+            </div>
+
             <div class="list-header-add">
                 <div class="list-title-add" id="listTitleAdd">Recent Products <span class="list-badge-add" id="productCount">0</span></div>
             </div>
@@ -117,6 +128,8 @@
         function showFormView() {
             document.getElementById('formView').style.display = 'block';
             document.getElementById('listView').style.display = 'none';
+            // Clear search when going back to form
+            document.getElementById('recentProductSearch').value = '';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -145,12 +158,11 @@
             } catch(e) {}
         }
 
-        // Fungsi tarikh yang lebih stabil
         function isWithinLast5Days(dateStr) {
             if (!dateStr) return false;
             try { 
                 const date = new Date(dateStr);
-                if (isNaN(date.getTime())) return false; // Check jika tarikh tidak valid
+                if (isNaN(date.getTime())) return false;
                 const fiveDaysAgo = new Date();
                 fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
                 return date >= fiveDaysAgo; 
@@ -166,7 +178,7 @@
                     const parsed = JSON.parse(cachedData);
                     if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
                         allProducts = parsed.data; 
-                        renderProductList(allProducts); 
+                        renderProductList(''); // Render dengan search kosong
                         return;
                     }
                 } catch(e) {}
@@ -180,7 +192,7 @@
                 if (result.success && result.products) {
                     allProducts = result.products;
                     localStorage.setItem(PRODUCT_LIST_CACHE_KEY, JSON.stringify({ data: allProducts, timestamp: new Date().getTime() }));
-                    renderProductList(allProducts);
+                    renderProductList(''); // Render dengan search kosong
                 } else { 
                     container.innerHTML = `<div class="empty-state-list"><i class="fas fa-box-open"></i><div>Tiada produk</div></div>`; 
                 }
@@ -189,30 +201,41 @@
             }
         }
 
-        function renderProductList(products) {
+        // --- SEARCH FUNCTION ---
+        function filterRecentProducts() {
+            const searchTerm = document.getElementById('recentProductSearch').value.toLowerCase().trim();
+            renderProductList(searchTerm);
+        }
+
+        function renderProductList(searchTerm = '') {
             const productList = document.getElementById('productList');
             const listTitle = document.getElementById('listTitleAdd');
             
-            // DEBUG: Lihat data di console browser (tekan F12)
-            console.log("Total products loaded:", products.length);
-            if (products.length > 0) console.log("Sample product data:", products[0]);
-
-            // 1. Cuba filter 5 hari terkini
-            let displayProducts = products.filter(p => isWithinLast5Days(p.lastUpdateDate));
+            // 1. Dapatkan produk 5 hari terkini
+            let recentProducts = allProducts.filter(p => isWithinLast5Days(p.lastUpdateDate));
             
-            // 2. FALLBACK: Jika tiada produk dalam 5 hari (mungkin backend tak hantar tarikh), 
-            // tunjuk 10 produk terakhir sahaja supaya tidak kosong.
-            if (displayProducts.length === 0 && products.length > 0) {
-                displayProducts = products.slice(-10).reverse(); // Ambil 10 terakhir
-                listTitle.innerHTML = 'Latest Products <span class="list-badge-add" id="productCount">' + displayProducts.length + '</span>';
+            // 2. FALLBACK: Jika tiada, ambil 10 produk terakhir
+            if (recentProducts.length === 0 && allProducts.length > 0) {
+                recentProducts = allProducts.slice(-10).reverse();
+                listTitle.innerHTML = 'Latest Products <span class="list-badge-add" id="productCount">0</span>';
             } else {
-                listTitle.innerHTML = 'Recent Products (5 Hari) <span class="list-badge-add" id="productCount">' + displayProducts.length + '</span>';
+                listTitle.innerHTML = 'Recent Products (5 Hari) <span class="list-badge-add" id="productCount">0</span>';
+            }
+            
+            // 3. Apply search filter jika ada searchTerm
+            let displayProducts = recentProducts;
+            if (searchTerm) {
+                displayProducts = recentProducts.filter(p => 
+                    p.partName.toLowerCase().includes(searchTerm) || 
+                    p.partNo.toLowerCase().includes(searchTerm) || 
+                    (p.location && p.location.toLowerCase().includes(searchTerm))
+                );
             }
             
             document.getElementById('productCount').textContent = displayProducts.length;
             
             if (displayProducts.length === 0) {
-                productList.innerHTML = `<div class="empty-state-list"><i class="fas fa-box-open"></i><div>Tiada produk dijumpai</div></div>`; 
+                productList.innerHTML = `<div class="empty-state-list"><i class="fas fa-search"></i><div>Tiada produk dijumpai</div></div>`; 
                 return;
             }
             
@@ -250,6 +273,7 @@
             });
             productList.innerHTML = html;
             
+            // Load images for items without cache
             displayProducts.forEach(product => {
                 if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
