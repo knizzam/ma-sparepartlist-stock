@@ -277,47 +277,42 @@ html, body {
 .delete-btn-add:hover i { color: white; }
 
 /* =========================================
-   FAB BUTTON (FLOATING ACTION BUTTON - TOP RIGHT)
+   FAB BUTTON - PINDAH KE ATAS
    ========================================= */
 .fab-button {
-    position: fixed;
-    top: 75px;
-    right: 20px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
-    color: white;
-    border: none;
-    box-shadow: 0 4px 15px rgba(26, 115, 232, 0.4);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    z-index: 999;
-    transition: all 0.3s ease;
+    position: fixed !important;
+    top: 80px !important;
+    right: 15px !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(26, 115, 232, 0.4) !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 20px !important;
+    z-index: 9999 !important;
+    transition: all 0.3s ease !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 .fab-button:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(26, 115, 232, 0.6);
+    transform: scale(1.1) !important;
+    box-shadow: 0 6px 20px rgba(26, 115, 232, 0.6) !important;
 }
 
 .fab-button:active {
-    transform: scale(0.95);
+    transform: scale(0.95) !important;
 }
 
-/* Tooltip untuk FAB */
-.fab-button[title]:hover::after {
-    content: attr(title);
-    position: absolute;
-    right: 60px;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    white-space: nowrap;
-    pointer-events: none;
+.fab-button i {
+    font-size: 20px !important;
+    margin: 0 !important;
 }
