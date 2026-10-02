@@ -23,12 +23,12 @@
 }
 .register-title i { font-size: 1.2rem; }
 
-/* === PHOTO UPLOAD (DIPERBAIKI UNTUK FLOATING) === */
+/* === PHOTO UPLOAD === */
 .photo-upload-wrapper { 
     display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; 
-    position: relative !important; /* PENTING: Untuk menu melekat */
-    overflow: visible !important;  /* PENTING: Elak menu terpotong */
-    margin-bottom: 70px !important; /* Beri ruang supaya menu tak tutup content bawah */
+    position: relative !important;
+    overflow: visible !important;
+    margin-bottom: 70px !important;
 }
 
 .photo-placeholder, .photo-preview-large {
@@ -48,9 +48,8 @@
 }
 #photoInput { display: none !important; }
 
-/* === FLOATING MENU CSS (FINAL & CLEAN) === */
+/* === FLOATING MENU === */
 .photo-option-menu {
-    /* Biarkan JavaScript yang urus top dan left */
     position: fixed !important;
     background: white !important;
     padding: 15px !important;
@@ -88,97 +87,16 @@
     to { transform: scale(1); opacity: 1; } 
 }
 
-/* User List Cards */
-/* User List - Responsive Grid */
-.user-list { 
-    display: grid; 
-    grid-template-columns: 1fr; /* Default: 1 column untuk mobile */
-    gap: 10px; 
-}
-
-/* Desktop: 2 Columns */
-@media (min-width: 1024px) {
-    .user-list { 
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 15px; 
-    }
-}
-
-/* Search Box Styling (Konsisten dengan page lain) */
-.user-search-wrapper {
-    position: relative;
-    margin-bottom: 15px;
-}
-.user-search-wrapper i {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #999;
-    font-size: 14px;
-}
-.user-search-input {
-    width: 100%;
-    padding: 12px 15px 12px 40px;
-    background: #f8f9fa;
-    border: 1px solid transparent;
-    border-radius: 10px;
-    font-size: 14px;
-    outline: none;
-    box-sizing: border-box;
-    transition: all 0.2s;
-}
-.user-search-input:focus {
-    background: white;
-    border-color: var(--primary-blue);
-    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
-}
-}
-.user-card:hover { transform: translateX(3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.user-card.inactive { border-left-color: #ccc; opacity: 0.7; }
-.user-card.editing { border-left-color: #ffc107; background: #fffbeb; }
-
-.user-avatar {
-    width: 48px; height: 48px; border-radius: 12px; background: #f0f8ff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px; font-weight: bold; color: #666; flex-shrink: 0;
-    overflow: hidden; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-transform: uppercase;
-}
-.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-.user-info { flex: 1; min-width: 0; }
-.user-name { font-size: 14px; font-weight: 600; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
-.user-role-badge { display: inline-block; font-size: 10px; font-weight: 700; color: var(--primary-blue); background: #e7f1ff; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
-
-.user-status { width: 10px; height: 10px; border-radius: 50%; background: #28a745; flex-shrink: 0; }
-.user-status.inactive { background: #ccc; }
-
-.delete-btn-small {
-    width: 32px; height: 32px; border-radius: 50%; background: #fee2e2; border: none; color: #dc3545;
-    font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
-}
-.delete-btn-small:hover { background: #dc3545; color: white; }
-
-.cancel-btn { 
-    flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; 
-    font-size: 15px; font-weight: bold; cursor: pointer; display: block !important; 
-}
-
-/* =========================================
-   VIEW TOGGLE & LIST HEADER ACTIONS
-   ========================================= */
-
-/* Default: Form disembunyikan, List dipaparkan */
+/* === VIEW TOGGLE === */
 #formView { display: none; }
 #listView { display: block; }
 
-/* Header untuk List (Title + Add Button) */
+/* === LIST HEADER & SEARCH === */
 .list-header-actions {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 15px;
     margin-bottom: 15px;
-    padding: 0 5px;
 }
 
 .list-title {
@@ -220,4 +138,84 @@
 }
 .add-user-btn:active {
     transform: scale(0.95);
+}
+
+/* Search Box */
+.user-search-wrapper {
+    position: relative;
+}
+.user-search-wrapper i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 14px;
+}
+.user-search-input {
+    width: 100%;
+    padding: 12px 15px 12px 40px;
+    background: #f8f9fa;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+    transition: all 0.2s;
+}
+.user-search-input:focus {
+    background: white;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+
+/* === USER LIST GRID === */
+.user-list { 
+    display: grid; 
+    grid-template-columns: 1fr; 
+    gap: 10px; 
+}
+
+/* Desktop: 2 Columns */
+@media (min-width: 1024px) {
+    .user-list { 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 15px; 
+    }
+}
+
+/* === USER CARDS === */
+.user-card {
+    background: white; border-radius: 12px; padding: 12px 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px;
+    border-left: 4px solid var(--primary-blue); transition: all 0.2s; cursor: pointer;
+}
+.user-card:hover { transform: translateX(3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.user-card.inactive { border-left-color: #ccc; opacity: 0.7; }
+.user-card.editing { border-left-color: #ffc107; background: #fffbeb; }
+
+.user-avatar {
+    width: 48px; height: 48px; border-radius: 12px; background: #f0f8ff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: bold; color: #666; flex-shrink: 0;
+    overflow: hidden; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-transform: uppercase;
+}
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 14px; font-weight: 600; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+.user-role-badge { display: inline-block; font-size: 10px; font-weight: 700; color: var(--primary-blue); background: #e7f1ff; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+
+.user-status { width: 10px; height: 10px; border-radius: 50%; background: #28a745; flex-shrink: 0; }
+.user-status.inactive { background: #ccc; }
+
+.delete-btn-small {
+    width: 32px; height: 32px; border-radius: 50%; background: #fee2e2; border: none; color: #dc3545;
+    font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+}
+.delete-btn-small:hover { background: #dc3545; color: white; }
+
+.cancel-btn { 
+    flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; 
+    font-size: 15px; font-weight: bold; cursor: pointer; display: block !important; 
 }
