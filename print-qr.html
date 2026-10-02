@@ -17,22 +17,27 @@
 </head>
 <body>
 
-    <!-- HEADER CENTER DENGAN ICON -->
+    <!-- Header -->
     <div class="print-qr-header">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <h1 class="print-qr-title"><i class="fas fa-qrcode"></i>Print QR Code</h1>
-    </div>
-
-    <div class="search-section">
-        <div class="search-container">
-            <input type="text" class="search-input" id="searchInput" placeholder="Cari Part Name, No..." onkeyup="filterProducts()">
-            <div class="select-all-container">
-                <div class="custom-checkbox" id="selectAllCheckbox" onclick="toggleSelectAll()"></div>
-                <label onclick="toggleSelectAll()">Pilih Semua</label>
-            </div>
+        <div id="headerMenuTrigger" style="cursor: pointer; color: white;">
+            <i class="fas fa-ellipsis-v" style="font-size: 20px;"></i>
         </div>
     </div>
 
+    <!-- Search Section -->
+    <div class="search-section">
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Cari Part Name, No..." onkeyup="filterProducts()">
+        </div>
+        <div class="selected-info" id="selectedInfo">
+            <i class="fas fa-check-circle"></i>
+            <span id="selectedCount">0</span> item(s) selected
+        </div>
+    </div>
+
+    <!-- Product Grid -->
     <div class="product-grid" id="productGrid">
         <div class="loading-container">
             <i class="fas fa-spinner fa-spin"></i>
@@ -40,10 +45,46 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let allProducts = [];
         const PRODUCT_CACHE_KEY = 'ma_inventory_product_list';
         const CACHE_EXPIRY = 5 * 60 * 1000;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProducts();
+            
+            // Initialize Floating Action Menu
+            HeaderMenu.init({
+                triggerId: 'headerMenuTrigger',
+                buttons: [
+                    { 
+                        icon: 'fas fa-check-double', 
+                        title: 'Select All', 
+                        color: '#1a73e8', 
+                        action: toggleSelectAll 
+                    },
+                    { 
+                        icon: 'fas fa-print', 
+                        title: 'Print Selected', 
+                        color: '#6c757d', 
+                        action: printSelected 
+                    },
+                    { 
+                        icon: 'fas fa-download', 
+                        title: 'Download Selected', 
+                        color: '#28a745', 
+                        action: downloadSelected 
+                    },
+                    { 
+                        icon: 'fas fa-share-alt', 
+                        title: 'Share Selected', 
+                        color: '#17a2b8', 
+                        action: shareSelected 
+                    }
+                ]
+            });
+        });
 
         function getCachedProductImage(partNo) {
             try {
@@ -107,7 +148,6 @@
                 const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
                 const cachedImg = getCachedProductImage(product.partNo);
                 const isSelected = product.selected ? 'selected' : '';
-                const isChecked = product.selected ? 'checked' : '';
 
                 let imageContent = '';
                 if (cachedImg) {
@@ -119,12 +159,10 @@
                 }
 
                 html += `
-                    <div class="print-card ${isSelected}" id="card-${index}" data-partno="${product.partNo}" data-index="${index}">
+                    <div class="print-card ${isSelected}" id="card-${index}" data-index="${index}" onclick="toggleCardSelection(${index})">
+                        <div class="selected-badge"><i class="fas fa-check"></i></div>
                         <div class="print-card-header">
                             <div class="print-card-title">${product.partName}</div>
-                            <div class="print-card-checkbox">
-                                <div class="custom-checkbox ${isChecked}" data-index="${index}" onclick="handleCheckboxClick(${index})"></div>
-                            </div>
                         </div>
                         
                         <div class="print-card-info">
@@ -153,6 +191,7 @@
             });
             container.innerHTML = html;
 
+            // Load images
             products.forEach(product => {
                 if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -175,19 +214,52 @@
             });
         }
 
-        function handleCheckboxClick(index) {
+        // Toggle card selection on click
+        function toggleCardSelection(index) {
             allProducts[index].selected = !allProducts[index].selected;
             const card = document.getElementById(`card-${index}`);
-            const checkbox = card.querySelector('.custom-checkbox');
             
             if (allProducts[index].selected) {
                 card.classList.add('selected');
-                checkbox.classList.add('checked');
             } else {
                 card.classList.remove('selected');
-                checkbox.classList.remove('checked');
             }
-            updateSelectAllCheckbox();
+            updateSelectedInfo();
+        }
+
+        // Select All / Deselect All
+        function toggleSelectAll() {
+            const allSelected = allProducts.every(p => p.selected);
+            const newState = !allSelected;
+            
+            allProducts.forEach((product, index) => {
+                product.selected = newState;
+                const card = document.getElementById(`card-${index}`);
+                if (card) {
+                    if (newState) {
+                        card.classList.add('selected');
+                    } else {
+                        card.classList.remove('selected');
+                    }
+                }
+            });
+            updateSelectedInfo();
+            Utils.showToast(newState ? '✅ All items selected' : 'All items deselected', 'info');
+        }
+
+        // Update selected count info
+        function updateSelectedInfo() {
+            const count = allProducts.filter(p => p.selected).length;
+            const infoDiv = document.getElementById('selectedInfo');
+            const countSpan = document.getElementById('selectedCount');
+            
+            countSpan.textContent = count;
+            
+            if (count > 0) {
+                infoDiv.classList.add('show');
+            } else {
+                infoDiv.classList.remove('show');
+            }
         }
 
         function filterProducts() {
@@ -198,21 +270,6 @@
                 (p.location && p.location.toLowerCase().includes(searchTerm))
             );
             renderProducts(filtered);
-        }
-
-        function toggleSelectAll() {
-            const selectAllDiv = document.getElementById('selectAllCheckbox');
-            const isChecked = selectAllDiv.classList.contains('checked');
-            const newState = !isChecked;
-            allProducts.forEach((product, index) => { product.selected = newState; });
-            renderProducts(allProducts);
-        }
-
-        function updateSelectAllCheckbox() {
-            const allChecked = allProducts.every(p => p.selected);
-            const selectAllDiv = document.getElementById('selectAllCheckbox');
-            if (allChecked) selectAllDiv.classList.add('checked');
-            else selectAllDiv.classList.remove('checked');
         }
 
         function getSelectedProducts() { return allProducts.filter(p => p.selected); }
@@ -302,19 +359,6 @@
                 Utils.showToast(`✅ ${files.length} imej dimuat turun!`, 'success');
             }
         }
-
-        window.addEventListener('DOMContentLoaded', function() {
-            loadProducts();
-            
-            HeaderMenu.init({
-                triggerId: 'headerMenuTrigger',
-                buttons: [
-                    { icon: 'fas fa-print', title: 'Cetak', color: '#6c757d', action: printSelected },
-                    { icon: 'fas fa-download', title: 'Muat Turun', color: '#1a73e8', action: downloadSelected },
-                    { icon: 'fas fa-share-alt', title: 'Kongsi', color: '#28a745', action: shareSelected }
-                ]
-            });
-        });
     </script>
 </body>
 </html>
