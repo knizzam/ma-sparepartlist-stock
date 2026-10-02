@@ -124,3 +124,61 @@
     flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; 
     font-size: 15px; font-weight: bold; cursor: pointer; display: block !important; 
 }
+
+/* =========================================
+   VIEW TOGGLE & LIST HEADER ACTIONS
+   ========================================= */
+
+/* Default: Form disembunyikan, List dipaparkan */
+#formView { display: none; }
+#listView { display: block; }
+
+/* Header untuk List (Title + Add Button) */
+.list-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 0 5px;
+}
+
+.list-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.list-badge {
+    background: var(--primary-blue);
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.add-user-btn {
+    background: linear-gradient(to right, #1a73e8, #1557b0);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+    transition: all 0.2s;
+}
+.add-user-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
+}
+.add-user-btn:active {
+    transform: scale(0.95);
+}
