@@ -25,13 +25,10 @@
 
     <div class="main-container">
         
-        <!-- ========================================== -->
         <!-- VIEW 1: FORM (Default Visible) -->
-        <!-- ========================================== -->
         <div id="formView">
-            <!-- Toggle Button to List -->
             <button class="toggle-view-btn" onclick="showListView()">
-                <i class="fas fa-history"></i> View Recent Products (5 Hari)
+                <i class="fas fa-history"></i> View Recent Products
             </button>
 
             <div class="form-card">
@@ -79,17 +76,14 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
         <!-- VIEW 2: RECENT PRODUCTS LIST (Default Hidden) -->
-        <!-- ========================================== -->
         <div id="listView" style="display: none;">
-            <!-- Toggle Button back to Form -->
             <button class="toggle-view-btn primary" onclick="showFormView()">
                 <i class="fas fa-plus"></i> Add New Product
             </button>
 
             <div class="list-header-add">
-                <div class="list-title-add">Recent Products (5 Hari) <span class="list-badge-add" id="productCount">0</span></div>
+                <div class="list-title-add" id="listTitleAdd">Recent Products <span class="list-badge-add" id="productCount">0</span></div>
             </div>
             
             <div class="product-list-add" id="productList">
@@ -119,12 +113,10 @@
                 }
             });
             
-            // Default: Tunjuk Form View
             showFormView();
-            loadProductList(); // Load data ke cache untuk bila perlu
+            loadProductList();
         });
 
-        // --- VIEW TOGGLE FUNCTIONS ---
         function showFormView() {
             document.getElementById('formView').style.display = 'block';
             document.getElementById('listView').style.display = 'none';
@@ -134,11 +126,10 @@
         function showListView() {
             document.getElementById('formView').style.display = 'none';
             document.getElementById('listView').style.display = 'block';
-            loadProductList(true); // Refresh data bila masuk list
+            loadProductList(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- DATA FUNCTIONS ---
         function getCachedProductImage(partNo) {
             try {
                 const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -157,11 +148,15 @@
             } catch(e) {}
         }
 
+        // Fungsi tarikh yang lebih stabil
         function isWithinLast5Days(dateStr) {
             if (!dateStr) return false;
             try { 
                 const date = new Date(dateStr);
-                return date >= new Date(new Date().getTime() - (5 * 24 * 60 * 60 * 1000)); 
+                if (isNaN(date.getTime())) return false; // Check jika tarikh tidak valid
+                const fiveDaysAgo = new Date();
+                fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+                return date >= fiveDaysAgo; 
             } catch (e) { return false; }
         }
 
@@ -180,7 +175,7 @@
                 } catch(e) {}
             }
             
-            container.innerHTML = `<div class="empty-state-list"><i class="fas fa-spinner fa-spin"></i><div>Loading recent products...</div></div>`;
+            container.innerHTML = `<div class="empty-state-list"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>`;
             
             try {
                 const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
@@ -199,16 +194,33 @@
 
         function renderProductList(products) {
             const productList = document.getElementById('productList');
-            const recentProducts = products.filter(p => isWithinLast5Days(p.lastUpdateDate));
-            document.getElementById('productCount').textContent = recentProducts.length;
+            const listTitle = document.getElementById('listTitleAdd');
             
-            if (recentProducts.length === 0) {
-                productList.innerHTML = `<div class="empty-state-list"><i class="fas fa-box-open"></i><div>Tiada produk dalam 5 hari terkini</div></div>`; 
+            // DEBUG: Lihat data di console browser (tekan F12)
+            console.log("Total products loaded:", products.length);
+            if (products.length > 0) console.log("Sample product data:", products[0]);
+
+            // 1. Cuba filter 5 hari terkini
+            let displayProducts = products.filter(p => isWithinLast5Days(p.lastUpdateDate));
+            
+            // 2. FALLBACK: Jika tiada produk dalam 5 hari (mungkin backend tak hantar tarikh), 
+            // tunjuk 10 produk terakhir sahaja supaya tidak kosong.
+            if (displayProducts.length === 0 && products.length > 0) {
+                displayProducts = products.slice(-10).reverse(); // Ambil 10 terakhir
+                listTitle.innerHTML = 'Latest Products <span class="list-badge-add" id="productCount">' + displayProducts.length + '</span>';
+            } else {
+                listTitle.innerHTML = 'Recent Products (5 Hari) <span class="list-badge-add" id="productCount">' + displayProducts.length + '</span>';
+            }
+            
+            document.getElementById('productCount').textContent = displayProducts.length;
+            
+            if (displayProducts.length === 0) {
+                productList.innerHTML = `<div class="empty-state-list"><i class="fas fa-box-open"></i><div>Tiada produk dijumpai</div></div>`; 
                 return;
             }
             
             let html = '';
-            recentProducts.forEach(product => {
+            displayProducts.forEach(product => {
                 const currentStock = parseInt(product.currentStock) || 0;
                 const minimumStock = parseInt(product.minimumStock) || 0;
                 
@@ -241,8 +253,8 @@
             });
             productList.innerHTML = html;
             
-            recentProducts.forEach(product => {
-                if (product.pictureFileId && !cachedImg) {
+            displayProducts.forEach(product => {
+                if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
                     const avatarBox = document.getElementById(`prod-avatar-${safePartNo}`);
                     if (avatarBox && avatarBox.querySelector('i')) {
@@ -281,7 +293,6 @@
                 });
             } else { preview.style.display = 'none'; placeholder.style.display = 'flex'; tempPhotoBase64 = ''; }
             
-            // Balik ke Form View selepas klik card
             showFormView();
         }
 
@@ -315,7 +326,6 @@
                 }
                 Utils.showToast('✅ Produk berjaya disimpan!', 'success');
                 resetForm(); 
-                // Optional: showListView() jika mahu terus pergi ke list lepas save
             } catch (error) {
                 Utils.showToast('❌ Ralat semasa menyimpan', 'error');
                 btn.innerText = editingPartNo ? 'Update Product' : 'Add Product'; btn.disabled = false;
