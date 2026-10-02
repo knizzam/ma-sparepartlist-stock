@@ -69,7 +69,7 @@
 
         <!-- Product List Grid -->
         <div class="product-list-container" id="productListContainer">
-            <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>
+            <!-- Loading will be injected here by JS -->
         </div>
     </div>
 
@@ -95,7 +95,8 @@
                     </div>
                 </div>
                 <div class="form-group"><label class="form-label">Part Name</label><input type="text" class="form-input" id="editPartName"></div>
-                <div class="form-group"><label class="form-label">Part No.</label><input type="text" class="form-input" id="editPartNo" disabled></div>
+                <!-- DIBUANG 'disabled' supaya boleh edit -->
+                <div class="form-group"><label class="form-label">Part No.</label><input type="text" class="form-input" id="editPartNo"></div>
                 <div class="form-group"><label class="form-label">No. Spec</label><input type="text" class="form-input" id="editNoSpec"></div>
                 <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-input" id="editLocation"></div>
                 <div class="form-group">
@@ -119,7 +120,8 @@
 
             <div class="modal-btn-group">
                 <button class="modal-btn cancel" onclick="closeEditModal()">Cancel</button>
-                <button class="modal-btn save" onclick="saveEditProduct()">Save Changes</button>
+                <!-- DITUKAR KEPADA 'Update' -->
+                <button class="modal-btn save" id="saveBtn" onclick="saveEditProduct()">Update</button>
             </div>
         </div>
     </div>
@@ -196,8 +198,15 @@
                 }
             }
             
-            // Show loading
-            container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 40px 20px;"><i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px;"></i><div style="font-size: 14px; color: #999;">Loading products...</div></div>';
+            // LOADING SPINNER DI TENGAH (Guaranteed Centered)
+            container.innerHTML = `
+                <div style="width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
+                    <div>
+                        <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #1a73e8; margin-bottom: 15px; display: block;"></i>
+                        <div style="font-size: 14px; color: #666; font-weight: 500;">Loading products...</div>
+                    </div>
+                </div>
+            `;
             
             try {
                 const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
@@ -208,11 +217,25 @@
                     localStorage.setItem(PRODUCT_LIST_CACHE_KEY, JSON.stringify({ data: allProducts, timestamp: new Date().getTime() }));
                     renderProducts();
                 } else {
-                    container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 40px 20px;"><i class="fas fa-box-open" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px;"></i><div style="font-size: 14px; color: #999;">No products found</div></div>';
+                    container.innerHTML = `
+                        <div style="width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
+                            <div>
+                                <i class="fas fa-box-open" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px; display: block;"></i>
+                                <div style="font-size: 14px; color: #999;">No products found</div>
+                            </div>
+                        </div>
+                    `;
                 }
             } catch (error) {
                 console.error('Load error:', error);
-                container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 40px 20px;"><i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #dc3545; margin-bottom: 15px;"></i><div style="font-size: 14px; color: #999;">Failed to load data</div></div>';
+                container.innerHTML = `
+                    <div style="width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
+                        <div>
+                            <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #dc3545; margin-bottom: 15px; display: block;"></i>
+                            <div style="font-size: 14px; color: #999;">Failed to load data</div>
+                        </div>
+                    </div>
+                `;
             }
         }
 
@@ -249,7 +272,14 @@
             }
 
             if (filtered.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="text-align: center; padding: 40px 20px;"><i class="fas fa-search" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px;"></i><div style="font-size: 14px; color: #999;">No results found</div></div>';
+                container.innerHTML = `
+                    <div style="width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
+                        <div>
+                            <i class="fas fa-search" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px; display: block;"></i>
+                            <div style="font-size: 14px; color: #999;">No results found</div>
+                        </div>
+                    </div>
+                `;
                 return;
             }
 
@@ -348,7 +378,7 @@
 
             // Set all editable fields
             document.getElementById('editPartName').value = product.partName;
-            document.getElementById('editPartNo').value = product.partNo;
+            document.getElementById('editPartNo').value = product.partNo; // Now editable
             document.getElementById('editNoSpec').value = product.noSpec || '';
             document.getElementById('editLocation').value = product.location || '';
             document.getElementById('editCategory').value = product.category || 'Uncategorized';
@@ -380,6 +410,11 @@
                 resetPhotoPlaceholder(); 
             }
 
+            // Reset button state when opening modal
+            const btn = document.getElementById('saveBtn');
+            btn.innerText = 'Update';
+            btn.disabled = false;
+
             document.getElementById('editModal').classList.add('show');
         }
 
@@ -394,11 +429,16 @@
             document.getElementById('editModal').classList.remove('show');
             editingPartNo = null;
             tempEditPhotoBase64 = '';
+            
+            // Reset button state when closing
+            const btn = document.getElementById('saveBtn');
+            btn.innerText = 'Update';
+            btn.disabled = false;
         }
 
         async function saveEditProduct() {
             if (!editingPartNo) {
-                Utils.showToast('️ No product selected!', 'warning');
+                Utils.showToast('⚠️ No product selected!', 'warning');
                 return;
             }
             
@@ -408,9 +448,8 @@
                 return; 
             }
 
-            const btn = document.querySelector('.modal-btn.save');
-            const originalText = btn.innerText;
-            btn.innerText = 'Saving...'; 
+            const btn = document.getElementById('saveBtn');
+            btn.innerText = 'Updating...';  
             btn.disabled = true;
 
             const currentStock = parseInt(document.getElementById('editCurrentStock').value) || 0;
@@ -430,16 +469,10 @@
                 } 
             };
 
-            console.log('Sending payload:', payload);
-
             try {
-                // Set timeout untuk elak loading terlalu lama
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => {
                     controller.abort();
-                    btn.innerText = originalText; 
-                    btn.disabled = false;
-                    Utils.showToast('⏱️ Request timeout. Please try again.', 'error');
                 }, 10000); // 10 seconds timeout
 
                 const response = await fetch(CONFIG.API_URL, { 
@@ -463,10 +496,7 @@
                     try {
                         const photoPayload = { 
                             action: 'uploadProductPicture', 
-                            data: { 
-                                base64: tempEditPhotoBase64, 
-                                partNo: editingPartNo 
-                            } 
+                            data: { base64: tempEditPhotoBase64, partNo: editingPartNo } 
                         };
                         
                         await fetch(CONFIG.API_URL, { 
@@ -476,24 +506,23 @@
                         });
                     } catch (photoError) {
                         console.error('Photo upload error:', photoError);
-                        // Teruskan walaupun photo upload gagal
                     }
                 }
 
                 Utils.showToast('✅ Product updated!', 'success');
                 closeEditModal();
-                loadProductList(true); // Force refresh
+                loadProductList(true);
                 
             } catch (error) {
                 console.error('Save error:', error);
-                
                 if (error.name === 'AbortError') {
-                    Utils.showToast('️ Request timeout. Please try again.', 'error');
+                    Utils.showToast('⏱️ Request timeout. Please try again.', 'error');
                 } else {
-                    Utils.showToast(' Failed to save: ' + error.message, 'error');
+                    Utils.showToast('❌ Failed to update: ' + error.message, 'error');
                 }
-                
-                btn.innerText = originalText; 
+            } finally {
+                // PENTING: Reset button dalam finally block supaya tidak stuck "Updating..."
+                btn.innerText = 'Update'; 
                 btn.disabled = false;
             }
         }
