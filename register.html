@@ -278,6 +278,23 @@
                 loadUserList();
             } catch (error) { Utils.showToast('❌ Gagal memadam pengguna', 'error'); }
         }
+                // --- SEARCH FUNCTION ---
+        function filterUsers() {
+            const searchTerm = document.getElementById('userSearchInput').value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                renderUserList(allUsers); // Jika kosong, tunjuk semua
+                return;
+            }
+
+            const filtered = allUsers.filter(user => 
+                user.name.toLowerCase().includes(searchTerm) || 
+                user.noKad.toLowerCase().includes(searchTerm) || 
+                user.email.toLowerCase().includes(searchTerm)
+            );
+            
+            renderUserList(filtered);
+        }
     </script>
 </body>
 </html>
