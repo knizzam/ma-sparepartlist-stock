@@ -48,7 +48,7 @@ body, .main-container {
 
 .filter-sort-container { display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; overflow-x: auto; scrollbar-width: none; }
 .filter-sort-container::-webkit-scrollbar { display: none; }
-.category-filter-container { display: flex; gap: 6px; padding-bottom: 2px; }
+.category-filter-container { display: flex; gap: 6px; padding-bottom: 2px; min-width: max-content; }
 .category-filter-container::-webkit-scrollbar { display: none; }
 .category-chip {
     padding: 6px 12px; border-radius: 16px; background: #f0f4f8; color: #666;
