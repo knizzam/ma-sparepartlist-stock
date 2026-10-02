@@ -53,7 +53,7 @@
 }
 
 .category-filter-container {
-    display: flex; gap: 6px; overflow-x: auto; justify-content: center;;
+    display: flex; gap: 6px; overflow-x: auto; justify-content: center;
     scrollbar-width: none; padding-bottom: 2px; flex-wrap: wrap;
 }
 .category-filter-container::-webkit-scrollbar { display: none; }
