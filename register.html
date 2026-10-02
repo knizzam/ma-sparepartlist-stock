@@ -66,15 +66,24 @@
         <!-- VIEW 2: USER LIST - Default Visible -->
         <!-- ========================================== -->
         <div id="listView">
+            
+            <!-- Search Box & Add Button -->
             <div class="list-header-actions">
-                <div class="list-title">Registered Users <span class="list-badge" id="userCount">0</span></div>
-                <button class="add-user-btn" onclick="showAddForm()">
-                    <i class="fas fa-plus"></i> Add User
-                </button>
+                <div class="user-search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="user-search-input" id="userSearchInput" placeholder="Search by name, ID, or email..." onkeyup="filterUsers()">
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="list-title">Registered Users <span class="list-badge" id="userCount">0</span></div>
+                    <button class="add-user-btn" onclick="showAddForm()">
+                        <i class="fas fa-plus"></i> Add User
+                    </button>
+                </div>
             </div>
             
             <div class="user-list" id="userList">
-                <div style="text-align:center; padding: 20px; color: #888;">
+                <div style="text-align:center; padding: 20px; color: #888; grid-column: 1 / -1;">
                     <i class="fas fa-spinner fa-spin"></i> Loading...
                 </div>
             </div>
@@ -113,7 +122,7 @@
             document.getElementById('formView').style.display = 'none';
             document.getElementById('listView').style.display = 'block';
             resetForm();
-            loadUserList(); // Refresh list bila balik ke list view
+            loadUserList();
         }
 
         function showAddForm() {
@@ -130,6 +139,24 @@
             document.getElementById('formView').style.display = 'block';
             document.getElementById('listView').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- SEARCH FUNCTION ---
+        function filterUsers() {
+            const searchTerm = document.getElementById('userSearchInput').value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                renderUserList(allUsers);
+                return;
+            }
+
+            const filtered = allUsers.filter(user => 
+                user.name.toLowerCase().includes(searchTerm) || 
+                user.noKad.toLowerCase().includes(searchTerm) || 
+                user.email.toLowerCase().includes(searchTerm)
+            );
+            
+            renderUserList(filtered);
         }
 
         // --- DATA FUNCTIONS ---
@@ -158,14 +185,18 @@
                     renderUserList(allUsers);
                 }
             } catch (error) {
-                if (!allUsers.length) document.getElementById('userList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Gagal memuatkan data</div>';
+                if (!allUsers.length) document.getElementById('userList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888; grid-column: 1 / -1;">Gagal memuatkan data</div>';
             }
         }
 
         function renderUserList(users) {
             const userList = document.getElementById('userList');
             document.getElementById('userCount').textContent = users.length;
-            if (users.length === 0) { userList.innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tiada pengguna</div>'; return; }
+            
+            if (users.length === 0) { 
+                userList.innerHTML = '<div style="text-align:center; padding: 20px; color: #888; grid-column: 1 / -1;">Tiada pengguna</div>'; 
+                return; 
+            }
             
             let html = '';
             users.forEach(user => {
@@ -177,7 +208,7 @@
                 if (cachedImage && user.pictureFileId) avatarHTML = `<img src="${cachedImage}" alt="${user.name}" style="width:100%; height:100%; object-fit:cover;">`;
 
                 html += `
-                    <div class="user-card ${isActive ? '' : 'inactive'}" onclick="editUser('${user.email}', '${user.role}', '${user.name}', '${user.noKad}', ${user.active}, '${user.pictureFileId}')">
+                    <div class="user-card ${isActive ? '' : 'inactive'} ${editingEmail === user.email ? 'editing' : ''}" onclick="editUser('${user.email}', '${user.role}', '${user.name}', '${user.noKad}', ${user.active}, '${user.pictureFileId}')">
                         <div class="user-avatar" id="avatar-box-${safeEmail}">${avatarHTML}</div>
                         <div class="user-info">
                             <div class="user-name">${user.name}</div>
@@ -262,7 +293,7 @@
                     setCachedImage(email, tempPhotoBase64);
                 }
                 Utils.showToast('✅ Pengguna berjaya disimpan!', 'success');
-                showListView(); // Balik ke list view lepas save
+                showListView();
             } catch (error) {
                 Utils.showToast('❌ Ralat semasa menyimpan', 'error');
                 btn.innerText = editingEmail ? 'Update User' : 'Add User'; btn.disabled = false;
@@ -277,23 +308,6 @@
                 Utils.showToast('✅ Pengguna berjaya dipadam', 'success');
                 loadUserList();
             } catch (error) { Utils.showToast('❌ Gagal memadam pengguna', 'error'); }
-        }
-                // --- SEARCH FUNCTION ---
-        function filterUsers() {
-            const searchTerm = document.getElementById('userSearchInput').value.toLowerCase().trim();
-            
-            if (!searchTerm) {
-                renderUserList(allUsers); // Jika kosong, tunjuk semua
-                return;
-            }
-
-            const filtered = allUsers.filter(user => 
-                user.name.toLowerCase().includes(searchTerm) || 
-                user.noKad.toLowerCase().includes(searchTerm) || 
-                user.email.toLowerCase().includes(searchTerm)
-            );
-            
-            renderUserList(filtered);
         }
     </script>
 </body>
