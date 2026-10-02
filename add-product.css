@@ -1,8 +1,25 @@
 /* =========================================
-   ADD NEW PRODUCT CSS
+   ADD NEW PRODUCT CSS - FULL WIDTH
    ========================================= */
 
-/* Header */
+/* 1. FORCE FULL WIDTH */
+html, body {
+    max-width: 100vw !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+}
+
+.main-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 15px 40px 15px !important;
+    box-sizing: border-box !important;
+}
+
+/* 2. HEADER */
 .add-product-header {
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
     color: white; text-align: center; padding: 15px 20px 20px;
@@ -10,6 +27,8 @@
     border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;
     box-shadow: 0 4px 10px rgba(26,115,232,0.2); margin-bottom: 10px;
     display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 .add-product-header .back-btn {
     position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
@@ -23,81 +42,171 @@
 }
 .add-product-title i { font-size: 1.2rem; }
 
-/* === PHOTO UPLOAD === */
-.photo-upload-wrapper { 
-    display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; 
-    position: relative !important;
-    overflow: visible !important;
-    margin-bottom: 70px !important;
+/* 3. TOGGLE VIEW BUTTONS */
+.toggle-view-btn {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    background: white;
+    border: 2px dashed #1a73e8;
+    color: #1a73e8;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+.toggle-view-btn:hover {
+    background: #f0f8ff;
+    transform: translateY(-2px);
+}
+.toggle-view-btn.primary {
+    background: linear-gradient(to right, #1a73e8, #1557b0);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+}
+.toggle-view-btn.primary:hover {
+    background: linear-gradient(to right, #1557b0, #1a73e8);
 }
 
-.photo-placeholder, .photo-preview-large {
-    width: 100%; max-width: 160px; aspect-ratio: 4 / 3; border-radius: 8px; 
+/* 4. FORM CARDS */
+.form-card {
+    background: white; 
+    border-radius: 16px; 
+    padding: 20px; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+    margin-bottom: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
-.photo-placeholder {
-    border: 2px dashed #ddd; background: #fafafa; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; transition: all 0.2s; 
-    cursor: pointer;
+.form-section-title { 
+    font-size: 12px; 
+    font-weight: 700; 
+    color: var(--primary-blue); 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    margin-bottom: 15px; 
+    padding-bottom: 8px; 
+    border-bottom: 2px solid #f0f8ff; 
 }
-.photo-placeholder:hover { border-color: var(--primary-blue); background: #f0f8ff; }
-.photo-placeholder i { font-size: 24px; color: #666; margin-bottom: 5px; }
-.photo-placeholder span { font-size: 11px; color: #666; text-align: center; line-height: 1.2; }
-.photo-preview-large { 
-    display: none; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-    cursor: pointer;
+.form-group { margin-bottom: 16px; }
+.form-label { 
+    display: block; 
+    font-size: 12px; 
+    font-weight: 600; 
+    color: #666; 
+    margin-bottom: 6px; 
+    text-transform: uppercase; 
 }
-#photoInput { display: none !important; }
-
-/* === INPUT FORM === */
 .form-input { 
     width: 100%; padding: 12px 15px; background: #ffffff; border: 1px solid #e0e0e0; 
     border-radius: 10px; font-size: 15px; color: #333; transition: all 0.2s; box-sizing: border-box; 
 }
 .form-input:focus { background: white; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(26,115,232,0.1); outline: none; }
 
-/* === CANCEL BUTTON === */
-.cancel-btn { 
-    flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; 
-    font-size: 15px; font-weight: bold; cursor: pointer; display: block !important; 
+/* 5. PHOTO UPLOAD */
+.photo-upload-wrapper { 
+    display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; 
+    position: relative !important;
+    overflow: visible !important;
+    margin-bottom: 20px !important;
 }
+.photo-placeholder, .photo-preview-large {
+    width: 100%; max-width: 160px; aspect-ratio: 4 / 3; border-radius: 8px; 
+}
+.photo-placeholder {
+    border: 2px dashed #ddd; background: #fafafa; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer;
+}
+.photo-placeholder:hover { border-color: var(--primary-blue); background: #f0f8ff; }
+.photo-placeholder i { font-size: 24px; color: #666; margin-bottom: 5px; }
+.photo-placeholder span { font-size: 11px; color: #666; text-align: center; line-height: 1.2; }
+.photo-preview-large { display: none; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; }
+#photoInput { display: none !important; }
 
-/* =========================================
-   RECENT PRODUCT LIST (SAMA KONSEP DENGAN PRODUCT LIST)
-   ========================================= */
+/* 6. BUTTON GROUP */
+.btn-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    width: 100%;
+}
+.cancel-btn, .submit-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.cancel-btn { background: #f5f5f5; color: #666; }
+.cancel-btn:hover { background: #e0e0e0; }
+.submit-btn {
+    background: linear-gradient(to right, #1a73e8, #1557b0);
+    color: white;
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+}
+.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(26, 115, 232, 0.4); }
+.submit-btn:active { transform: scale(0.98); }
+.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* List Header */
+/* 7. RECENT PRODUCT LIST */
 .list-header-add { 
     display: flex; justify-content: space-between; align-items: center; 
     margin-bottom: 15px; padding: 0 5px; 
 }
-.list-title-add { font-size: 16px; font-weight: bold; color: #000; }
+.list-title-add { font-size: 16px; font-weight: bold; color: #000; display: flex; align-items: center; gap: 8px; }
 .list-badge-add { 
     background: var(--primary-blue); color: white; 
     font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; 
 }
-.product-list-add { display: flex; flex-direction: column; gap: 12px; }
 
-/* PRODUCT CARD - Sama konsep dengan Product List */
+/* Responsive Grid untuk Recent Products */
+.product-list-add { 
+    display: grid; 
+    grid-template-columns: 1fr; 
+    gap: 12px; 
+    width: 100%;
+}
+@media (min-width: 768px) {
+    .product-list-add { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+    .product-list-add { grid-template-columns: repeat(3, 1fr); gap: 15px; }
+}
+
+.empty-state-list { 
+    grid-column: 1 / -1; 
+    text-align: center; 
+    padding: 40px 20px; 
+    color: #888; 
+}
+.empty-state-list i { font-size: 32px; margin-bottom: 10px; color: #e0e0e0; display: block; }
+
+/* PRODUCT CARD */
 .product-card-add {
     background: white; border-radius: 16px; padding: 12px 15px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px;
     border-left: 5px solid #e0e0e0;
-    cursor: pointer; transition: transform 0.2s;
+    cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    width: 100%;
+    box-sizing: border-box;
 }
+.product-card-add:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .product-card-add:active { transform: scale(0.98); }
 
-/* Border Color ikut Status */
 .product-card-add.status-high { border-left-color: #1a73e8; }
 .product-card-add.status-mid { border-left-color: #ffc107; }
 .product-card-add.status-low { border-left-color: #dc3545; }
+.product-card-add.editing { border-left-color: #ffc107; background: #fffbeb; }
 
-/* Editing State */
-.product-card-add.editing { 
-    border-left-color: #ffc107; 
-    background: #fffbeb; 
-}
-
-/* Gambar */
 .product-avatar-add {
     width: 50px; height: 50px; border-radius: 10px; background: #f0f8ff;
     display: flex; align-items: center; justify-content: center;
@@ -106,7 +215,6 @@
 .product-avatar-add img { width: 100%; height: 100%; object-fit: cover; }
 .product-avatar-add i { font-size: 20px; color: #1a73e8; }
 
-/* Info Tengah */
 .product-info-add { flex: 1; min-width: 0; }
 .product-name-add { 
     font-size: 14px; font-weight: 700; color: #000; 
@@ -123,33 +231,26 @@
 }
 .product-location-add i { color: #999; font-size: 10px; }
 
-/* Stock Section */
 .product-stock-add { 
     display: flex; flex-direction: column; align-items: center; 
     width: 45px; flex-shrink: 0;
 }
 .product-status-add { 
-    width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
     margin-bottom: 2px;
 }
 .product-status-add.high { background: #1a73e8; }
 .product-status-add.mid { background: #ffc107; }
 .product-status-add.low { background: #dc3545; }
-.stock-label-add { 
-    font-size: 10px; color: #666; line-height: 1; margin-bottom: 2px; 
-}
-.stock-number-add { 
-    font-size: 15px; font-weight: 800; color: #000; line-height: 1; 
-    text-align: center; width: 100%;
-}
+.stock-label-add { font-size: 9px; color: #666; line-height: 1; margin-bottom: 2px; }
+.stock-number-add { font-size: 15px; font-weight: 800; color: #000; line-height: 1; text-align: center; width: 100%; }
 
-/* Delete Button - Sama dengan Product List */
 .delete-btn-add {
-    width: 36px; height: 36px; border-radius: 50%; 
+    width: 32px; height: 32px; border-radius: 50%; 
     background: rgba(254, 226, 226, 0.7); border: none;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: all 0.2s; flex-shrink: 0;
 }
-.delete-btn-add i { font-size: 16px; color: #dc3545; }
-.delete-btn-add:active { background: rgba(220, 53, 69, 0.8); }
-.delete-btn-add:active i { color: white; }
+.delete-btn-add i { font-size: 14px; color: #dc3545; }
+.delete-btn-add:hover { background: rgba(220, 53, 69, 0.9); }
+.delete-btn-add:hover i { color: white; }
