@@ -1,262 +1,434 @@
-/* =========================================
-   PRODUCT LIST SPECIFIC - HYBRID LAYOUT
-   ========================================= */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Product List - MA Inventory</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PENTING: Susunan link CSS mesti betul -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="base.css">       <!-- Base CSS (Shared) -->
+    <link rel="stylesheet" href="product-list.css"> <!-- Page Specific CSS -->
+    
+    <script src="config.js"></script>
+    <script src="utils.js"></script>
+    <script src="photo-picker.js"></script>
+</head>
+<body>
 
-/* === GRID LAYOUT === */
-.product-list-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    padding-bottom: 100px;
-}
+    <!-- Header (Class app-header/base.css akan style ini) -->
+    <div class="product-list-header">
+        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="product-list-title"><i class="fas fa-boxes-stacked"></i>Product List</h1>
+    </div>
 
-/* === PRODUCT CARD - BASE === */
-.product-card {
-    background: var(--bg-card);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    border-left: 4px solid var(--border);
-    cursor: pointer;
-    transition: all 0.2s;
-    overflow: hidden;
-}
-.product-card:hover { 
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1); 
-    transform: translateY(-2px); 
-}
-.product-card:active { transform: scale(0.98); }
+    <!-- Main Container -->
+    <div class="main-container">
+        
+        <!-- Search & Filter -->
+        <div class="search-filter-section">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search Part Name, Part No, or Location..." onkeyup="filterProducts()">
+            </div>
+            
+            <div class="filter-sort-container">
+                <div class="category-filter-container">
+                    <div class="category-chip active" onclick="setCategoryFilter('all', this)">All</div>
+                    <div class="category-chip" onclick="setCategoryFilter('Maintenance', this)">Maintenance</div>
+                    <div class="category-chip" onclick="setCategoryFilter('Consumable', this)">Consumable</div>
+                    <div class="category-chip" onclick="setCategoryFilter('Tools', this)">Tools</div>
+                    <div class="category-chip" onclick="setCategoryFilter('Safety', this)">Safety</div>
+                    <div class="category-chip" onclick="setCategoryFilter('Kaizen', this)">Kaizen</div>
+                </div>
+                
+                <!-- Sort Button -->
+                <div style="position: relative;">
+                    <button class="sort-btn" id="sortBtn" onclick="toggleSortMenu()">
+                        <i class="fas fa-sort-amount-down"></i>
+                    </button>
+                    <div class="sort-dropdown" id="sortDropdown">
+                        <div class="sort-option active" onclick="setSortOrder('default', this)">
+                            <i class="fas fa-check"></i> Default Order
+                        </div>
+                        <div class="sort-option" onclick="setSortOrder('low', this)">
+                            <i class="fas fa-arrow-up"></i> Low Stock First
+                        </div>
+                        <div class="sort-option" onclick="setSortOrder('high', this)">
+                            <i class="fas fa-arrow-down"></i> High Stock First
+                        </div>
+                        <div class="sort-option" onclick="setSortOrder('name', this)">
+                            <i class="fas fa-font"></i> Sort by Name
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-.product-card.status-high { border-left-color: var(--status-high); }
-.product-card.status-mid { border-left-color: var(--status-mid); }
-.product-card.status-low { border-left-color: var(--status-low); }
+        <!-- Product List Grid -->
+        <div class="product-list-container" id="productListContainer">
+            <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>
+        </div>
+    </div>
 
-/* ========================================
-   MOBILE: VERTICAL CARD (2 columns)
-   ======================================== */
-@media (max-width: 1023px) {
-    .product-card {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .product-card-img {
-        width: 100%;
-        height: clamp(80px, 12vw, 120px);
-        background: var(--bg-card);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        padding: 8px;
-        border-bottom: 1px solid var(--border);
-    }
-    .product-card-img img { width: 100%; height: 100%; object-fit: contain; }
-    .product-card-img i { font-size: 32px; color: var(--primary); }
-    
-    .product-card-body {
-        padding: 10px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-    
-    .product-card-name {
-        font-size: var(--font-md);
-        font-weight: 700;
-        color: var(--text-main);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin: 0;
-    }
-    
-    .product-card-partno {
-        display: inline-block;
-        font-size: var(--font-sm);
-        font-weight: 700;
-        color: white;
-        background: #00d4ff;
-        padding: 2px 8px;
-        border-radius: 4px;
-        align-self: flex-start; /* Jangan stretch */
-        max-width: fit-content;
-    }
-    
-    .product-card-location {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: var(--font-sm);
-        color: var(--text-sec);
-    }
-    .product-card-location i { color: #999; font-size: 10px; }
-    
-    .product-card-footer {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: auto;
-        padding-top: 8px;
-        border-top: 1px solid var(--border);
-    }
-    
-    .product-card-stock {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    
-    .status-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        flex-shrink: 0;
-    }
-    .status-dot.high { background: var(--status-high); }
-    .status-dot.mid { background: var(--status-mid); }
-    .status-dot.low { background: var(--status-low); }
-    
-    .stock-info { display: flex; flex-direction: column; }
-    .stock-label { font-size: 10px; color: var(--text-muted); line-height: 1; margin-bottom: 2px; }
-    .stock-number { font-size: var(--font-lg); font-weight: 800; color: var(--text-main); line-height: 1; }
-    
-    .delete-btn-round {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: rgba(254, 226, 226, 0.7);
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        flex-shrink: 0;
-    }
-    .delete-btn-round i { font-size: 12px; color: #dc3545; }
-    .delete-btn-round:hover { background: rgba(220, 53, 69, 0.9); }
-    .delete-btn-round:hover i { color: white; }
-}
+    <!-- EDIT MODAL -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Product</h2>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-section-title">Product Information</div>
+                <div class="form-group">
+                    <label class="form-label">Product Photo</label>
+                    <div class="photo-upload-wrapper" id="editPhotoWrapper">
+                        <div class="photo-placeholder" id="editPhotoPlaceholder" onclick="showPhotoMenu(event)">
+                            <i class="fas fa-camera"></i>
+                            <span>Tap to upload<br>or take photo</span>
+                        </div>
+                        <img id="editPhotoPreview" class="photo-preview-large" alt="Preview" onclick="showPhotoMenu(event)">
+                        <input type="file" id="editPhotoInput" accept="image/*">
+                    </div>
+                </div>
+                <div class="form-group"><label class="form-label">Part Name</label><input type="text" class="form-input" id="editPartName"></div>
+                <div class="form-group"><label class="form-label">Part No.</label><input type="text" class="form-input" id="editPartNo"></div>
+                <div class="form-group"><label class="form-label">No. Spec</label><input type="text" class="form-input" id="editNoSpec"></div>
+                <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-input" id="editLocation"></div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-input" id="editCategory">
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Consumable">Consumable</option>
+                        <option value="Tools">Tools</option>
+                        <option value="Safety">Safety</option>
+                        <option value="Kaizen">Kaizen</option>
+                        <option value="Uncategorized">Uncategorized</option>
+                    </select>
+                </div>
+            </div>
 
-/* ========================================
-   DESKTOP: HORIZONTAL CARD (4 columns)
-   ======================================== */
-@media (min-width: 1024px) {
-    .product-list-container {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-    }
-    
-    .product-card {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        padding: 12px;
-        gap: 12px;
-    }
-    
-    .product-card-img {
-        width: 60px;
-        height: 60px;
-        min-width: 60px;
-        background: var(--bg-card);
-        border-radius: var(--radius-sm);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        padding: 4px;
-    }
-    .product-card-img img { width: 100%; height: 100%; object-fit: contain; }
-    .product-card-img i { font-size: 24px; color: var(--primary); }
-    
-    .product-card-body {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-    
-    .product-card-name {
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--text-main);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin: 0;
-    }
-    
-    .product-card-partno {
-        display: inline-block;
-        font-size: 10px;
-        font-weight: 700;
-        color: white;
-        background: #00d4ff;
-        padding: 2px 8px;
-        border-radius: 4px;
-        align-self: flex-start;
-        max-width: fit-content;
-    }
-    
-    .product-card-location {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        color: var(--text-sec);
-    }
-    .product-card-location i { color: #999; font-size: 10px; }
-    
-    .product-card-footer {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-shrink: 0;
-    }
-    
-    .product-card-stock {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
-        min-width: 45px;
-    }
-    
-    .status-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        flex-shrink: 0;
-    }
-    .status-dot.high { background: var(--status-high); }
-    .status-dot.mid { background: var(--status-mid); }
-    .status-dot.low { background: var(--status-low); }
-    
-    .stock-label { font-size: 9px; color: var(--text-muted); line-height: 1; }
-    .stock-number { font-size: 16px; font-weight: 800; color: var(--text-main); line-height: 1; }
-    
-    .delete-btn-round {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: rgba(254, 226, 226, 0.7);
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        flex-shrink: 0;
-    }
-    .delete-btn-round i { font-size: 14px; color: #dc3545; }
-    .delete-btn-round:hover { background: rgba(220, 53, 69, 0.9); }
-    .delete-btn-round:hover i { color: white; }
-}
+            <div class="form-card">
+                <div class="form-section-title">Stock Information</div>
+                <div class="form-group"><label class="form-label">Current Stock</label><input type="number" class="form-input" id="editCurrentStock" min="0"></div>
+                <div class="form-group"><label class="form-label">Minimum Stock</label><input type="number" class="form-input" id="editMinimumStock" min="0"></div>
+            </div>
 
-/* Large Desktop: 4 columns dengan spacing lebih */
-@media (min-width: 1400px) {
-    .product-list-container {
-        gap: 15px;
-    }
-}
+            <div class="modal-btn-group">
+                <button class="modal-btn cancel" onclick="closeEditModal()">Cancel</button>
+                <button class="modal-btn save" onclick="saveEditProduct()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav FAB -->
+    <div class="bottom-nav">
+        <a href="scanner.html" class="fab-scan"><i class="fas fa-qrcode"></i><span>Scan</span></a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allProducts = [];
+        let currentCategory = 'all';
+        let currentSearch = '';
+        let currentSort = 'default';
+        let editingPartNo = null;
+        let tempEditPhotoBase64 = '';
+        const PRODUCT_LIST_CACHE_KEY = 'ma_inventory_product_list';
+        const CACHE_EXPIRY = 5 * 60 * 1000;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProductList();
+            
+            PhotoPicker.init({
+                wrapperId: 'editPhotoWrapper',
+                inputId: 'editPhotoInput',
+                previewId: 'editPhotoPreview',
+                placeholderId: 'editPhotoPlaceholder'
+            });
+
+            document.getElementById('editPhotoInput').addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) { 
+                        tempEditPhotoBase64 = ev.target.result;
+                        Utils.showToast('📷 Photo selected', 'info');
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#sortBtn') && !e.target.closest('#sortDropdown')) {
+                    document.getElementById('sortDropdown').classList.remove('show');
+                }
+            });
+        });
+
+        function getCachedProductImage(partNo) {
+            try {
+                const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
+                const item = localStorage.getItem(key);
+                if (!item) return null;
+                const parsed = JSON.parse(item);
+                if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) return parsed.base64;
+                return null;
+            } catch(e) { return null; }
+        }
+
+        function setCachedProductImage(partNo, base64) {
+            const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
+            localStorage.setItem(key, JSON.stringify({ base64: base64, timestamp: new Date().getTime() }));
+        }
+
+        async function loadProductList(forceRefresh = false) {
+            const cachedData = localStorage.getItem(PRODUCT_LIST_CACHE_KEY);
+            if (!forceRefresh && cachedData) {
+                try {
+                    const parsed = JSON.parse(cachedData);
+                    if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
+                        allProducts = parsed.data;
+                        renderProducts();
+                        return;
+                    }
+                } catch(e) {}
+            }
+            
+            try {
+                const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
+                const result = await res.json();
+                if (result.success && result.products) {
+                    allProducts = result.products;
+                    localStorage.setItem(PRODUCT_LIST_CACHE_KEY, JSON.stringify({ data: allProducts, timestamp: new Date().getTime() }));
+                    renderProducts();
+                } else {
+                    document.getElementById('productListContainer').innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><div>No products found</div></div>';
+                }
+            } catch (error) {
+                document.getElementById('productListContainer').innerHTML = '<div class="empty-state" style="color:#dc3545;"><i class="fas fa-exclamation-triangle"></i><div>Failed to load data</div></div>';
+            }
+        }
+
+        function getStockStatus(current, min) {
+            const thresholdOK = min + (min * 0.5);
+            if (current > thresholdOK) return 'high';
+            if (current > min) return 'mid';
+            return 'low';
+        }
+
+        // FUNGSI RENDER YANG DIKEMASKINI UNTUK HYBRID LAYOUT
+        function renderProducts() {
+            const container = document.getElementById('productListContainer');
+            let filtered = allProducts.filter(p => {
+                const matchCategory = currentCategory === 'all' || p.category === currentCategory;
+                const searchLower = currentSearch.toLowerCase();
+                const matchSearch = p.partName.toLowerCase().includes(searchLower) || 
+                                    p.partNo.toLowerCase().includes(searchLower) || 
+                                    (p.location && p.location.toLowerCase().includes(searchLower));
+                return matchCategory && matchSearch;
+            });
+
+            if (currentSort === 'low') {
+                filtered.sort((a, b) => {
+                    const order = { 'low': 0, 'mid': 1, 'high': 2 };
+                    return order[getStockStatus(parseInt(a.currentStock), parseInt(a.minimumStock))] - order[getStockStatus(parseInt(b.currentStock), parseInt(b.minimumStock))];
+                });
+            } else if (currentSort === 'high') {
+                filtered.sort((a, b) => {
+                    const order = { 'low': 0, 'mid': 1, 'high': 2 };
+                    return order[getStockStatus(parseInt(b.currentStock), parseInt(b.minimumStock))] - order[getStockStatus(parseInt(a.currentStock), parseInt(a.minimumStock))];
+                });
+            } else if (currentSort === 'name') {
+                filtered.sort((a, b) => a.partName.localeCompare(b.partName));
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><div>No results found</div></div>';
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(product => {
+                const statusClass = getStockStatus(parseInt(product.currentStock), parseInt(product.minimumStock));
+                const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
+                const cachedImg = getCachedProductImage(product.partNo);
+                
+                let imgContent = '<i class="fas fa-box"></i>';
+                if (cachedImg) {
+                    imgContent = `<img src="${cachedImg}" alt="${product.partName}">`;
+                } else if (product.pictureFileId) {
+                    imgContent = `<div id="img-placeholder-${safePartNo}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--primary);"><i class="fas fa-spinner fa-spin"></i></div>`;
+                }
+
+                // Struktur HTML Hybrid (Vertical Mobile, Horizontal Desktop)
+                html += `
+                    <div class="product-card status-${statusClass}" onclick="openEditModal('${product.partNo}')">
+                        <div class="product-card-img" id="card-img-${safePartNo}">${imgContent}</div>
+                        <div class="product-card-body">
+                            <div class="product-card-name">${product.partName}</div>
+                            <span class="product-card-partno">${product.partNo}</span>
+                            <div class="product-card-location"><i class="fas fa-map-marker-alt"></i> ${product.location || '-'}</div>
+                        </div>
+                        <div class="product-card-footer">
+                            <div class="product-card-stock">
+                                <div class="status-dot ${statusClass}"></div>
+                                <div class="stock-info">
+                                    <div class="stock-label">Stock</div>
+                                    <div class="stock-number">${product.currentStock}</div>
+                                </div>
+                            </div>
+                            <button class="delete-btn-round" onclick="event.stopPropagation(); deleteProduct('${product.partNo}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            // Load images async
+            filtered.forEach(product => {
+                if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
+                    const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
+                    const placeholderEl = document.getElementById(`img-placeholder-${safePartNo}`);
+                    if (placeholderEl) {
+                        APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
+                            if (imgResult.success && imgResult.base64) {
+                                setCachedProductImage(product.partNo, imgResult.base64);
+                                const imgContainer = document.getElementById(`card-img-${safePartNo}`);
+                                if (imgContainer) imgContainer.innerHTML = `<img src="${imgResult.base64}" alt="${product.partName}">`;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        function filterProducts() { 
+            currentSearch = document.getElementById('searchInput').value; 
+            renderProducts(); 
+        }
+        
+        function setCategoryFilter(category, element) {
+            currentCategory = category;
+            document.querySelectorAll('.category-chip').forEach(chip => chip.classList.remove('active'));
+            element.classList.add('active');
+            renderProducts();
+        }
+
+        function toggleSortMenu() {
+            document.getElementById('sortDropdown').classList.toggle('show');
+        }
+
+        function setSortOrder(order, element) {
+            currentSort = order;
+            document.querySelectorAll('.sort-option').forEach(opt => opt.classList.remove('active'));
+            element.classList.add('active');
+            
+            const sortBtn = document.getElementById('sortBtn');
+            sortBtn.classList.toggle('active', order !== 'default');
+            
+            document.getElementById('sortDropdown').classList.remove('show');
+            renderProducts();
+        }
+
+        function openEditModal(partNo) {
+            const product = allProducts.find(p => p.partNo === partNo);
+            if (!product) return;
+
+            editingPartNo = partNo;
+            tempEditPhotoBase64 = '';
+
+            document.getElementById('editPartName').value = product.partName;
+            document.getElementById('editPartNo').value = product.partNo;
+            document.getElementById('editNoSpec').value = product.noSpec || '';
+            document.getElementById('editLocation').value = product.location || '';
+            document.getElementById('editCategory').value = product.category || 'Uncategorized';
+            document.getElementById('editCurrentStock').value = product.currentStock;
+            document.getElementById('editMinimumStock').value = product.minimumStock;
+
+            const preview = document.getElementById('editPhotoPreview');
+            const placeholder = document.getElementById('editPhotoPlaceholder');
+            const cachedImg = getCachedProductImage(partNo);
+            
+            if (cachedImg) {
+                preview.src = cachedImg; preview.style.display = 'block'; placeholder.style.display = 'none';
+            } else if (product.pictureFileId) {
+                placeholder.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Loading...</span>';
+                APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
+                    if (imgResult.success && imgResult.base64) {
+                        setCachedProductImage(partNo, imgResult.base64);
+                        preview.src = imgResult.base64; preview.style.display = 'block'; placeholder.style.display = 'none';
+                    } else { resetPhotoPlaceholder(); }
+                });
+            } else { resetPhotoPlaceholder(); }
+
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function resetPhotoPlaceholder() {
+            document.getElementById('editPhotoPreview').style.display = 'none';
+            const placeholder = document.getElementById('editPhotoPlaceholder');
+            placeholder.style.display = 'flex';
+            placeholder.innerHTML = '<i class="fas fa-camera"></i><span>Tap to upload<br>or take photo</span>';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+            editingPartNo = null;
+            tempEditPhotoBase64 = '';
+        }
+
+        async function saveEditProduct() {
+            if (!editingPartNo) return;
+            const partName = document.getElementById('editPartName').value.trim();
+            if (!partName) { Utils.showToast('⚠️ Part Name is required!', 'warning'); return; }
+
+            const btn = document.querySelector('.modal-btn.save');
+            btn.innerText = 'Saving...'; btn.disabled = true;
+
+            const payload = { 
+                action: 'updateProduct', 
+                data: { 
+                    partName, partNo: editingPartNo, 
+                    noSpec: document.getElementById('editNoSpec').value.trim(), 
+                    location: document.getElementById('editLocation').value.trim(), 
+                    category: document.getElementById('editCategory').value.trim(), 
+                    currentStock: document.getElementById('editCurrentStock').value || 0, 
+                    minimumStock: document.getElementById('editMinimumStock').value || 0, 
+                    originalPartNo: editingPartNo 
+                } 
+            };
+
+            try {
+                await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+                if (tempEditPhotoBase64) {
+                    await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'uploadProductPicture', data: { base64: tempEditPhotoBase64, partNo: editingPartNo } }) });
+                }
+                Utils.showToast('✅ Product updated!', 'success');
+                closeEditModal();
+                loadProductList(true);
+            } catch (error) {
+                Utils.showToast('❌ Failed to save', 'error');
+                btn.innerText = 'Save Changes'; btn.disabled = false;
+            }
+        }
+
+        async function deleteProduct(partNo) {
+            if (!confirm('⚠️ Are you sure you want to delete this product?')) return;
+            try {
+                await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'deleteProduct', data: { partNo } }) });
+                Utils.showToast('✅ Product deleted', 'success');
+                loadProductList(true);
+            } catch (error) { Utils.showToast('❌ Failed to delete', 'error'); }
+        }
+
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEditModal();
+        });
+    </script>
+</body>
+</html>
