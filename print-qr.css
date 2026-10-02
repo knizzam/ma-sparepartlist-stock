@@ -17,6 +17,11 @@
     width: 36px; height: 36px; border-radius: 50%; display: flex;
     align-items: center; justify-content: center; text-decoration: none;
 }
+.print-qr-header #headerMenuTrigger {
+    position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,0.2); border-radius: 50%;
+    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+}
 .print-qr-title { 
     font-size: 1.0rem; font-weight: 800; margin: 0; color: white; 
     display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 1.5px; 
@@ -25,7 +30,7 @@
 
 /* Search Section */
 .search-section { 
-    padding: 10px 15px; background: white; 
+    padding: 12px 15px; background: white; 
     box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin: 0 15px 15px; border-radius: 12px;
 }
 .search-container { display: flex; gap: 8px; align-items: center; }
@@ -35,31 +40,45 @@
 }
 .search-input:focus { border-color: var(--primary-blue); background: white; }
 
-/* Select All Checkbox */
-.select-all-container { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.select-all-container label { font-size: 13px; font-weight: 500; cursor: pointer; color: #555; }
-
-.custom-checkbox {
-    width: 20px; height: 20px; border: 2px solid #fff; border-radius: 4px;
-    background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; 
-    cursor: pointer; transition: all 0.2s;
+/* Selected Count Info */
+.selected-info {
+    margin-top: 10px; padding: 8px 12px;
+    background: #e7f1ff; border-radius: 8px;
+    font-size: 12px; color: var(--primary-blue); font-weight: 600;
+    display: none; align-items: center; gap: 6px;
 }
-.custom-checkbox.checked { background: white; border-color: white; }
-.custom-checkbox.checked::after { content: '✓'; color: #007bff; font-size: 14px; font-weight: bold; }
-.select-all-container .custom-checkbox { border-color: #007bff; background: white; }
-.select-all-container .custom-checkbox.checked { background: #007bff; }
-.select-all-container .custom-checkbox.checked::after { color: white; }
+.selected-info.show { display: flex; }
 
 /* Product Grid */
 .product-grid { padding: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
-/* Print Card */
+/* Print Card - Clickable */
 .print-card {
     background: white; border-radius: 8px; overflow: hidden;
     box-shadow: 0 1px 4px rgba(0,0,0,0.1); border: 2px solid transparent;
-    position: relative; transition: border-color 0.2s;
+    position: relative; transition: all 0.2s; cursor: pointer;
 }
-.print-card.selected { border-color: var(--primary-blue); }
+.print-card:active { transform: scale(0.98); }
+
+/* Selected State */
+.print-card.selected { 
+    border-color: var(--primary-blue);
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
+}
+.print-card.selected .print-card-header {
+    background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+}
+
+/* Selected Badge */
+.selected-badge {
+    position: absolute; top: 8px; right: 8px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--primary-blue); color: white;
+    display: none; align-items: center; justify-content: center;
+    font-size: 12px; z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.print-card.selected .selected-badge { display: flex; }
 
 .print-card-header {
     background: linear-gradient(135deg, #007bff 0%, #00a8ff 100%);
@@ -68,10 +87,7 @@
 }
 .print-card-title { 
     font-size: 13px; font-weight: 600; text-align: center; flex: 1; 
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 30px; 
-}
-.print-card-checkbox { 
-    position: absolute; right: 10px; top: 50%; transform: translateY(-50%); z-index: 10; 
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
 /* Card Info */
@@ -114,7 +130,7 @@
     
     body { background: white !important; padding: 0 !important; margin: 0 !important; }
     
-    .print-qr-header, .search-section, .toast, .print-card-checkbox, 
+    .print-qr-header, .search-section, .toast, .selected-badge,
     #headerMenuTrigger, #headerDropdownMenu, .bottom-nav { 
         display: none !important; 
     }
