@@ -8,10 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="add-product.css">
-    
-    <!-- HTML2CANVAS SCRIPT - PENTING UNTUK FULL WIDTH -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="photo-picker.js"></script>
@@ -70,9 +67,10 @@
                 <div class="form-group"><label class="form-label">Minimum Stock</label><input type="number" class="form-input" id="minimumStock" placeholder="0" min="0"></div>
             </div>
 
-            <div class="action-buttons">
-                <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
-                <button class="submit-btn" id="saveBtn" onclick="saveProduct()">Add Product</button>
+            <!-- BUTTONS DENGAN INLINE STYLE UNTUK PASTI KELUAR -->
+            <div style="display: flex !important; gap: 10px; margin-top: 15px; width: 100%;">
+                <button type="button" id="cancelBtn" onclick="cancelEdit()" style="flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; min-height: 48px;">Cancel</button>
+                <button type="button" id="saveBtn" onclick="saveProduct()" style="flex: 1; padding: 14px; background: linear-gradient(to right, #1a73e8, #1557b0); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3); min-height: 48px;">Add Product</button>
             </div>
         </div>
 
@@ -82,7 +80,6 @@
                 <i class="fas fa-plus"></i> Add New Product
             </button>
 
-            <!-- SEARCH BOX FOR RECENT PRODUCTS -->
             <div class="product-search-section">
                 <div class="product-search-wrapper">
                     <i class="fas fa-search"></i>
@@ -120,9 +117,8 @@
                     reader.readAsDataURL(e.target.files[0]);
                 }
             });
-            
             showFormView();
-            loadProductList();
+            loadProductList(); // Load data ke cache
         });
 
         function showFormView() {
@@ -135,8 +131,26 @@
         function showListView() {
             document.getElementById('formView').style.display = 'none';
             document.getElementById('listView').style.display = 'block';
-            loadProductList(true);
+            // PENTING: Jangan force refresh, guna cache dulu!
+            renderFromCache();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Fungsi baru: Render dari cache tanpa loading
+        function renderFromCache() {
+            const cachedData = localStorage.getItem(PRODUCT_LIST_CACHE_KEY);
+            if (cachedData) {
+                try {
+                    const parsed = JSON.parse(cachedData);
+                    if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
+                        allProducts = parsed.data;
+                        renderProductList('');
+                        return; // Guna cache, tidak perlu fetch
+                    }
+                } catch(e) {}
+            }
+            // Jika tiada cache, baru fetch
+            loadProductList(true);
         }
 
         function getCachedProductImage(partNo) {
@@ -170,20 +184,22 @@
 
         async function loadProductList(forceRefresh = false) {
             const container = document.getElementById('productList');
-            const cachedData = localStorage.getItem(PRODUCT_LIST_CACHE_KEY);
             
-            if (!forceRefresh && cachedData) {
-                try {
-                    const parsed = JSON.parse(cachedData);
-                    if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
-                        allProducts = parsed.data; 
-                        renderProductList('');
-                        return;
-                    }
-                } catch(e) {}
+            if (!forceRefresh) {
+                const cachedData = localStorage.getItem(PRODUCT_LIST_CACHE_KEY);
+                if (cachedData) {
+                    try {
+                        const parsed = JSON.parse(cachedData);
+                        if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
+                            allProducts = parsed.data; 
+                            renderProductList('');
+                            return;
+                        }
+                    } catch(e) {}
+                }
             }
             
-            container.innerHTML = `<div class="empty-state-list"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>`;
+            container.innerHTML = '<div class="empty-state-list"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>';
             
             try {
                 const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
@@ -193,10 +209,10 @@
                     localStorage.setItem(PRODUCT_LIST_CACHE_KEY, JSON.stringify({ data: allProducts, timestamp: new Date().getTime() }));
                     renderProductList('');
                 } else { 
-                    container.innerHTML = `<div class="empty-state-list"><i class="fas fa-box-open"></i><div>Tiada produk</div></div>`; 
+                    container.innerHTML = '<div class="empty-state-list"><i class="fas fa-box-open"></i><div>Tiada produk</div></div>'; 
                 }
             } catch (error) {
-                container.innerHTML = `<div class="empty-state-list"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Gagal memuatkan data</div></div>`;
+                container.innerHTML = '<div class="empty-state-list"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Gagal memuatkan data</div></div>';
             }
         }
 
@@ -230,7 +246,7 @@
             document.getElementById('productCount').textContent = displayProducts.length;
             
             if (displayProducts.length === 0) {
-                productList.innerHTML = `<div class="empty-state-list"><i class="fas fa-search"></i><div>Tiada produk dijumpai</div></div>`; 
+                productList.innerHTML = '<div class="empty-state-list"><i class="fas fa-search"></i><div>Tiada produk dijumpai</div></div>'; 
                 return;
             }
             
@@ -248,35 +264,34 @@
                 const isEditing = editingPartNo === product.partNo ? 'editing' : '';
                 const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
                 const cachedImg = getCachedProductImage(product.partNo);
-                let avatarHTML = cachedImg ? `<img src="${cachedImg}" alt="${product.partName}">` : '<i class="fas fa-box"></i>';
+                let avatarHTML = cachedImg ? '<img src="' + cachedImg + '" alt="' + product.partName + '">' : '<i class="fas fa-box"></i>';
                 
-                html += `
-                    <div class="product-card-add status-${statusClass} ${isEditing}" onclick="editProduct('${product.partNo}', '${product.partName}', '${product.noSpec}', '${product.location}', '${product.category}', ${product.currentStock}, ${product.minimumStock}, '${product.pictureFileId}')">
-                        <div class="product-avatar-add" id="prod-avatar-${safePartNo}">${avatarHTML}</div>
-                        <div class="product-info-add">
-                            <div class="product-name-add">${product.partName}</div>
-                            <span class="product-badge-add">${product.partNo}</span>
-                            <div class="product-location-add"><i class="fas fa-map-marker-alt"></i> ${product.location || '-'}</div>
-                        </div>
-                        <div class="product-stock-add">
-                            <div class="product-status-add ${statusClass}"></div>
-                            <div class="stock-label-add">Stock</div>
-                            <div class="stock-number-add">${product.currentStock}</div>
-                        </div>    
-                        <button class="delete-btn-add" onclick="event.stopPropagation(); deleteProduct('${product.partNo}')"><i class="fas fa-trash"></i></button>
-                    </div>`;
+                html += '<div class="product-card-add status-' + statusClass + ' ' + isEditing + '" onclick="editProduct(\'' + product.partNo + '\', \'' + product.partName + '\', \'' + product.noSpec + '\', \'' + product.location + '\', \'' + product.category + '\', ' + product.currentStock + ', ' + product.minimumStock + ', \'' + product.pictureFileId + '\')">';
+                html += '<div class="product-avatar-add" id="prod-avatar-' + safePartNo + '">' + avatarHTML + '</div>';
+                html += '<div class="product-info-add">';
+                html += '<div class="product-name-add">' + product.partName + '</div>';
+                html += '<span class="product-badge-add">' + product.partNo + '</span>';
+                html += '<div class="product-location-add"><i class="fas fa-map-marker-alt"></i> ' + (product.location || '-') + '</div>';
+                html += '</div>';
+                html += '<div class="product-stock-add">';
+                html += '<div class="product-status-add ' + statusClass + '"></div>';
+                html += '<div class="stock-label-add">Stock</div>';
+                html += '<div class="stock-number-add">' + product.currentStock + '</div>';
+                html += '</div>';
+                html += '<button class="delete-btn-add" onclick="event.stopPropagation(); deleteProduct(\'' + product.partNo + '\')"><i class="fas fa-trash"></i></button>';
+                html += '</div>';
             });
             productList.innerHTML = html;
             
             displayProducts.forEach(product => {
                 if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
-                    const avatarBox = document.getElementById(`prod-avatar-${safePartNo}`);
+                    const avatarBox = document.getElementById('prod-avatar-' + safePartNo);
                     if (avatarBox && avatarBox.querySelector('i')) {
                         APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
                             if (imgResult.success && imgResult.base64) {
                                 setCachedProductImage(product.partNo, imgResult.base64);
-                                avatarBox.innerHTML = `<img src="${imgResult.base64}" alt="${product.partName}">`;
+                                avatarBox.innerHTML = '<img src="' + imgResult.base64 + '" alt="' + product.partName + '">';
                             }
                         });
                     }
