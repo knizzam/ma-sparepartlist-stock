@@ -95,7 +95,6 @@
                     </div>
                 </div>
                 <div class="form-group"><label class="form-label">Part Name</label><input type="text" class="form-input" id="editPartName"></div>
-                <!-- DIBUANG 'disabled' supaya boleh edit -->
                 <div class="form-group"><label class="form-label">Part No.</label><input type="text" class="form-input" id="editPartNo"></div>
                 <div class="form-group"><label class="form-label">No. Spec</label><input type="text" class="form-input" id="editNoSpec"></div>
                 <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-input" id="editLocation"></div>
@@ -120,7 +119,6 @@
 
             <div class="modal-btn-group">
                 <button class="modal-btn cancel" onclick="closeEditModal()">Cancel</button>
-                <!-- DITUKAR KEPADA 'Update' -->
                 <button class="modal-btn save" id="saveBtn" onclick="saveEditProduct()">Update</button>
             </div>
         </div>
@@ -198,7 +196,6 @@
                 }
             }
             
-            // LOADING SPINNER DI TENGAH (Guaranteed Centered)
             container.innerHTML = `
                 <div style="width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
                     <div>
@@ -321,7 +318,6 @@
             });
             container.innerHTML = html;
 
-            // Load images
             filtered.forEach(product => {
                 if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -376,16 +372,14 @@
             editingPartNo = partNo;
             tempEditPhotoBase64 = '';
 
-            // Set all editable fields
             document.getElementById('editPartName').value = product.partName;
-            document.getElementById('editPartNo').value = product.partNo; // Now editable
+            document.getElementById('editPartNo').value = product.partNo; 
             document.getElementById('editNoSpec').value = product.noSpec || '';
             document.getElementById('editLocation').value = product.location || '';
             document.getElementById('editCategory').value = product.category || 'Uncategorized';
             document.getElementById('editCurrentStock').value = product.currentStock;
             document.getElementById('editMinimumStock').value = product.minimumStock;
 
-            // Handle photo preview
             const preview = document.getElementById('editPhotoPreview');
             const placeholder = document.getElementById('editPhotoPlaceholder');
             const cachedImg = getCachedProductImage(partNo);
@@ -410,7 +404,6 @@
                 resetPhotoPlaceholder(); 
             }
 
-            // Reset button state when opening modal
             const btn = document.getElementById('saveBtn');
             btn.innerText = 'Update';
             btn.disabled = false;
@@ -430,21 +423,24 @@
             editingPartNo = null;
             tempEditPhotoBase64 = '';
             
-            // Reset button state when closing
             const btn = document.getElementById('saveBtn');
             btn.innerText = 'Update';
             btn.disabled = false;
         }
 
+        // FUNGSI INI TELAH DIBETULKAN UNTUK AMBIL PART NO BARU DARI INPUT
         async function saveEditProduct() {
             if (!editingPartNo) {
                 Utils.showToast('⚠️ No product selected!', 'warning');
                 return;
             }
             
+            // 1. AMBIL SEMUA NILAI BARU DARI INPUT (Termasuk Part No)
             const partName = document.getElementById('editPartName').value.trim();
-            if (!partName) { 
-                Utils.showToast('⚠️ Part Name is required!', 'warning'); 
+            const newPartNo = document.getElementById('editPartNo').value.trim(); // INI PART NO BARU
+            
+            if (!partName || !newPartNo) { 
+                Utils.showToast('⚠️ Part Name and Part No. are required!', 'warning'); 
                 return; 
             }
 
@@ -455,17 +451,18 @@
             const currentStock = parseInt(document.getElementById('editCurrentStock').value) || 0;
             const minimumStock = parseInt(document.getElementById('editMinimumStock').value) || 0;
 
+            // 2. PAYLOAD YANG BETUL
             const payload = { 
                 action: 'updateProduct', 
                 data: { 
-                    partName, 
-                    partNo: editingPartNo, 
+                    partName: partName,
+                    partNo: newPartNo,            // <-- HANTAR PART NO BARU (untuk dikemaskini dalam sheet)
                     noSpec: document.getElementById('editNoSpec').value.trim(), 
                     location: document.getElementById('editLocation').value.trim(), 
                     category: document.getElementById('editCategory').value.trim(), 
-                    currentStock,
-                    minimumStock,
-                    originalPartNo: editingPartNo 
+                    currentStock: currentStock,
+                    minimumStock: minimumStock,
+                    originalPartNo: editingPartNo // <-- HANTAR PART NO LAMA (untuk backend cari row yang betul)
                 } 
             };
 
@@ -473,7 +470,7 @@
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => {
                     controller.abort();
-                }, 10000); // 10 seconds timeout
+                }, 10000);
 
                 const response = await fetch(CONFIG.API_URL, { 
                     method: 'POST', 
@@ -491,12 +488,11 @@
                 const result = await response.json();
                 console.log('API Response:', result);
 
-                // Upload photo jika ada
                 if (tempEditPhotoBase64) {
                     try {
                         const photoPayload = { 
                             action: 'uploadProductPicture', 
-                            data: { base64: tempEditPhotoBase64, partNo: editingPartNo } 
+                            data: { base64: tempEditPhotoBase64, partNo: newPartNo } 
                         };
                         
                         await fetch(CONFIG.API_URL, { 
@@ -521,7 +517,6 @@
                     Utils.showToast('❌ Failed to update: ' + error.message, 'error');
                 }
             } finally {
-                // PENTING: Reset button dalam finally block supaya tidak stuck "Updating..."
                 btn.innerText = 'Update'; 
                 btn.disabled = false;
             }
@@ -539,7 +534,7 @@
                 Utils.showToast('✅ Product deleted', 'success');
                 loadProductList(true);
             } catch (error) { 
-                Utils.showToast('❌ Failed to delete', 'error'); 
+                Utils.showToast(' Failed to delete', 'error'); 
             }
         }
 
