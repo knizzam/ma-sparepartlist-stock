@@ -97,10 +97,10 @@
 .sort-option i { font-size: 12px; width: 16px; }
 
 /* =========================================
-   RESPONSIVE GRID LAYOUT (CORE UPDATE)
+   RESPONSIVE GRID LAYOUT (UPDATED)
    ========================================= */
 
-/* Default: 1 column (Mobile) */
+/* Mobile: 1 column */
 .product-list-container {
     display: flex;
     flex-direction: column;
@@ -108,8 +108,8 @@
     padding-bottom: 100px;
 }
 
-/* Tablet: 2 columns */
-@media (min-width: 768px) {
+/* Tablet Portrait: 2 columns */
+@media (min-width: 768px) and (max-width: 1023px) {
     .product-list-container {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -126,11 +126,12 @@
     .delete-btn-round i { font-size: 13px; }
 }
 
-/* Desktop: 3 columns */
-@media (min-width: 1024px) {
+/* Tablet Landscape: 3 columns */
+@media (min-width: 1024px) and (max-width: 1399px) {
     .product-list-container {
+        display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
+        gap: 12px;
     }
     .product-card { padding: 10px; }
     .product-card-img { width: 40px; height: 40px; }
@@ -141,6 +142,24 @@
     .status-dot { width: 10px; height: 10px; }
     .delete-btn-round { width: 28px; height: 28px; }
     .delete-btn-round i { font-size: 12px; }
+}
+
+/* Desktop: 4 columns */
+@media (min-width: 1400px) {
+    .product-list-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+    .product-card { padding: 8px; }
+    .product-card-img { width: 35px; height: 35px; }
+    .product-card-name { font-size: 11px; }
+    .product-card-partno { font-size: 8px; padding: 2px 4px; }
+    .product-card-location { font-size: 9px; }
+    .stock-number { font-size: 12px; }
+    .status-dot { width: 10px; height: 10px; }
+    .delete-btn-round { width: 26px; height: 26px; }
+    .delete-btn-round i { font-size: 11px; }
 }
 
 /* =========================================
