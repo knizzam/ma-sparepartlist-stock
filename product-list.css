@@ -1,6 +1,14 @@
 /* =========================================
-   PRODUCT LIST SPECIFIC
+   PRODUCT LIST SPECIFIC - FORCE FULL WIDTH
    ========================================= */
+
+/* FORCE FULL WIDTH - Override styles.css */
+body, .main-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
 
 /* Header Standard */
 .product-list-header {
@@ -10,6 +18,8 @@
     border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;
     box-shadow: 0 4px 10px rgba(26,115,232,0.2); margin-bottom: 10px;
     display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 .product-list-header .back-btn {
     position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
@@ -23,10 +33,16 @@
 }
 .product-list-title i { font-size: 1.2rem; }
 
-/* Search Section - Full Width */
+/* Search Section - FORCE FULL WIDTH */
 .search-filter-section { 
-    padding: 12px 15px; background: white; 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin: 0 15px 15px; border-radius: 12px;
+    padding: 12px 15px !important;
+    background: white; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+    margin: 0 15px 15px !important;
+    border-radius: 12px;
+    width: calc(100% - 30px) !important;
+    max-width: calc(100% - 30px) !important;
+    box-sizing: border-box;
 }
 
 /* Search Input */
@@ -98,14 +114,15 @@
 .sort-option i { font-size: 12px; width: 16px; }
 
 /* =========================================
-   PRODUCT GRID & CARD - FULL WIDTH
+   PRODUCT GRID - FORCE FULL WIDTH
    ========================================= */
-
-/* Product Grid */
 .product-list-container { 
-    padding: 0 15px 100px; display: grid; 
-    grid-template-columns: repeat(2, 1fr); gap: 10px; 
-    width: 100%;
+    padding: 0 15px 100px !important;
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 10px; 
+    width: 100% !important;
+    max-width: 100% !important;
     box-sizing: border-box;
 }
 
@@ -114,6 +131,7 @@
     background: white; border-radius: 12px; overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 4px solid #e0e0e0;
     cursor: pointer; transition: all 0.2s;
+    width: 100%;
 }
 .product-card:hover { 
     box-shadow: 0 4px 16px rgba(0,0,0,0.1); 
@@ -194,8 +212,9 @@
    ========================================= */
 @media (min-width: 1024px) {
     .product-list-container {
-        grid-template-columns: repeat(4, 1fr); gap: 12px;
-        padding: 0 15px 100px;
+        grid-template-columns: repeat(4, 1fr); 
+        gap: 12px;
+        padding: 0 15px 100px !important;
     }
     .product-card {
         display: flex; flex-direction: row; align-items: center;
