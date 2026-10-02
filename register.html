@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration Users - MA Inventory</title>
+    <title>User Management - MA Inventory</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="register.css">
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="photo-picker.js"></script>
@@ -68,24 +67,26 @@
         <!-- ========================================== -->
         <div id="listView">
             
-            <!-- Search Box & Add Button -->
-            <div class="list-header-actions">
+            <!-- Search Box -->
+            <div class="user-search-section">
                 <div class="user-search-wrapper">
                     <i class="fas fa-search"></i>
                     <input type="text" class="user-search-input" id="userSearchInput" placeholder="Search by name, ID, or email..." onkeyup="filterUsers()">
                 </div>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div class="list-title">Registered Users <span class="list-badge" id="userCount">0</span></div>
-                    <button class="add-user-btn" onclick="showAddForm()">
-                        <i class="fas fa-plus"></i> Add User
-                    </button>
-                </div>
+            </div>
+
+            <!-- List Header with Add Button -->
+            <div class="list-header-actions">
+                <div class="list-title">Registered Users <span class="list-badge" id="userCount">0</span></div>
+                <button class="add-user-btn" onclick="showAddForm()">
+                    <i class="fas fa-plus"></i> Add User
+                </button>
             </div>
             
             <div class="user-list" id="userList">
-                <div style="text-align:center; padding: 20px; color: #888; grid-column: 1 / -1;">
-                    <i class="fas fa-spinner fa-spin"></i> Loading...
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <div>Loading users...</div>
                 </div>
             </div>
         </div>
@@ -173,10 +174,28 @@
         }
 
         async function loadUserList() {
+            const container = document.getElementById('userList');
             const cachedData = localStorage.getItem(USER_LIST_CACHE_KEY);
+            
             if (cachedData) {
-                try { const p = JSON.parse(cachedData); if (new Date().getTime() - p.timestamp < CACHE_EXPIRY) { allUsers = p.data; renderUserList(allUsers); return; } } catch(e) {}
+                try { 
+                    const p = JSON.parse(cachedData); 
+                    if (new Date().getTime() - p.timestamp < CACHE_EXPIRY) { 
+                        allUsers = p.data; 
+                        renderUserList(allUsers); 
+                        return; 
+                    } 
+                } catch(e) {}
             }
+            
+            // Loading state
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <div>Loading users...</div>
+                </div>
+            `;
+            
             try {
                 const res = await fetch(CONFIG.API_URL + '?action=getAllUsers');
                 const result = await res.json();
@@ -184,9 +203,22 @@
                     allUsers = result.users;
                     localStorage.setItem(USER_LIST_CACHE_KEY, JSON.stringify({ data: allUsers, timestamp: new Date().getTime() }));
                     renderUserList(allUsers);
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <div>No users found</div>
+                        </div>
+                    `;
                 }
             } catch (error) {
-                if (!allUsers.length) document.getElementById('userList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888; grid-column: 1 / -1;">Gagal memuatkan data</div>';
+                console.error('Load error:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
+                        <div>Failed to load data</div>
+                    </div>
+                `;
             }
         }
 
@@ -195,7 +227,12 @@
             document.getElementById('userCount').textContent = users.length;
             
             if (users.length === 0) { 
-                userList.innerHTML = '<div style="text-align:center; padding: 20px; color: #888; grid-column: 1 / -1;">Tiada pengguna</div>'; 
+                userList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <div>No users found</div>
+                    </div>
+                `; 
                 return; 
             }
             
@@ -209,7 +246,7 @@
                 if (cachedImage && user.pictureFileId) avatarHTML = `<img src="${cachedImage}" alt="${user.name}" style="width:100%; height:100%; object-fit:cover;">`;
 
                 html += `
-                    <div class="user-card ${isActive ? '' : 'inactive'} ${editingEmail === user.email ? 'editing' : ''}" onclick="editUser('${user.email}', '${user.role}', '${user.name}', '${user.noKad}', ${user.active}, '${user.pictureFileId}')">
+                    <div class="user-card ${isActive ? '' : 'inactive'}" onclick="editUser('${user.email}', '${user.role}', '${user.name}', '${user.noKad}', ${user.active}, '${user.pictureFileId}')">
                         <div class="user-avatar" id="avatar-box-${safeEmail}">${avatarHTML}</div>
                         <div class="user-info">
                             <div class="user-name">${user.name}</div>
@@ -279,7 +316,7 @@
             const email = document.getElementById('userEmail').value.trim();
             const active = document.getElementById('userActive').checked;
 
-            if (!email || !name) { Utils.showToast('⚠️ Email dan Nama Penuh wajib diisi!', 'warning'); return; }
+            if (!email || !name) { Utils.showToast('️ Email dan Nama Penuh wajib diisi!', 'warning'); return; }
 
             const btn = document.getElementById('saveBtn');
             btn.innerText = 'Saving...'; btn.disabled = true;
@@ -302,7 +339,7 @@
         }
 
         async function deleteUser(email) {
-            if (!confirm('⚠️ Adakah anda pasti ingin memadam pengguna ini?')) return;
+            if (!confirm('️ Adakah anda pasti ingin memadam pengguna ini?')) return;
             try {
                 await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'deleteUser', data: { email } }) });
                 localStorage.removeItem(USER_IMAGE_CACHE_PREFIX + email);
