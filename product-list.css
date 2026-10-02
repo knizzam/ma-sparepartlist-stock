@@ -22,17 +22,18 @@
     display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 1.5px; 
 }
 
-/* Main Container */
+/* Main Container - Full Width */
 .main-container {
-    padding: 20px 15px;
-    max-width: 1200px; /* Diperluas untuk desktop grid */
-    margin: 0 auto;
+    padding: 20px;
+    width: 100%;
+    margin: 0;
 }
 
-/* Search & Filter */
+/* Search & Filter - Full Width */
 .search-filter-section {
     background: white; padding: 12px 15px; border-radius: 16px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px;
+    width: 100%;
 }
 .search-input-wrapper { position: relative; margin-bottom: 12px; }
 .search-input-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; font-size: 13px; }
@@ -97,21 +98,21 @@
 .sort-option i { font-size: 12px; width: 16px; }
 
 /* =========================================
-   RESPONSIVE GRID LAYOUT (UPDATED)
+   RESPONSIVE GRID LAYOUT - FULL WIDTH
    ========================================= */
 
-/* Mobile: 1 column */
+/* Product List Container - Full Width Grid */
 .product-list-container {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 12px;
     padding-bottom: 100px;
+    width: 100%;
 }
 
 /* Tablet Portrait: 2 columns */
 @media (min-width: 768px) and (max-width: 1023px) {
     .product-list-container {
-        display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 15px;
     }
@@ -129,7 +130,6 @@
 /* Tablet Landscape: 3 columns */
 @media (min-width: 1024px) and (max-width: 1399px) {
     .product-list-container {
-        display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 12px;
     }
@@ -147,7 +147,6 @@
 /* Desktop: 4 columns */
 @media (min-width: 1400px) {
     .product-list-container {
-        display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 10px;
     }
@@ -170,6 +169,8 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px;
     border-left: 5px solid #e0e0e0;
     cursor: pointer; transition: transform 0.2s;
+    width: 100%;
+    min-width: 0;
 }
 .product-card:active { transform: scale(0.98); }
 
