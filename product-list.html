@@ -196,8 +196,9 @@
                 }
             }
             
+            // LOADING - CENTERED DENGAN grid-column: 1 / -1
             container.innerHTML = `
-                <div style="width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
+                <div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
                     <div>
                         <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #1a73e8; margin-bottom: 15px; display: block;"></i>
                         <div style="font-size: 14px; color: #666; font-weight: 500;">Loading products...</div>
@@ -215,7 +216,7 @@
                     renderProducts();
                 } else {
                     container.innerHTML = `
-                        <div style="width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
+                        <div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
                             <div>
                                 <i class="fas fa-box-open" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px; display: block;"></i>
                                 <div style="font-size: 14px; color: #999;">No products found</div>
@@ -226,7 +227,7 @@
             } catch (error) {
                 console.error('Load error:', error);
                 container.innerHTML = `
-                    <div style="width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
+                    <div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
                         <div>
                             <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #dc3545; margin-bottom: 15px; display: block;"></i>
                             <div style="font-size: 14px; color: #999;">Failed to load data</div>
@@ -270,7 +271,7 @@
 
             if (filtered.length === 0) {
                 container.innerHTML = `
-                    <div style="width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
+                    <div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
                         <div>
                             <i class="fas fa-search" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px; display: block;"></i>
                             <div style="font-size: 14px; color: #999;">No results found</div>
@@ -428,16 +429,14 @@
             btn.disabled = false;
         }
 
-        // FUNGSI INI TELAH DIBETULKAN UNTUK AMBIL PART NO BARU DARI INPUT
         async function saveEditProduct() {
             if (!editingPartNo) {
                 Utils.showToast('⚠️ No product selected!', 'warning');
                 return;
             }
             
-            // 1. AMBIL SEMUA NILAI BARU DARI INPUT (Termasuk Part No)
             const partName = document.getElementById('editPartName').value.trim();
-            const newPartNo = document.getElementById('editPartNo').value.trim(); // INI PART NO BARU
+            const newPartNo = document.getElementById('editPartNo').value.trim();
             
             if (!partName || !newPartNo) { 
                 Utils.showToast('⚠️ Part Name and Part No. are required!', 'warning'); 
@@ -451,18 +450,17 @@
             const currentStock = parseInt(document.getElementById('editCurrentStock').value) || 0;
             const minimumStock = parseInt(document.getElementById('editMinimumStock').value) || 0;
 
-            // 2. PAYLOAD YANG BETUL
             const payload = { 
                 action: 'updateProduct', 
                 data: { 
                     partName: partName,
-                    partNo: newPartNo,            // <-- HANTAR PART NO BARU (untuk dikemaskini dalam sheet)
+                    partNo: newPartNo,
                     noSpec: document.getElementById('editNoSpec').value.trim(), 
                     location: document.getElementById('editLocation').value.trim(), 
                     category: document.getElementById('editCategory').value.trim(), 
                     currentStock: currentStock,
                     minimumStock: minimumStock,
-                    originalPartNo: editingPartNo // <-- HANTAR PART NO LAMA (untuk backend cari row yang betul)
+                    originalPartNo: editingPartNo
                 } 
             };
 
@@ -534,7 +532,7 @@
                 Utils.showToast('✅ Product deleted', 'success');
                 loadProductList(true);
             } catch (error) { 
-                Utils.showToast(' Failed to delete', 'error'); 
+                Utils.showToast('❌ Failed to delete', 'error'); 
             }
         }
 
