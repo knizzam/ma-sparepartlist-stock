@@ -157,7 +157,6 @@
                 }
             });
 
-            // Close sort dropdown when clicking outside
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('#sortBtn') && !e.target.closest('#sortDropdown')) {
                     document.getElementById('sortDropdown').classList.remove('show');
@@ -227,20 +226,15 @@
                 return matchCategory && matchSearch;
             });
 
-            // Apply sorting
             if (currentSort === 'low') {
                 filtered.sort((a, b) => {
-                    const statusA = getStockStatus(parseInt(a.currentStock), parseInt(a.minimumStock));
-                    const statusB = getStockStatus(parseInt(b.currentStock), parseInt(b.minimumStock));
                     const order = { 'low': 0, 'mid': 1, 'high': 2 };
-                    return order[statusA] - order[statusB];
+                    return order[getStockStatus(parseInt(a.currentStock), parseInt(a.minimumStock))] - order[getStockStatus(parseInt(b.currentStock), parseInt(b.minimumStock))];
                 });
             } else if (currentSort === 'high') {
                 filtered.sort((a, b) => {
-                    const statusA = getStockStatus(parseInt(a.currentStock), parseInt(a.minimumStock));
-                    const statusB = getStockStatus(parseInt(b.currentStock), parseInt(b.minimumStock));
                     const order = { 'low': 0, 'mid': 1, 'high': 2 };
-                    return order[statusB] - order[statusA];
+                    return order[getStockStatus(parseInt(b.currentStock), parseInt(b.minimumStock))] - order[getStockStatus(parseInt(a.currentStock), parseInt(a.minimumStock))];
                 });
             } else if (currentSort === 'name') {
                 filtered.sort((a, b) => a.partName.localeCompare(b.partName));
@@ -311,10 +305,8 @@
             renderProducts();
         }
 
-        // Sort Functions
         function toggleSortMenu() {
-            const dropdown = document.getElementById('sortDropdown');
-            dropdown.classList.toggle('show');
+            document.getElementById('sortDropdown').classList.toggle('show');
         }
 
         function setSortOrder(order, element) {
@@ -323,17 +315,12 @@
             element.classList.add('active');
             
             const sortBtn = document.getElementById('sortBtn');
-            if (order !== 'default') {
-                sortBtn.classList.add('active');
-            } else {
-                sortBtn.classList.remove('active');
-            }
+            sortBtn.classList.toggle('active', order !== 'default');
             
             document.getElementById('sortDropdown').classList.remove('show');
             renderProducts();
         }
 
-        // Edit Modal Functions
         function openEditModal(partNo) {
             const product = allProducts.find(p => p.partNo === partNo);
             if (!product) return;
@@ -354,32 +341,23 @@
             const cachedImg = getCachedProductImage(partNo);
             
             if (cachedImg) {
-                preview.src = cachedImg;
-                preview.style.display = 'block';
-                placeholder.style.display = 'none';
+                preview.src = cachedImg; preview.style.display = 'block'; placeholder.style.display = 'none';
             } else if (product.pictureFileId) {
                 placeholder.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Loading...</span>';
                 APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
                     if (imgResult.success && imgResult.base64) {
                         setCachedProductImage(partNo, imgResult.base64);
-                        preview.src = imgResult.base64;
-                        preview.style.display = 'block';
-                        placeholder.style.display = 'none';
-                    } else {
-                        resetPhotoPlaceholder();
-                    }
+                        preview.src = imgResult.base64; preview.style.display = 'block'; placeholder.style.display = 'none';
+                    } else { resetPhotoPlaceholder(); }
                 });
-            } else {
-                resetPhotoPlaceholder();
-            }
+            } else { resetPhotoPlaceholder(); }
 
             document.getElementById('editModal').classList.add('show');
         }
 
         function resetPhotoPlaceholder() {
+            document.getElementById('editPhotoPreview').style.display = 'none';
             const placeholder = document.getElementById('editPhotoPlaceholder');
-            const preview = document.getElementById('editPhotoPreview');
-            preview.style.display = 'none';
             placeholder.style.display = 'flex';
             placeholder.innerHTML = '<i class="fas fa-camera"></i><span>Tap to upload<br>or take photo</span>';
         }
@@ -401,8 +379,7 @@
             const payload = { 
                 action: 'updateProduct', 
                 data: { 
-                    partName, 
-                    partNo: editingPartNo, 
+                    partName, partNo: editingPartNo, 
                     noSpec: document.getElementById('editNoSpec').value.trim(), 
                     location: document.getElementById('editLocation').value.trim(), 
                     category: document.getElementById('editCategory').value.trim(), 
