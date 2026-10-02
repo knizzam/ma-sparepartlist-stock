@@ -243,3 +243,116 @@
 .fab-scan span { font-size: 0.7rem; font-weight: bold; }
 
 .empty-state { text-align: center; padding: 40px 20px; color: #888; }
+
+/* =========================================
+   RESPONSIVE GRID LAYOUT
+   ========================================= */
+
+/* Default: 1 column (mobile) */
+.product-list-container {
+    padding: 0 15px 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 768px) {
+    .product-list-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        padding: 0 20px 100px;
+    }
+    
+    .product-card {
+        padding: 12px;
+    }
+    
+    .product-card-img {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .product-card-name {
+        font-size: 13px;
+    }
+    
+    .product-card-partno {
+        font-size: 9px;
+        padding: 2px 6px;
+    }
+    
+    .product-card-location {
+        font-size: 10px;
+    }
+    
+    .stock-number {
+        font-size: 14px;
+    }
+    
+    .status-dot {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .delete-btn-round {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .delete-btn-round i {
+        font-size: 13px;
+    }
+}
+
+/* Desktop: 3 columns */
+@media (min-width: 1024px) {
+    .product-list-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        padding: 0 30px 100px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .product-card {
+        padding: 10px;
+    }
+    
+    .product-card-img {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .product-card-name {
+        font-size: 12px;
+    }
+    
+    .product-card-partno {
+        font-size: 8px;
+        padding: 2px 5px;
+    }
+    
+    .product-card-location {
+        font-size: 9px;
+    }
+    
+    .stock-number {
+        font-size: 13px;
+    }
+    
+    .status-dot {
+        width: 10px;
+        height: 10px;
+    }
+    
+    .delete-btn-round {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .delete-btn-round i {
+        font-size: 12px;
+    }
+}
