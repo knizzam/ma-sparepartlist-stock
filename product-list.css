@@ -46,13 +46,31 @@ body, .main-container {
 }
 .search-input:focus { border-color: var(--primary-blue); background: white; }
 
-.filter-sort-container { display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; overflow-x: auto; scrollbar-width: none; }
-.filter-sort-container::-webkit-scrollbar { display: none; }
-.category-filter-container { display: flex; gap: 6px; padding-bottom: 2px; min-width: max-content; }
-.category-filter-container::-webkit-scrollbar { display: none; }
+/* === FILTER & SORT - CENTERED CHIPS + WORKING SORT BUTTON === */
+.filter-sort-container {
+    display: flex; 
+    align-items: center; 
+    gap: 8px;
+    position: relative;
+}
+
+.category-filter-container { 
+    display: flex; 
+    gap: 6px; 
+    overflow-x: auto; 
+    scrollbar-width: none; 
+    padding-bottom: 2px;
+    flex: 1;
+    justify-content: flex-start; /* SCROLL DARI KIRI */
+}
+.category-filter-container::-webkit-scrollbar { 
+    display: none; 
+}
+
 .category-chip {
     padding: 6px 12px; border-radius: 16px; background: #f0f4f8; color: #666;
     font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    flex-shrink: 0; /* JANGAN KECILKAN CHIP */
 }
 .category-chip.active { background: var(--primary-blue); color: white; box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3); }
 
