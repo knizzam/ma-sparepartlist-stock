@@ -26,7 +26,7 @@
 /* Search Section */
 .search-filter-section { 
     padding: 12px 15px; background: white; 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin: 0 15px 15px; border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin: 0 0 15px; border-radius: 12px;
 }
 
 /* Search Input */
