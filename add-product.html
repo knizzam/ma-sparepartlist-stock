@@ -24,8 +24,9 @@
         
         <!-- VIEW 1: FORM (Default Visible) -->
         <div id="formView">
-            <button class="toggle-view-btn" onclick="showListView()">
-                <i class="fas fa-history"></i> View Recent Products
+            <!-- FAB BUTTON: View Recent Products -->
+            <button class="fab-button" onclick="showListView()" title="View Recent Products">
+                <i class="fas fa-history"></i>
             </button>
 
             <div class="form-card">
@@ -67,7 +68,7 @@
                 <div class="form-group"><label class="form-label">Minimum Stock</label><input type="number" class="form-input" id="minimumStock" placeholder="0" min="0"></div>
             </div>
 
-            <!-- BUTTONS DENGAN INLINE STYLE UNTUK PASTI KELUAR -->
+            <!-- ACTION BUTTONS -->
             <div style="display: flex !important; gap: 10px; margin-top: 15px; width: 100%;">
                 <button type="button" id="cancelBtn" onclick="cancelEdit()" style="flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; min-height: 48px;">Cancel</button>
                 <button type="button" id="saveBtn" onclick="saveProduct()" style="flex: 1; padding: 14px; background: linear-gradient(to right, #1a73e8, #1557b0); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3); min-height: 48px;">Add Product</button>
@@ -76,8 +77,9 @@
 
         <!-- VIEW 2: RECENT PRODUCTS LIST (Default Hidden) -->
         <div id="listView" style="display: none;">
-            <button class="toggle-view-btn primary" onclick="showFormView()">
-                <i class="fas fa-plus"></i> Add New Product
+            <!-- FAB BUTTON: Add New Product -->
+            <button class="fab-button" onclick="showFormView()" title="Add New Product">
+                <i class="fas fa-plus"></i>
             </button>
 
             <div class="product-search-section">
@@ -118,7 +120,7 @@
                 }
             });
             showFormView();
-            loadProductList(); // Load data ke cache
+            loadProductList();
         });
 
         function showFormView() {
@@ -131,12 +133,10 @@
         function showListView() {
             document.getElementById('formView').style.display = 'none';
             document.getElementById('listView').style.display = 'block';
-            // PENTING: Jangan force refresh, guna cache dulu!
             renderFromCache();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Fungsi baru: Render dari cache tanpa loading
         function renderFromCache() {
             const cachedData = localStorage.getItem(PRODUCT_LIST_CACHE_KEY);
             if (cachedData) {
@@ -145,11 +145,10 @@
                     if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
                         allProducts = parsed.data;
                         renderProductList('');
-                        return; // Guna cache, tidak perlu fetch
+                        return;
                     }
                 } catch(e) {}
             }
-            // Jika tiada cache, baru fetch
             loadProductList(true);
         }
 
