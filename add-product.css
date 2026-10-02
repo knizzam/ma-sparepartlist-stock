@@ -254,3 +254,43 @@ html, body {
 .delete-btn-add i { font-size: 14px; color: #dc3545; }
 .delete-btn-add:hover { background: rgba(220, 53, 69, 0.9); }
 .delete-btn-add:hover i { color: white; }
+
+/* =========================================
+   SEARCH BOX FOR RECENT PRODUCTS
+   ========================================= */
+.product-search-section {
+    background: white;
+    padding: 12px 15px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 15px;
+    width: 100% !important;
+    box-sizing: border-box;
+}
+.product-search-wrapper { 
+    position: relative; 
+    width: 100%; 
+}
+.product-search-wrapper i {
+    position: absolute; 
+    left: 15px; 
+    top: 50%; 
+    transform: translateY(-50%);
+    color: #999; 
+    font-size: 14px;
+}
+.product-search-input {
+    width: 100%; 
+    padding: 12px 15px 12px 40px;
+    background: #f5f5f5; 
+    border: 1px solid #e0e0e0; 
+    border-radius: 8px;
+    font-size: 14px; 
+    outline: none; 
+    box-sizing: border-box;
+    transition: all 0.2s;
+}
+.product-search-input:focus { 
+    background: white; 
+    border-color: var(--primary-blue); 
+}
