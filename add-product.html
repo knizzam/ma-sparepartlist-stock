@@ -8,7 +8,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="add-product.css">
-    src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <!-- HTML2CANVAS SCRIPT - PENTING UNTUK FULL WIDTH -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="photo-picker.js"></script>
@@ -17,61 +20,86 @@
 
     <div class="add-product-header">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-        <h1 class="add-product-title"><i class="fas fa-box-open"></i>Add New Product</h1>
+        <h1 class="add-product-title"><i class="fas fa-box-open"></i>Product Management</h1>
     </div>
 
     <div class="main-container">
-        <div class="form-card">
-            <div class="form-section-title">Product Information</div>
-            
-            <div class="form-group">
-                <label class="form-label">Product Photo</label>
-                <div class="photo-upload-wrapper" id="photoWrapper">
-                    <div class="photo-placeholder" id="photoPlaceholder" onclick="showPhotoMenu(event)">
-                        <i class="fas fa-camera"></i>
-                        <span>Tap to upload<br>or take photo</span>
+        
+        <!-- ========================================== -->
+        <!-- VIEW 1: FORM (Default Visible) -->
+        <!-- ========================================== -->
+        <div id="formView">
+            <!-- Toggle Button to List -->
+            <button class="toggle-view-btn" onclick="showListView()">
+                <i class="fas fa-history"></i> View Recent Products (5 Hari)
+            </button>
+
+            <div class="form-card">
+                <div class="form-section-title">Product Information</div>
+                
+                <div class="form-group">
+                    <label class="form-label">Product Photo</label>
+                    <div class="photo-upload-wrapper" id="photoWrapper">
+                        <div class="photo-placeholder" id="photoPlaceholder" onclick="showPhotoMenu(event)">
+                            <i class="fas fa-camera"></i>
+                            <span>Tap to upload<br>or take photo</span>
+                        </div>
+                        <img id="photoPreview" class="photo-preview-large" alt="Preview" onclick="showPhotoMenu(event)">
+                        <input type="file" id="photoInput" accept="image/*">
                     </div>
-                    <img id="photoPreview" class="photo-preview-large" alt="Preview" onclick="showPhotoMenu(event)">
-                    <input type="file" id="photoInput" accept="image/*">
+                </div>
+
+                <div class="form-group"><label class="form-label">Part Name</label><input type="text" class="form-input" id="partName" placeholder="e.g., CAP NUT"></div>
+                <div class="form-group"><label class="form-label">Part No.</label><input type="text" class="form-input" id="partNo" placeholder="e.g., BTM-M6"></div>
+                <div class="form-group"><label class="form-label">No. Spec</label><input type="text" class="form-input" id="noSpec" placeholder="e.g., M6x1.0"></div>
+                <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-input" id="location" placeholder="e.g., Rack A-01"></div>
+                
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-input" id="category" style="cursor: pointer;">
+                        <option value="Uncategorized">-- Pilih Kategori --</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Consumable">Consumable</option>
+                        <option value="Tools">Tools</option>
+                        <option value="Safety">Safety</option>
+                        <option value="Kaizen">Kaizen</option>
+                    </select>
                 </div>
             </div>
 
-            <div class="form-group"><label class="form-label">Part Name</label><input type="text" class="form-input" id="partName" placeholder="e.g., CAP NUT"></div>
-            <div class="form-group"><label class="form-label">Part No.</label><input type="text" class="form-input" id="partNo" placeholder="e.g., BTM-M6"></div>
-            <div class="form-group"><label class="form-label">No. Spec</label><input type="text" class="form-input" id="noSpec" placeholder="e.g., M6x1.0"></div>
-            <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-input" id="location" placeholder="e.g., Rack A-01"></div>
-            
-            <!-- DROPDOWN CATEGORY -->
-            <div class="form-group">
-                <label class="form-label">Category</label>
-                <select class="form-input" id="category" style="cursor: pointer;">
-                    <option value="Uncategorized">-- Pilih Kategori --</option>
-                    <option value="Maintenance">Maintenance</option>
-                    <option value="Consumable">Consumable</option>
-                    <option value="Tools">Tools</option>
-                    <option value="Safety">Safety</option>
-                    <option value="Kaizen">Kaizen</option>
-                </select>
+            <div class="form-card">
+                <div class="form-section-title">Stock Information</div>
+                <div class="form-group"><label class="form-label">Current Stock</label><input type="number" class="form-input" id="currentStock" placeholder="0" min="0"></div>
+                <div class="form-group"><label class="form-label">Minimum Stock</label><input type="number" class="form-input" id="minimumStock" placeholder="0" min="0"></div>
+            </div>
+
+            <div class="btn-group">
+                <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()">Cancel / Reset</button>
+                <button class="submit-btn" id="saveBtn" onclick="saveProduct()">Add Product</button>
             </div>
         </div>
 
-        <div class="form-card">
-            <div class="form-section-title">Stock Information</div>
-            <div class="form-group"><label class="form-label">Current Stock</label><input type="number" class="form-input" id="currentStock" placeholder="0" min="0"></div>
-            <div class="form-group"><label class="form-label">Minimum Stock</label><input type="number" class="form-input" id="minimumStock" placeholder="0" min="0"></div>
+        <!-- ========================================== -->
+        <!-- VIEW 2: RECENT PRODUCTS LIST (Default Hidden) -->
+        <!-- ========================================== -->
+        <div id="listView" style="display: none;">
+            <!-- Toggle Button back to Form -->
+            <button class="toggle-view-btn primary" onclick="showFormView()">
+                <i class="fas fa-plus"></i> Add New Product
+            </button>
+
+            <div class="list-header-add">
+                <div class="list-title-add">Recent Products (5 Hari) <span class="list-badge-add" id="productCount">0</span></div>
+            </div>
+            
+            <div class="product-list-add" id="productList">
+                <div class="empty-state-list">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <div>Loading recent products...</div>
+                </div>
+            </div>
         </div>
 
-        <div class="btn-group">
-            <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
-            <button class="submit-btn" id="saveBtn" onclick="saveProduct()">Add Product</button>
-        </div>
-
-        <div style="height: 4px; background: linear-gradient(to right, #1a73e8, #4a90e2); margin: 30px 0 20px; border-radius: 2px;"></div>
-
-        <div class="list-header-add">
-            <div class="list-title-add">Recent Products (5 Hari) <span class="list-badge-add" id="productCount">0</span></div>
-        </div>
-        <div class="product-list-add" id="productList"><div style="text-align:center; padding: 20px; color: #888;"><i class="fas fa-spinner fa-spin"></i> Loading...</div></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -90,9 +118,27 @@
                     reader.readAsDataURL(e.target.files[0]);
                 }
             });
-            loadProductList();
+            
+            // Default: Tunjuk Form View
+            showFormView();
+            loadProductList(); // Load data ke cache untuk bila perlu
         });
 
+        // --- VIEW TOGGLE FUNCTIONS ---
+        function showFormView() {
+            document.getElementById('formView').style.display = 'block';
+            document.getElementById('listView').style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showListView() {
+            document.getElementById('formView').style.display = 'none';
+            document.getElementById('listView').style.display = 'block';
+            loadProductList(true); // Refresh data bila masuk list
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- DATA FUNCTIONS ---
         function getCachedProductImage(partNo) {
             try {
                 const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -120,15 +166,22 @@
         }
 
         async function loadProductList(forceRefresh = false) {
+            const container = document.getElementById('productList');
             const cachedData = localStorage.getItem(PRODUCT_LIST_CACHE_KEY);
+            
             if (!forceRefresh && cachedData) {
                 try {
                     const parsed = JSON.parse(cachedData);
                     if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
-                        allProducts = parsed.data; renderProductList(allProducts); return;
+                        allProducts = parsed.data; 
+                        renderProductList(allProducts); 
+                        return;
                     }
                 } catch(e) {}
             }
+            
+            container.innerHTML = `<div class="empty-state-list"><i class="fas fa-spinner fa-spin"></i><div>Loading recent products...</div></div>`;
+            
             try {
                 const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
                 const result = await res.json();
@@ -136,9 +189,11 @@
                     allProducts = result.products;
                     localStorage.setItem(PRODUCT_LIST_CACHE_KEY, JSON.stringify({ data: allProducts, timestamp: new Date().getTime() }));
                     renderProductList(allProducts);
-                } else { document.getElementById('productList').innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tiada produk</div>'; }
+                } else { 
+                    container.innerHTML = `<div class="empty-state-list"><i class="fas fa-box-open"></i><div>Tiada produk</div></div>`; 
+                }
             } catch (error) {
-                if (!allProducts.length) document.getElementById('productList').innerHTML = '<div style="text-align:center; padding: 20px; color: #dc3545;">Gagal memuatkan data</div>';
+                container.innerHTML = `<div class="empty-state-list"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Gagal memuatkan data</div></div>`;
             }
         }
 
@@ -148,7 +203,8 @@
             document.getElementById('productCount').textContent = recentProducts.length;
             
             if (recentProducts.length === 0) {
-                productList.innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">Tiada produk dalam 5 hari terkini</div>'; return;
+                productList.innerHTML = `<div class="empty-state-list"><i class="fas fa-box-open"></i><div>Tiada produk dalam 5 hari terkini</div></div>`; 
+                return;
             }
             
             let html = '';
@@ -156,7 +212,6 @@
                 const currentStock = parseInt(product.currentStock) || 0;
                 const minimumStock = parseInt(product.minimumStock) || 0;
                 
-                // LOGIK WARNA 50% BUFFER
                 const thresholdOK = minimumStock + (minimumStock * 0.5);
                 let statusClass = 'high';
                 if (currentStock > thresholdOK) statusClass = 'high';
@@ -166,7 +221,7 @@
                 const isEditing = editingPartNo === product.partNo ? 'editing' : '';
                 const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
                 const cachedImg = getCachedProductImage(product.partNo);
-                let avatarHTML = cachedImg ? `<img src="${cachedImg}" alt="${product.partName}">` : '';
+                let avatarHTML = cachedImg ? `<img src="${cachedImg}" alt="${product.partName}">` : '<i class="fas fa-box"></i>';
                 
                 html += `
                     <div class="product-card-add status-${statusClass} ${isEditing}" onclick="editProduct('${product.partNo}', '${product.partName}', '${product.noSpec}', '${product.location}', '${product.category}', ${product.currentStock}, ${product.minimumStock}, '${product.pictureFileId}')">
@@ -187,10 +242,10 @@
             productList.innerHTML = html;
             
             recentProducts.forEach(product => {
-                if (product.pictureFileId) {
+                if (product.pictureFileId && !cachedImg) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
                     const avatarBox = document.getElementById(`prod-avatar-${safePartNo}`);
-                    if (avatarBox && !getCachedProductImage(product.partNo)) {
+                    if (avatarBox && avatarBox.querySelector('i')) {
                         APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
                             if (imgResult.success && imgResult.base64) {
                                 setCachedProductImage(product.partNo, imgResult.base64);
@@ -226,11 +281,14 @@
                 });
             } else { preview.style.display = 'none'; placeholder.style.display = 'flex'; tempPhotoBase64 = ''; }
             
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            renderProductList(allProducts);
+            // Balik ke Form View selepas klik card
+            showFormView();
         }
 
-        function cancelEdit() { resetForm(); renderProductList(allProducts); Utils.showToast('Form dikosongkan', 'info'); }
+        function cancelEdit() { 
+            resetForm(); 
+            Utils.showToast('Form dikosongkan', 'info'); 
+        }
 
         async function saveProduct() {
             const partName = document.getElementById('partName').value.trim();
@@ -256,7 +314,8 @@
                     setCachedProductImage(partNo, tempPhotoBase64);
                 }
                 Utils.showToast('✅ Produk berjaya disimpan!', 'success');
-                resetForm(); loadProductList(true);
+                resetForm(); 
+                // Optional: showListView() jika mahu terus pergi ke list lepas save
             } catch (error) {
                 Utils.showToast('❌ Ralat semasa menyimpan', 'error');
                 btn.innerText = editingPartNo ? 'Update Product' : 'Add Product'; btn.disabled = false;
@@ -282,7 +341,8 @@
             document.getElementById('currentStock').value = '';
             document.getElementById('minimumStock').value = '';
             PhotoPicker.reset();
-            tempPhotoBase64 = ''; editingPartNo = null;
+            tempPhotoBase64 = ''; 
+            editingPartNo = null;
             document.getElementById('saveBtn').innerText = 'Add Product';
         }
     </script>
