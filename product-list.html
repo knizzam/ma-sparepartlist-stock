@@ -261,19 +261,23 @@
                 html += `
                     <div class="product-card status-${statusClass}" onclick="openEditModal('${product.partNo}')">
                         <div class="product-card-img" id="card-img-${safePartNo}">${imgContent}</div>
-                        <div class="product-card-info">
+                        <div class="product-card-body">
                             <div class="product-card-name">${product.partName}</div>
                             <span class="product-card-partno">${product.partNo}</span>
-                            <span class="product-card-location"><i class="fas fa-map-marker-alt"></i> ${product.location || '-'}</span>
+                            <div class="product-card-location"><i class="fas fa-map-marker-alt"></i> ${product.location || '-'}</div>
+                            <div class="product-card-footer">
+                                <div class="product-card-stock">
+                                    <div class="status-dot ${statusClass}"></div>
+                                    <div>
+                                        <div class="stock-label">Stock</div>
+                                        <div class="stock-number">${product.currentStock}</div>
+                                    </div>
+                                </div>
+                                <button class="delete-btn-round" onclick="event.stopPropagation(); deleteProduct('${product.partNo}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="product-card-stock">
-                            <div class="status-dot ${statusClass}"></div>
-                            <div class="stock-label">Stock</div>
-                            <div class="stock-number">${product.currentStock}</div>
-                        </div>
-                        <button class="delete-btn-round" onclick="event.stopPropagation(); deleteProduct('${product.partNo}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
                     </div>
                 `;
             });
@@ -296,7 +300,10 @@
             });
         }
 
-        function filterProducts() { currentSearch = document.getElementById('searchInput').value; renderProducts(); }
+        function filterProducts() { 
+            currentSearch = document.getElementById('searchInput').value; 
+            renderProducts(); 
+        }
         
         function setCategoryFilter(category, element) {
             currentCategory = category;
