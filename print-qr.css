@@ -49,12 +49,12 @@
 
 /* Filter & Sort Container */
 .filter-sort-container {
-    display: flex; align-items: center; gap: 8px; margin-top: 12px;
+    display: flex; align-items: center; justify-content: center; gap: 8px; position: relative;
 }
 
 .category-filter-container {
-    display: flex; gap: 6px; overflow-x: auto; flex: 1;
-    scrollbar-width: none; padding-bottom: 2px;
+    display: flex; gap: 6px; overflow-x: auto; justify-content: center;;
+    scrollbar-width: none; padding-bottom: 2px; flex-wrap: wrap;
 }
 .category-filter-container::-webkit-scrollbar { display: none; }
 
