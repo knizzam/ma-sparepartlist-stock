@@ -70,8 +70,8 @@
                 <div class="form-group"><label class="form-label">Minimum Stock</label><input type="number" class="form-input" id="minimumStock" placeholder="0" min="0"></div>
             </div>
 
-            <div class="btn-group">
-                <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()">Cancel / Reset</button>
+            <div class="action-buttons">
+                <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
                 <button class="submit-btn" id="saveBtn" onclick="saveProduct()">Add Product</button>
             </div>
         </div>
@@ -128,7 +128,6 @@
         function showFormView() {
             document.getElementById('formView').style.display = 'block';
             document.getElementById('listView').style.display = 'none';
-            // Clear search when going back to form
             document.getElementById('recentProductSearch').value = '';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -178,7 +177,7 @@
                     const parsed = JSON.parse(cachedData);
                     if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
                         allProducts = parsed.data; 
-                        renderProductList(''); // Render dengan search kosong
+                        renderProductList('');
                         return;
                     }
                 } catch(e) {}
@@ -192,7 +191,7 @@
                 if (result.success && result.products) {
                     allProducts = result.products;
                     localStorage.setItem(PRODUCT_LIST_CACHE_KEY, JSON.stringify({ data: allProducts, timestamp: new Date().getTime() }));
-                    renderProductList(''); // Render dengan search kosong
+                    renderProductList('');
                 } else { 
                     container.innerHTML = `<div class="empty-state-list"><i class="fas fa-box-open"></i><div>Tiada produk</div></div>`; 
                 }
@@ -201,7 +200,6 @@
             }
         }
 
-        // --- SEARCH FUNCTION ---
         function filterRecentProducts() {
             const searchTerm = document.getElementById('recentProductSearch').value.toLowerCase().trim();
             renderProductList(searchTerm);
@@ -211,10 +209,8 @@
             const productList = document.getElementById('productList');
             const listTitle = document.getElementById('listTitleAdd');
             
-            // 1. Dapatkan produk 5 hari terkini
             let recentProducts = allProducts.filter(p => isWithinLast5Days(p.lastUpdateDate));
             
-            // 2. FALLBACK: Jika tiada, ambil 10 produk terakhir
             if (recentProducts.length === 0 && allProducts.length > 0) {
                 recentProducts = allProducts.slice(-10).reverse();
                 listTitle.innerHTML = 'Latest Products <span class="list-badge-add" id="productCount">0</span>';
@@ -222,7 +218,6 @@
                 listTitle.innerHTML = 'Recent Products (5 Hari) <span class="list-badge-add" id="productCount">0</span>';
             }
             
-            // 3. Apply search filter jika ada searchTerm
             let displayProducts = recentProducts;
             if (searchTerm) {
                 displayProducts = recentProducts.filter(p => 
@@ -273,7 +268,6 @@
             });
             productList.innerHTML = html;
             
-            // Load images for items without cache
             displayProducts.forEach(product => {
                 if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
