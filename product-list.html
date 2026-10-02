@@ -6,18 +6,15 @@
     <title>Product List - MA Inventory</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- PENTING: Susunan link CSS mesti betul -->
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="product-list.css"> <!-- Page Specific CSS -->
-    
+    <link rel="stylesheet" href="product-list.css">
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="photo-picker.js"></script>
 </head>
 <body>
 
-    <!-- Header (Class app-header/base.css akan style ini) -->
+    <!-- Header -->
     <div class="product-list-header">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <h1 class="product-list-title"><i class="fas fa-boxes-stacked"></i>Product List</h1>
@@ -123,11 +120,6 @@
         </div>
     </div>
 
-    <!-- Bottom Nav FAB -->
-    <div class="bottom-nav">
-        <a href="scanner.html" class="fab-scan"><i class="fas fa-qrcode"></i><span>Scan</span></a>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let allProducts = [];
@@ -218,7 +210,6 @@
             return 'low';
         }
 
-        // FUNGSI RENDER YANG DIKEMASKINI UNTUK HYBRID LAYOUT
         function renderProducts() {
             const container = document.getElementById('productListContainer');
             let filtered = allProducts.filter(p => {
@@ -259,10 +250,9 @@
                 if (cachedImg) {
                     imgContent = `<img src="${cachedImg}" alt="${product.partName}">`;
                 } else if (product.pictureFileId) {
-                    imgContent = `<div id="img-placeholder-${safePartNo}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--primary);"><i class="fas fa-spinner fa-spin"></i></div>`;
+                    imgContent = `<div id="img-placeholder-${safePartNo}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#1a73e8;"><i class="fas fa-spinner fa-spin"></i></div>`;
                 }
 
-                // Struktur HTML Hybrid (Vertical Mobile, Horizontal Desktop)
                 html += `
                     <div class="product-card status-${statusClass}" onclick="openEditModal('${product.partNo}')">
                         <div class="product-card-img" id="card-img-${safePartNo}">${imgContent}</div>
@@ -288,7 +278,6 @@
             });
             container.innerHTML = html;
 
-            // Load images async
             filtered.forEach(product => {
                 if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
