@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="register.css">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="photo-picker.js"></script>
@@ -21,12 +22,17 @@
 
     <div class="main-container">
         
-        <!-- ========================================== -->
-        <!-- VIEW 1: FORM (Add / Update) - Default Hidden -->
-        <!-- ========================================== -->
+        <!-- VIEW 1: FORM (Add / Update) -->
         <div id="formView">
             <div class="form-card">
-                <div class="form-section-title">Account Details</div>
+                <!-- HEADER CARD DENGAN FAB BUTTON -->
+                <div class="form-card-header">
+                    <div class="form-section-title" style="margin-bottom: 0;">Account Details</div>
+                    <button class="fab-inline" onclick="showListView()" title="View User List" type="button">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                </div>
+
                 <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="userName" placeholder="e.g., Mohd Khairul Nizzam"></div>
                 <div class="form-group"><label class="form-label">ID Number (No. K/T)</label><input type="text" class="form-input" id="userNoKad" placeholder="e.g., K572"></div>
                 <div class="form-group"><label class="form-label">Role</label><input type="text" class="form-input" id="userRole" placeholder="e.g., Admin, Staff"></div>
@@ -34,7 +40,9 @@
             </div>
 
             <div class="form-card">
-                <div class="form-section-title">Profile & Status</div>
+                <div class="form-card-header">
+                    <div class="form-section-title" style="margin-bottom: 0;">Profile & Status</div>
+                </div>
                 
                 <div class="form-group">
                     <label class="form-label">Profile Picture</label>
@@ -56,15 +64,14 @@
                 </div>
             </div>
 
-            <div class="btn-group">
-                <button class="cancel-btn" onclick="showListView()">Cancel</button>
-                <button class="submit-btn" id="saveBtn" onclick="saveUser()">Add User</button>
+            <!-- ACTION BUTTONS -->
+            <div style="display: flex !important; gap: 10px; margin-top: 15px; width: 100%;">
+                <button type="button" class="cancel-btn" onclick="showListView()" style="flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; min-height: 48px;">Cancel</button>
+                <button type="button" class="submit-btn" id="saveBtn" onclick="saveUser()" style="flex: 1; padding: 14px; background: linear-gradient(to right, #1a73e8, #1557b0); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3); min-height: 48px;">Add User</button>
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- VIEW 2: USER LIST - Default Visible -->
-        <!-- ========================================== -->
+        <!-- VIEW 2: USER LIST (Default Visible) -->
         <div id="listView">
             
             <!-- Search Box -->
@@ -75,11 +82,11 @@
                 </div>
             </div>
 
-            <!-- List Header with Add Button -->
-            <div class="list-header-actions">
+            <!-- List Header with FAB Button -->
+            <div class="list-header-add">
                 <div class="list-title">Registered Users <span class="list-badge" id="userCount">0</span></div>
-                <button class="add-user-btn" onclick="showAddForm()">
-                    <i class="fas fa-plus"></i> Add User
+                <button class="fab-inline" onclick="showAddForm()" title="Add New User" type="button">
+                    <i class="fas fa-plus"></i>
                 </button>
             </div>
             
@@ -109,7 +116,15 @@
             document.getElementById('photoInput').addEventListener('change', function(e) {
                 if (e.target.files && e.target.files[0]) {
                     const reader = new FileReader();
-                    reader.onload = function(ev) { tempPhotoBase64 = ev.target.result; };
+                    reader.onload = function(ev) { 
+                        tempPhotoBase64 = ev.target.result;
+                        // Show preview immediately
+                        const preview = document.getElementById('photoPreview');
+                        const placeholder = document.getElementById('photoPlaceholder');
+                        preview.src = ev.target.result;
+                        preview.style.display = 'block';
+                        placeholder.style.display = 'none';
+                    };
                     reader.readAsDataURL(e.target.files[0]);
                 }
             });
@@ -118,6 +133,17 @@
             showListView();
             loadUserList();
         });
+
+        // PHOTO MENU FUNCTION (Fallback)
+        function showPhotoMenu(event) {
+            if (event) event.preventDefault();
+            const photoInput = document.getElementById('photoInput');
+            if (photoInput) {
+                photoInput.click();
+            } else {
+                alert('Photo picker tidak tersedia');
+            }
+        }
 
         // --- VIEW TOGGLE FUNCTIONS ---
         function showListView() {
@@ -188,7 +214,6 @@
                 } catch(e) {}
             }
             
-            // Loading state
             container.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-spinner fa-spin"></i>
@@ -250,6 +275,7 @@
                         <div class="user-avatar" id="avatar-box-${safeEmail}">${avatarHTML}</div>
                         <div class="user-info">
                             <div class="user-name">${user.name}</div>
+                            <div class="user-id">${user.noKad || '-'}</div>
                             <span class="user-role-badge">${user.role || 'User'}</span>
                         </div>
                         <div class="user-status ${isActive ? '' : 'inactive'}"></div>
@@ -316,7 +342,7 @@
             const email = document.getElementById('userEmail').value.trim();
             const active = document.getElementById('userActive').checked;
 
-            if (!email || !name) { Utils.showToast('️ Email dan Nama Penuh wajib diisi!', 'warning'); return; }
+            if (!email || !name) { Utils.showToast('⚠️ Email dan Nama Penuh wajib diisi!', 'warning'); return; }
 
             const btn = document.getElementById('saveBtn');
             btn.innerText = 'Saving...'; btn.disabled = true;
