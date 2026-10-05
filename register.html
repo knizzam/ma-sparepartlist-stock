@@ -8,7 +8,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="register.css">
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <!-- SCRIPT BARU: Data Manager (Letak SEBELUM script lain) -->
+    <script src="data-manager.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></iscript>
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="photo-picker.js"></script>
@@ -21,18 +24,15 @@
     </div>
 
     <div class="main-container">
-        
-        <!-- VIEW 1: FORM (Add / Update) -->
+        <!-- VIEW 1: FORM -->
         <div id="formView">
             <div class="form-card">
-                <!-- HEADER CARD DENGAN FAB BUTTON -->
                 <div class="form-card-header">
                     <div class="form-section-title" style="margin-bottom: 0;">Account Details</div>
                     <button class="fab-inline" onclick="showListView()" title="View User List" type="button">
                         <i class="fas fa-arrow-left"></i>
                     </button>
                 </div>
-
                 <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="userName" placeholder="e.g., Mohd Khairul Nizzam"></div>
                 <div class="form-group"><label class="form-label">ID Number (No. K/T)</label><input type="text" class="form-input" id="userNoKad" placeholder="e.g., K572"></div>
                 <div class="form-group"><label class="form-label">Role</label><input type="text" class="form-input" id="userRole" placeholder="e.g., Admin, Staff"></div>
@@ -43,19 +43,16 @@
                 <div class="form-card-header">
                     <div class="form-section-title" style="margin-bottom: 0;">Profile & Status</div>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">Profile Picture</label>
                     <div class="photo-upload-wrapper" id="photoWrapper">
                         <div class="photo-placeholder" id="photoPlaceholder" onclick="showPhotoMenu(event)">
-                            <i class="fas fa-camera"></i>
-                            <span>Tap to upload<br>or take photo</span>
+                            <i class="fas fa-camera"></i><span>Tap to upload<br>or take photo</span>
                         </div>
                         <img id="photoPreview" class="photo-preview-large" alt="Preview" onclick="showPhotoMenu(event)">
                         <input type="file" id="photoInput" accept="image/*">
                     </div>
                 </div>
-                
                 <div class="form-group">
                     <label class="checkbox-wrapper">
                         <input type="checkbox" id="userActive" checked>
@@ -64,17 +61,14 @@
                 </div>
             </div>
 
-            <!-- ACTION BUTTONS -->
             <div style="display: flex !important; gap: 10px; margin-top: 15px; width: 100%;">
-                <button type="button" class="cancel-btn" onclick="showListView()" style="flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; min-height: 48px;">Cancel</button>
-                <button type="button" class="submit-btn" id="saveBtn" onclick="saveUser()" style="flex: 1; padding: 14px; background: linear-gradient(to right, #1a73e8, #1557b0); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3); min-height: 48px;">Add User</button>
+                <button type="button" class="cancel-btn" onclick="showListView()">Cancel</button>
+                <button type="button" class="submit-btn" id="saveBtn" onclick="saveUser()">Add User</button>
             </div>
         </div>
 
-        <!-- VIEW 2: USER LIST (Default Visible) -->
+        <!-- VIEW 2: USER LIST -->
         <div id="listView">
-            
-            <!-- Search Box -->
             <div class="user-search-section">
                 <div class="user-search-wrapper">
                     <i class="fas fa-search"></i>
@@ -82,7 +76,6 @@
                 </div>
             </div>
 
-            <!-- List Header with FAB Button -->
             <div class="list-header-add">
                 <div class="list-title">Registered Users <span class="list-badge" id="userCount">0</span></div>
                 <button class="fab-inline" onclick="showAddForm()" title="Add New User" type="button">
@@ -91,66 +84,46 @@
             </div>
             
             <div class="user-list" id="userList">
-                <div class="empty-state">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <div>Loading users...</div>
-                </div>
+                <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><div>Loading users...</div></div>
             </div>
         </div>
-
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let tempPhotoBase64 = '', editingEmail = null, allUsers = [];
-        const USER_LIST_CACHE_KEY = 'ma_inventory_user_list', USER_IMAGE_CACHE_PREFIX = 'ma_user_img_', CACHE_EXPIRY = 5 * 60 * 1000;
+        const USER_CACHE_KEY = 'ma_inventory_user_list';
+        const USER_IMG_PREFIX = 'ma_user_img';
 
         document.addEventListener('DOMContentLoaded', function() {
-            PhotoPicker.init({
-                wrapperId: 'photoWrapper',
-                inputId: 'photoInput',
-                previewId: 'photoPreview',
-                placeholderId: 'photoPlaceholder'
-            });
+            PhotoPicker.init({ wrapperId: 'photoWrapper', inputId: 'photoInput', previewId: 'photoPreview', placeholderId: 'photoPlaceholder' });
             
             document.getElementById('photoInput').addEventListener('change', function(e) {
                 if (e.target.files && e.target.files[0]) {
                     const reader = new FileReader();
                     reader.onload = function(ev) { 
                         tempPhotoBase64 = ev.target.result;
-                        // Show preview immediately
-                        const preview = document.getElementById('photoPreview');
-                        const placeholder = document.getElementById('photoPlaceholder');
-                        preview.src = ev.target.result;
-                        preview.style.display = 'block';
-                        placeholder.style.display = 'none';
+                        document.getElementById('photoPreview').src = ev.target.result;
+                        document.getElementById('photoPreview').style.display = 'block';
+                        document.getElementById('photoPlaceholder').style.display = 'none';
                     };
                     reader.readAsDataURL(e.target.files[0]);
                 }
             });
 
-            // Default: Tunjuk List View
             showListView();
-            loadUserList();
         });
 
-        // PHOTO MENU FUNCTION (Fallback)
         function showPhotoMenu(event) {
             if (event) event.preventDefault();
-            const photoInput = document.getElementById('photoInput');
-            if (photoInput) {
-                photoInput.click();
-            } else {
-                alert('Photo picker tidak tersedia');
-            }
+            document.getElementById('photoInput').click();
         }
 
-        // --- VIEW TOGGLE FUNCTIONS ---
         function showListView() {
             document.getElementById('formView').style.display = 'none';
             document.getElementById('listView').style.display = 'block';
             resetForm();
-            loadUserList();
+            loadUserList(); // Load data (akan guna cache jika ada)
         }
 
         function showAddForm() {
@@ -169,81 +142,29 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- SEARCH FUNCTION ---
         function filterUsers() {
             const searchTerm = document.getElementById('userSearchInput').value.toLowerCase().trim();
-            
-            if (!searchTerm) {
-                renderUserList(allUsers);
-                return;
-            }
-
+            if (!searchTerm) { renderUserList(allUsers); return; }
             const filtered = allUsers.filter(user => 
                 user.name.toLowerCase().includes(searchTerm) || 
                 user.noKad.toLowerCase().includes(searchTerm) || 
                 user.email.toLowerCase().includes(searchTerm)
             );
-            
             renderUserList(filtered);
-        }
-
-        // --- DATA FUNCTIONS ---
-        function getCachedImage(email) {
-            try {
-                const cached = localStorage.getItem(USER_IMAGE_CACHE_PREFIX + email);
-                if (cached) { const p = JSON.parse(cached); if (new Date().getTime() - p.timestamp < CACHE_EXPIRY) return p.data; }
-            } catch(e) {} return null;
-        }
-
-        function setCachedImage(email, base64) {
-            try { localStorage.setItem(USER_IMAGE_CACHE_PREFIX + email, JSON.stringify({ data: base64, timestamp: new Date().getTime() })); } catch(e) {}
         }
 
         async function loadUserList() {
             const container = document.getElementById('userList');
-            const cachedData = localStorage.getItem(USER_LIST_CACHE_KEY);
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><div>Loading users...</div></div>';
             
-            if (cachedData) {
-                try { 
-                    const p = JSON.parse(cachedData); 
-                    if (new Date().getTime() - p.timestamp < CACHE_EXPIRY) { 
-                        allUsers = p.data; 
-                        renderUserList(allUsers); 
-                        return; 
-                    } 
-                } catch(e) {}
-            }
+            // GUNA DATA MANAGER: Akan return cache serta-merta jika valid, atau fetch baru
+            const fetchedUsers = await DataManager.fetchData(USER_CACHE_KEY, CONFIG.API_URL + '?action=getAllUsers', 'users');
             
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <div>Loading users...</div>
-                </div>
-            `;
-            
-            try {
-                const res = await fetch(CONFIG.API_URL + '?action=getAllUsers');
-                const result = await res.json();
-                if (result.success && result.users) {
-                    allUsers = result.users;
-                    localStorage.setItem(USER_LIST_CACHE_KEY, JSON.stringify({ data: allUsers, timestamp: new Date().getTime() }));
-                    renderUserList(allUsers);
-                } else {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-users"></i>
-                            <div>No users found</div>
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                console.error('Load error:', error);
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
-                        <div>Failed to load data</div>
-                    </div>
-                `;
+            if (fetchedUsers !== null) {
+                allUsers = fetchedUsers;
+                renderUserList(allUsers);
+            } else {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Failed to load data</div></div>';
             }
         }
 
@@ -252,12 +173,7 @@
             document.getElementById('userCount').textContent = users.length;
             
             if (users.length === 0) { 
-                userList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-users"></i>
-                        <div>No users found</div>
-                    </div>
-                `; 
+                userList.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><div>No users found</div></div>'; 
                 return; 
             }
             
@@ -266,9 +182,11 @@
                 const isActive = user.active;
                 const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
                 const safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, '');
-                const cachedImage = getCachedImage(user.email);
+                const cachedImage = DataManager.getCachedImage(USER_IMG_PREFIX, user.email);
                 let avatarHTML = initial;
-                if (cachedImage && user.pictureFileId) avatarHTML = `<img src="${cachedImage}" alt="${user.name}" style="width:100%; height:100%; object-fit:cover;">`;
+                if (cachedImage && user.pictureFileId) {
+                    avatarHTML = `<img src="${cachedImage}" alt="${user.name}" style="width:100%; height:100%; object-fit:cover;">`;
+                }
 
                 html += `
                     <div class="user-card ${isActive ? '' : 'inactive'}" onclick="editUser('${user.email}', '${user.role}', '${user.name}', '${user.noKad}', ${user.active}, '${user.pictureFileId}')">
@@ -284,14 +202,15 @@
             });
             userList.innerHTML = html;
 
+            // Load gambar yang belum ada dalam cache
             users.forEach(user => {
-                if (user.pictureFileId && !getCachedImage(user.email)) {
+                if (user.pictureFileId && !DataManager.getCachedImage(USER_IMG_PREFIX, user.email)) {
                     const safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, '');
                     const avatarBox = document.getElementById(`avatar-box-${safeEmail}`);
                     if (avatarBox) {
                         APIHelper.fetchImage(user.pictureFileId).then(imgResult => {
                             if (imgResult.success && imgResult.base64) {
-                                setCachedImage(user.email, imgResult.base64);
+                                DataManager.setCachedImage(USER_IMG_PREFIX, user.email, imgResult.base64);
                                 avatarBox.innerHTML = `<img src="${imgResult.base64}" alt="${user.name}" style="width:100%; height:100%; object-fit:cover;">`;
                             }
                         });
@@ -310,17 +229,19 @@
             
             const preview = document.getElementById('photoPreview');
             const placeholder = document.getElementById('photoPlaceholder');
-            const cachedImage = getCachedImage(email);
+            const cachedImage = DataManager.getCachedImage(USER_IMG_PREFIX, email);
             
-            if (cachedImage) { preview.src = cachedImage; preview.style.display = 'block'; placeholder.style.display = 'none'; tempPhotoBase64 = ''; } 
-            else if (pictureFileId && pictureFileId.trim() !== '') {
+            if (cachedImage) { 
+                preview.src = cachedImage; preview.style.display = 'block'; placeholder.style.display = 'none'; tempPhotoBase64 = ''; 
+            } else if (pictureFileId && pictureFileId.trim() !== '') {
                 APIHelper.fetchImage(pictureFileId).then(imgResult => {
                     if (imgResult.success && imgResult.base64) {
                         preview.src = imgResult.base64; preview.style.display = 'block'; placeholder.style.display = 'none'; tempPhotoBase64 = '';
                     }
                 });
-            } else { preview.style.display = 'none'; placeholder.style.display = 'flex'; tempPhotoBase64 = ''; }
-            
+            } else { 
+                preview.style.display = 'none'; placeholder.style.display = 'flex'; tempPhotoBase64 = ''; 
+            }
             showEditForm();
         }
 
@@ -352,12 +273,30 @@
 
             try {
                 await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+                
                 if (tempPhotoBase64) {
                     await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'uploadUserPicture', data: { base64: tempPhotoBase64, email } }) });
-                    setCachedImage(email, tempPhotoBase64);
+                    DataManager.setCachedImage(USER_IMG_PREFIX, email, tempPhotoBase64);
                 }
+
+                // 🔥 PENYELESAIAN MASALAH REFRESH:
+                // 1. Padam cache lama supaya page lain tidak baca data lapuk
+                DataManager.clearCache(USER_CACHE_KEY);
+                
+                // 2. Update array 'allUsers' dalam memori serta-merta
+                const newUser = { email, role, name, noKad, active, pictureFileId: tempPhotoBase64 ? 'new' : (editingEmail ? allUsers.find(u=>u.email===editingEmail).pictureFileId : '') };
+                if (editingEmail) {
+                    const index = allUsers.findIndex(u => u.email === editingEmail);
+                    if (index !== -1) allUsers[index] = newUser;
+                } else {
+                    allUsers.push(newUser);
+                }
+
+                // 3. Render semula UI serta-merta (User nampak perubahan TANPA perlu refresh)
+                renderUserList(allUsers);
                 Utils.showToast('✅ Pengguna berjaya disimpan!', 'success');
                 showListView();
+
             } catch (error) {
                 Utils.showToast('❌ Ralat semasa menyimpan', 'error');
                 btn.innerText = editingEmail ? 'Update User' : 'Add User'; btn.disabled = false;
@@ -365,13 +304,21 @@
         }
 
         async function deleteUser(email) {
-            if (!confirm('️ Adakah anda pasti ingin memadam pengguna ini?')) return;
+            if (!confirm('⚠️ Adakah anda pasti ingin memadam pengguna ini?')) return;
             try {
                 await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'deleteUser', data: { email } }) });
-                localStorage.removeItem(USER_IMAGE_CACHE_PREFIX + email);
+                
+                // 🔥 Padam cache data & gambar
+                DataManager.clearCache(USER_CACHE_KEY);
+                DataManager.clearImageCache(USER_IMG_PREFIX, email);
+                
+                // Update UI serta-merta
+                allUsers = allUsers.filter(u => u.email !== email);
+                renderUserList(allUsers);
                 Utils.showToast('✅ Pengguna berjaya dipadam', 'success');
-                loadUserList();
-            } catch (error) { Utils.showToast('❌ Gagal memadam pengguna', 'error'); }
+            } catch (error) { 
+                Utils.showToast('❌ Gagal memadam pengguna', 'error'); 
+            }
         }
     </script>
 </body>
