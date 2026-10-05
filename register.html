@@ -61,7 +61,7 @@
             </div>
 
             <div style="display: flex !important; flex-direction: row !important; gap: 10px !important; margin-top: 20px !important; width: 100% !important; min-height: 50px !important;">
-                <button type="button" id="cancelBtn" onclick="showListView()" style="flex: 1 !important; padding: 14px !important; background: #f5f5f5 !important; color: #666 !important; border: none !important; border-radius: 12px !important; font-size: 15px !important; font-weight: bold !important; cursor: pointer !important; min-height: 48px !important; display: inline-block !important; visibility: visible !important;">Cancel</button>
+                <button type="button" id="cancelBtn" onclick="cancelForm()" style="flex: 1 !important; padding: 14px !important; background: #f5f5f5 !important; color: #666 !important; border: none !important; border-radius: 12px !important; font-size: 15px !important; font-weight: bold !important; cursor: pointer !important; min-height: 48px !important; display: inline-block !important; visibility: visible !important;">Cancel</button>
                 <button type="button" id="saveBtn" onclick="saveUser()" style="flex: 1 !important; padding: 14px !important; background: linear-gradient(to right, #1a73e8, #1557b0) !important; color: white !important; border: none !important; border-radius: 12px !important; font-size: 15px !important; font-weight: bold !important; cursor: pointer !important; box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3) !important; min-height: 48px !important; display: inline-block !important; visibility: visible !important;">Add User</button>
             </div>
         </div>
@@ -125,35 +125,54 @@
             document.getElementById('photoInput').click();
         }
 
-        // PENTING: showListView sekarang async untuk force refresh selepas save
-        async function showListView(forceRefresh = false) {
+        // RESET BUTTON STATE - Fungsi khas untuk pastikan button sentiasa boleh ditekan
+        function resetButtonState() {
+            const btn = document.getElementById('saveBtn');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = editingEmail ? 'Update User' : 'Add User';
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            }
+            console.log('[ResetButton] Button state reset, editingEmail:', editingEmail);
+        }
+
+        function showListView() {
             document.getElementById('formView').style.display = 'none';
             document.getElementById('listView').style.display = 'block';
             resetForm();
-            await loadUserList(forceRefresh); // Force refresh jika perlu
+            loadUserList(); // Tidak perlu force refresh, guna cache
         }
 
         function showAddForm() {
             editingEmail = null;
             resetForm();
+            resetButtonState(); // PENTING: Reset button state
             document.getElementById('saveBtn').innerText = 'Add User';
             document.getElementById('formView').style.display = 'block';
             document.getElementById('listView').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            console.log('[ShowAddForm] editingEmail:', editingEmail);
+            console.log('[ShowAddForm] Ready for new user');
         }
 
         function showEditForm() {
             if (!editingEmail) {
                 console.error('[ShowEditForm] ERROR: editingEmail is null!');
-                alert('Error: No user selected for editing');
+                showListView();
                 return;
             }
+            resetButtonState(); // PENTING: Reset button state
             document.getElementById('saveBtn').innerText = 'Update User';
             document.getElementById('formView').style.display = 'block';
             document.getElementById('listView').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            console.log('[ShowEditForm] editingEmail:', editingEmail);
+            console.log('[ShowEditForm] Ready to update:', editingEmail);
+        }
+
+        function cancelForm() {
+            resetForm();
+            resetButtonState();
+            showListView();
         }
 
         function filterUsers() {
@@ -167,7 +186,7 @@
             renderUserList(filtered);
         }
 
-        async function loadUserList(forceRefresh = false) {
+        async function loadUserList() {
             const container = document.getElementById('userList');
             container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><div>Loading users...</div></div>';
             
@@ -178,13 +197,9 @@
                     fetchedUsers = await DataManager.fetchData(
                         USER_CACHE_KEY, 
                         CONFIG.API_URL + '?action=getAllUsers', 
-                        'users',
-                        forceRefresh // PENTING: Force refresh dari server
+                        'users'
                     );
                 } else {
-                    if (forceRefresh) {
-                        localStorage.removeItem(USER_CACHE_KEY);
-                    }
                     const cachedData = localStorage.getItem(USER_CACHE_KEY);
                     if (cachedData) {
                         try {
@@ -210,7 +225,7 @@
                 
                 if (fetchedUsers !== null) {
                     allUsers = fetchedUsers;
-                    console.log('[LoadUserList] Users loaded:', allUsers.length, 'Force refresh:', forceRefresh);
+                    console.log('[LoadUserList] Users loaded:', allUsers.length);
                     renderUserList(allUsers);
                 } else {
                     container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Failed to load data</div></div>';
@@ -301,21 +316,16 @@
         }
 
         function editUser(email, role, name, noKad, active, pictureFileId) {
-            console.log('[EditUser] Called with email:', email, 'pictureFileId:', pictureFileId);
+            console.log('[EditUser] Called with email:', email);
             
-            // PENTING: Set editingEmail SEBELUM panggil showEditForm
             editingEmail = email;
             
-            // Load data ke form
             document.getElementById('userName').value = name || '';
             document.getElementById('userNoKad').value = noKad || '';
             document.getElementById('userRole').value = role || '';
             document.getElementById('userEmail').value = email || '';
             document.getElementById('userActive').checked = active !== false;
             
-            console.log('[EditUser] Form loaded, editingEmail:', editingEmail);
-            
-            // Load gambar
             const preview = document.getElementById('photoPreview');
             const placeholder = document.getElementById('photoPlaceholder');
             
@@ -346,6 +356,10 @@
                         placeholder.style.display = 'none'; 
                         tempPhotoBase64 = '';
                     }
+                }).catch(err => {
+                    console.error('[EditUser] Image fetch error:', err);
+                    preview.style.display = 'none'; 
+                    placeholder.style.display = 'flex';
                 });
             } else { 
                 preview.style.display = 'none'; 
@@ -365,11 +379,11 @@
             if (typeof PhotoPicker !== 'undefined') PhotoPicker.reset();
             tempPhotoBase64 = ''; 
             editingEmail = null;
-            console.log('[ResetForm] Form reset, editingEmail:', editingEmail);
+            console.log('[ResetForm] Form reset');
         }
 
         async function saveUser() {
-            console.log('[SaveUser] Called, editingEmail:', editingEmail);
+            console.log('[SaveUser] Starting, editingEmail:', editingEmail);
             
             const name = document.getElementById('userName').value.trim();
             const noKad = document.getElementById('userNoKad').value.trim();
@@ -384,8 +398,13 @@
             }
 
             const btn = document.getElementById('saveBtn');
-            btn.innerText = 'Saving...'; 
+            const originalText = btn.innerText;
+            
+            // Set button ke state saving
             btn.disabled = true;
+            btn.innerText = 'Saving...';
+            btn.style.opacity = '0.6';
+            btn.style.cursor = 'not-allowed';
 
             const action = editingEmail ? 'updateUser' : 'addUser';
             const payload = { 
@@ -403,13 +422,16 @@
             console.log('[SaveUser] Payload:', payload);
 
             try {
+                // Fetch 1: Save user data
                 await fetch(CONFIG.API_URL, { 
                     method: 'POST', 
                     mode: 'no-cors', 
                     headers: { 'Content-Type': 'text/plain' }, 
                     body: JSON.stringify(payload) 
                 });
+                console.log('[SaveUser] User data saved');
                 
+                // Fetch 2: Upload photo jika ada
                 if (tempPhotoBase64) {
                     await fetch(CONFIG.API_URL, { 
                         method: 'POST', 
@@ -420,6 +442,7 @@
                             data: { base64: tempPhotoBase64, email } 
                         }) 
                     });
+                    console.log('[SaveUser] Photo uploaded');
                     if (typeof DataManager !== 'undefined') {
                         DataManager.setCachedImage(USER_IMG_PREFIX, email, tempPhotoBase64);
                     }
@@ -431,21 +454,29 @@
                 } else {
                     localStorage.removeItem(USER_CACHE_KEY);
                 }
-                
-                // PENTING: Force refresh dari server untuk dapat pictureFileId yang betul
-                console.log('[SaveUser] Force refreshing data from server...');
-                await showListView(true); // Force refresh = true
-                
+                console.log('[SaveUser] Cache cleared');
+
+                // PENTING: Reset button state SEBELUM navigation
+                resetButtonState();
+                console.log('[SaveUser] Button state reset');
+
+                // Show success message
                 if (typeof Utils !== 'undefined') Utils.showToast('✅ Pengguna berjaya disimpan!', 'success');
                 else alert('Pengguna berjaya disimpan!');
 
+                // Navigation ke list view
+                showListView();
+
             } catch (error) {
                 console.error('[SaveUser] Error:', error);
+                
+                // PENTING: Reset button state dalam catch block juga
+                resetButtonState();
+                
                 if (typeof Utils !== 'undefined') Utils.showToast('❌ Ralat semasa menyimpan', 'error');
                 else alert('Ralat semasa menyimpan');
-                btn.innerText = editingEmail ? 'Update User' : 'Add User'; 
-                btn.disabled = false;
             }
+            // TIADA finally block kerana kita handle dalam try dan catch
         }
 
         async function deleteUser(email) {
