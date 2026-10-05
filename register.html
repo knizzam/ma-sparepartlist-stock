@@ -9,12 +9,12 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="register.css">
     
-    <!-- SCRIPT BARU: Data Manager (Letak SEBELUM script lain) -->
-    <script src="data-manager.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></iscript>
+    <!-- SCRIPT ORDER PENTING -->
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="photo-picker.js"></script>
+    <script src="data-manager.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -25,7 +25,7 @@
 
     <div class="main-container">
         <!-- VIEW 1: FORM -->
-        <div id="formView">
+        <div id="formView" style="display: none;">
             <div class="form-card">
                 <div class="form-card-header">
                     <div class="form-section-title" style="margin-bottom: 0;">Account Details</div>
@@ -62,8 +62,8 @@
             </div>
 
             <div style="display: flex !important; gap: 10px; margin-top: 15px; width: 100%;">
-                <button type="button" class="cancel-btn" onclick="showListView()">Cancel</button>
-                <button type="button" class="submit-btn" id="saveBtn" onclick="saveUser()">Add User</button>
+                <button type="button" class="cancel-btn" onclick="showListView()" style="flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; min-height: 48px;">Cancel</button>
+                <button type="button" class="submit-btn" id="saveBtn" onclick="saveUser()" style="flex: 1; padding: 14px; background: linear-gradient(to right, #1a73e8, #1557b0); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3); min-height: 48px;">Add User</button>
             </div>
         </div>
 
@@ -95,8 +95,21 @@
         const USER_CACHE_KEY = 'ma_inventory_user_list';
         const USER_IMG_PREFIX = 'ma_user_img';
 
+        // DEBUG: Check jika DataManager load
+        console.log('[Init] DataManager available:', typeof DataManager !== 'undefined');
+        console.log('[Init] CONFIG available:', typeof CONFIG !== 'undefined');
+        console.log('[Init] API URL:', typeof CONFIG !== 'undefined' ? CONFIG.API_URL : 'UNDEFINED');
+
         document.addEventListener('DOMContentLoaded', function() {
-            PhotoPicker.init({ wrapperId: 'photoWrapper', inputId: 'photoInput', previewId: 'photoPreview', placeholderId: 'photoPlaceholder' });
+            // Init PhotoPicker jika ada
+            if (typeof PhotoPicker !== 'undefined') {
+                PhotoPicker.init({ 
+                    wrapperId: 'photoWrapper', 
+                    inputId: 'photoInput', 
+                    previewId: 'photoPreview', 
+                    placeholderId: 'photoPlaceholder' 
+                });
+            }
             
             document.getElementById('photoInput').addEventListener('change', function(e) {
                 if (e.target.files && e.target.files[0]) {
@@ -123,7 +136,7 @@
             document.getElementById('formView').style.display = 'none';
             document.getElementById('listView').style.display = 'block';
             resetForm();
-            loadUserList(); // Load data (akan guna cache jika ada)
+            loadUserList();
         }
 
         function showAddForm() {
@@ -153,18 +166,59 @@
             renderUserList(filtered);
         }
 
+        // FUNGSI LOAD USER DENGAN FALLBACK
         async function loadUserList() {
             const container = document.getElementById('userList');
             container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><div>Loading users...</div></div>';
             
-            // GUNA DATA MANAGER: Akan return cache serta-merta jika valid, atau fetch baru
-            const fetchedUsers = await DataManager.fetchData(USER_CACHE_KEY, CONFIG.API_URL + '?action=getAllUsers', 'users');
-            
-            if (fetchedUsers !== null) {
-                allUsers = fetchedUsers;
-                renderUserList(allUsers);
-            } else {
-                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Failed to load data</div></div>';
+            try {
+                let fetchedUsers = null;
+                
+                // Guna DataManager jika ada, kalau tidak guna cara biasa
+                if (typeof DataManager !== 'undefined') {
+                    console.log('[LoadUser] Using DataManager');
+                    fetchedUsers = await DataManager.fetchData(
+                        USER_CACHE_KEY, 
+                        CONFIG.API_URL + '?action=getAllUsers', 
+                        'users'
+                    );
+                } else {
+                    console.log('[LoadUser] DataManager not available, using fallback');
+                    // FALLBACK: Guna cara biasa
+                    const cachedData = localStorage.getItem(USER_CACHE_KEY);
+                    if (cachedData) {
+                        try {
+                            const p = JSON.parse(cachedData);
+                            if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) {
+                                fetchedUsers = p.data;
+                            }
+                        } catch(e) {}
+                    }
+                    
+                    if (!fetchedUsers) {
+                        const res = await fetch(CONFIG.API_URL + '?action=getAllUsers');
+                        const result = await res.json();
+                        if (result.success && result.users) {
+                            fetchedUsers = result.users;
+                            localStorage.setItem(USER_CACHE_KEY, JSON.stringify({
+                                data: fetchedUsers,
+                                timestamp: new Date().getTime()
+                            }));
+                        }
+                    }
+                }
+                
+                if (fetchedUsers !== null) {
+                    allUsers = fetchedUsers;
+                    console.log('[LoadUser] Users loaded:', allUsers.length);
+                    renderUserList(allUsers);
+                } else {
+                    console.error('[LoadUser] Failed to fetch users');
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Failed to load data</div></div>';
+                }
+            } catch (error) {
+                console.error('[LoadUser] Error:', error);
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Error: ' + error.message + '</div></div>';
             }
         }
 
@@ -182,7 +236,21 @@
                 const isActive = user.active;
                 const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
                 const safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, '');
-                const cachedImage = DataManager.getCachedImage(USER_IMG_PREFIX, user.email);
+                
+                let cachedImage = null;
+                if (typeof DataManager !== 'undefined') {
+                    cachedImage = DataManager.getCachedImage(USER_IMG_PREFIX, user.email);
+                } else {
+                    const key = USER_IMG_PREFIX + '_' + safeEmail;
+                    const cached = localStorage.getItem(key);
+                    if (cached) {
+                        try {
+                            const p = JSON.parse(cached);
+                            if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) cachedImage = p.base64;
+                        } catch(e) {}
+                    }
+                }
+                
                 let avatarHTML = initial;
                 if (cachedImage && user.pictureFileId) {
                     avatarHTML = `<img src="${cachedImage}" alt="${user.name}" style="width:100%; height:100%; object-fit:cover;">`;
@@ -204,16 +272,31 @@
 
             // Load gambar yang belum ada dalam cache
             users.forEach(user => {
-                if (user.pictureFileId && !DataManager.getCachedImage(USER_IMG_PREFIX, user.email)) {
-                    const safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, '');
-                    const avatarBox = document.getElementById(`avatar-box-${safeEmail}`);
-                    if (avatarBox) {
-                        APIHelper.fetchImage(user.pictureFileId).then(imgResult => {
-                            if (imgResult.success && imgResult.base64) {
-                                DataManager.setCachedImage(USER_IMG_PREFIX, user.email, imgResult.base64);
-                                avatarBox.innerHTML = `<img src="${imgResult.base64}" alt="${user.name}" style="width:100%; height:100%; object-fit:cover;">`;
-                            }
-                        });
+                if (user.pictureFileId) {
+                    let hasCache = false;
+                    if (typeof DataManager !== 'undefined') {
+                        hasCache = !!DataManager.getCachedImage(USER_IMG_PREFIX, user.email);
+                    } else {
+                        const key = USER_IMG_PREFIX + '_' + user.email.replace(/[^a-zA-Z0-9]/g, '');
+                        hasCache = !!localStorage.getItem(key);
+                    }
+                    
+                    if (!hasCache) {
+                        const safeEmail = user.email.replace(/[^a-zA-Z0-9]/g, '');
+                        const avatarBox = document.getElementById(`avatar-box-${safeEmail}`);
+                        if (avatarBox && typeof APIHelper !== 'undefined') {
+                            APIHelper.fetchImage(user.pictureFileId).then(imgResult => {
+                                if (imgResult.success && imgResult.base64) {
+                                    if (typeof DataManager !== 'undefined') {
+                                        DataManager.setCachedImage(USER_IMG_PREFIX, user.email, imgResult.base64);
+                                    } else {
+                                        const key = USER_IMG_PREFIX + '_' + safeEmail;
+                                        localStorage.setItem(key, JSON.stringify({ base64: imgResult.base64, timestamp: new Date().getTime() }));
+                                    }
+                                    avatarBox.innerHTML = `<img src="${imgResult.base64}" alt="${user.name}" style="width:100%; height:100%; object-fit:cover;">`;
+                                }
+                            });
+                        }
                     }
                 }
             });
@@ -229,11 +312,24 @@
             
             const preview = document.getElementById('photoPreview');
             const placeholder = document.getElementById('photoPlaceholder');
-            const cachedImage = DataManager.getCachedImage(USER_IMG_PREFIX, email);
+            
+            let cachedImage = null;
+            if (typeof DataManager !== 'undefined') {
+                cachedImage = DataManager.getCachedImage(USER_IMG_PREFIX, email);
+            } else {
+                const key = USER_IMG_PREFIX + '_' + email.replace(/[^a-zA-Z0-9]/g, '');
+                const cached = localStorage.getItem(key);
+                if (cached) {
+                    try {
+                        const p = JSON.parse(cached);
+                        if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) cachedImage = p.base64;
+                    } catch(e) {}
+                }
+            }
             
             if (cachedImage) { 
                 preview.src = cachedImage; preview.style.display = 'block'; placeholder.style.display = 'none'; tempPhotoBase64 = ''; 
-            } else if (pictureFileId && pictureFileId.trim() !== '') {
+            } else if (pictureFileId && pictureFileId.trim() !== '' && typeof APIHelper !== 'undefined') {
                 APIHelper.fetchImage(pictureFileId).then(imgResult => {
                     if (imgResult.success && imgResult.base64) {
                         preview.src = imgResult.base64; preview.style.display = 'block'; placeholder.style.display = 'none'; tempPhotoBase64 = '';
@@ -251,7 +347,7 @@
             document.getElementById('userRole').value = '';
             document.getElementById('userEmail').value = '';
             document.getElementById('userActive').checked = true;
-            PhotoPicker.reset();
+            if (typeof PhotoPicker !== 'undefined') PhotoPicker.reset();
             tempPhotoBase64 = ''; 
             editingEmail = null;
         }
@@ -263,7 +359,11 @@
             const email = document.getElementById('userEmail').value.trim();
             const active = document.getElementById('userActive').checked;
 
-            if (!email || !name) { Utils.showToast('⚠️ Email dan Nama Penuh wajib diisi!', 'warning'); return; }
+            if (!email || !name) { 
+                if (typeof Utils !== 'undefined') Utils.showToast('️ Email dan Nama Penuh wajib diisi!', 'warning');
+                else alert('Email dan Nama Penuh wajib diisi!');
+                return; 
+            }
 
             const btn = document.getElementById('saveBtn');
             btn.innerText = 'Saving...'; btn.disabled = true;
@@ -276,15 +376,19 @@
                 
                 if (tempPhotoBase64) {
                     await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'uploadUserPicture', data: { base64: tempPhotoBase64, email } }) });
-                    DataManager.setCachedImage(USER_IMG_PREFIX, email, tempPhotoBase64);
+                    if (typeof DataManager !== 'undefined') {
+                        DataManager.setCachedImage(USER_IMG_PREFIX, email, tempPhotoBase64);
+                    }
                 }
 
-                // 🔥 PENYELESAIAN MASALAH REFRESH:
-                // 1. Padam cache lama supaya page lain tidak baca data lapuk
-                DataManager.clearCache(USER_CACHE_KEY);
+                // Clear cache & instant update
+                if (typeof DataManager !== 'undefined') {
+                    DataManager.clearCache(USER_CACHE_KEY);
+                } else {
+                    localStorage.removeItem(USER_CACHE_KEY);
+                }
                 
-                // 2. Update array 'allUsers' dalam memori serta-merta
-                const newUser = { email, role, name, noKad, active, pictureFileId: tempPhotoBase64 ? 'new' : (editingEmail ? allUsers.find(u=>u.email===editingEmail).pictureFileId : '') };
+                const newUser = { email, role, name, noKad, active, pictureFileId: tempPhotoBase64 ? 'new' : (editingEmail ? allUsers.find(u=>u.email===editingEmail)?.pictureFileId : '') };
                 if (editingEmail) {
                     const index = allUsers.findIndex(u => u.email === editingEmail);
                     if (index !== -1) allUsers[index] = newUser;
@@ -292,13 +396,15 @@
                     allUsers.push(newUser);
                 }
 
-                // 3. Render semula UI serta-merta (User nampak perubahan TANPA perlu refresh)
                 renderUserList(allUsers);
-                Utils.showToast('✅ Pengguna berjaya disimpan!', 'success');
+                if (typeof Utils !== 'undefined') Utils.showToast('✅ Pengguna berjaya disimpan!', 'success');
+                else alert('Pengguna berjaya disimpan!');
                 showListView();
 
             } catch (error) {
-                Utils.showToast('❌ Ralat semasa menyimpan', 'error');
+                console.error('[SaveUser] Error:', error);
+                if (typeof Utils !== 'undefined') Utils.showToast('❌ Ralat semasa menyimpan', 'error');
+                else alert('Ralat semasa menyimpan');
                 btn.innerText = editingEmail ? 'Update User' : 'Add User'; btn.disabled = false;
             }
         }
@@ -308,16 +414,23 @@
             try {
                 await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'deleteUser', data: { email } }) });
                 
-                // 🔥 Padam cache data & gambar
-                DataManager.clearCache(USER_CACHE_KEY);
-                DataManager.clearImageCache(USER_IMG_PREFIX, email);
+                if (typeof DataManager !== 'undefined') {
+                    DataManager.clearCache(USER_CACHE_KEY);
+                    DataManager.clearImageCache(USER_IMG_PREFIX, email);
+                } else {
+                    localStorage.removeItem(USER_CACHE_KEY);
+                    const key = USER_IMG_PREFIX + '_' + email.replace(/[^a-zA-Z0-9]/g, '');
+                    localStorage.removeItem(key);
+                }
                 
-                // Update UI serta-merta
                 allUsers = allUsers.filter(u => u.email !== email);
                 renderUserList(allUsers);
-                Utils.showToast('✅ Pengguna berjaya dipadam', 'success');
+                if (typeof Utils !== 'undefined') Utils.showToast('✅ Pengguna berjaya dipadam', 'success');
+                else alert('Pengguna berjaya dipadam');
             } catch (error) { 
-                Utils.showToast('❌ Gagal memadam pengguna', 'error'); 
+                console.error('[DeleteUser] Error:', error);
+                if (typeof Utils !== 'undefined') Utils.showToast('❌ Gagal memadam pengguna', 'error');
+                else alert('Gagal memadam pengguna');
             }
         }
     </script>
