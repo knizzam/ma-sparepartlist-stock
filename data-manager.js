@@ -1,58 +1,61 @@
 /**
- * DATA MANAGER
- * Menguruskan semua cache (Data & Gambar) untuk semua page.
+ * DATA MANAGER - Centralized Cache Management
+ * Menguruskan semua cache (Data & Gambar) untuk semua page
  */
 const DataManager = {
     CACHE_EXPIRY: 5 * 60 * 1000, // 5 Minit
 
     /**
      * Ambil data dari API atau Cache
-     * @param {string} cacheKey - Kunci cache (contoh: 'ma_inventory_user_list')
-     * @param {string} apiUrl - URL API untuk fetch
-     * @param {string} dataKey - Kunci data dalam response JSON (contoh: 'users' atau 'products')
-     * @param {boolean} forceRefresh - Paksa ambil dari API, abaikan cache
      */
     async fetchData(cacheKey, apiUrl, dataKey, forceRefresh = false) {
-        // 1. Cuba ambil dari cache dulu (jika tidak force refresh)
+        // 1. Cuba ambil dari cache dulu
         if (!forceRefresh) {
             const cached = localStorage.getItem(cacheKey);
             if (cached) {
                 try {
                     const parsed = JSON.parse(cached);
                     if (new Date().getTime() - parsed.timestamp < this.CACHE_EXPIRY) {
-                        return parsed.data; // Pulangkan data cache serta-merta
+                        console.log('[DataManager] Using cache for:', cacheKey);
+                        return parsed.data;
+                    } else {
+                        console.log('[DataManager] Cache expired for:', cacheKey);
                     }
                 } catch (e) {
-                    console.error("Cache parse error:", e);
+                    console.error('[DataManager] Cache parse error:', e);
                 }
             }
         }
 
-        // 2. Jika tiada cache atau force refresh, fetch dari API
+        // 2. Fetch dari API
+        console.log('[DataManager] Fetching from API:', apiUrl);
         try {
             const res = await fetch(apiUrl);
             const result = await res.json();
+            console.log('[DataManager] API Response:', result);
             
             if (result.success && result[dataKey]) {
                 const dataArray = result[dataKey];
-                // Simpan ke cache
                 localStorage.setItem(cacheKey, JSON.stringify({
                     data: dataArray,
                     timestamp: new Date().getTime()
                 }));
+                console.log('[DataManager] Data cached:', cacheKey, 'Items:', dataArray.length);
                 return dataArray;
             }
+            console.warn('[DataManager] No data found in response');
             return [];
         } catch (error) {
-            console.error("Fetch API error:", error);
-            return null; // Return null untuk tandakan error
+            console.error('[DataManager] Fetch API error:', error);
+            return null;
         }
     },
 
     /**
-     * Padam cache data (PENTING: Panggil ini selepas berjaya Add/Update/Delete)
+     * Padam cache data
      */
     clearCache(cacheKey) {
+        console.log('[DataManager] Clearing cache:', cacheKey);
         localStorage.removeItem(cacheKey);
     },
 
@@ -69,7 +72,7 @@ const DataManager = {
                 if (new Date().getTime() - parsed.timestamp < this.CACHE_EXPIRY) {
                     return parsed.base64;
                 }
-                localStorage.removeItem(key); // Expired, buang
+                localStorage.removeItem(key);
             } catch (e) {}
         }
         return null;
@@ -88,7 +91,7 @@ const DataManager = {
     },
 
     /**
-     * Padam cache gambar (PENTING: Panggil ini selepas Delete)
+     * Padam cache gambar
      */
     clearImageCache(prefix, identifier) {
         if (!identifier) return;
