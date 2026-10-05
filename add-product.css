@@ -316,3 +316,86 @@ html, body {
     font-size: 20px !important;
     margin: 0 !important;
 }
+
+/* =========================================
+   FORM CARD HEADER (Dengan FAB Inline)
+   ========================================= */
+.form-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f0f8ff;
+}
+
+.form-card-header .form-section-title {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+/* =========================================
+   FAB INLINE BUTTON (Kecil & Sejajar Tajuk)
+   ========================================= */
+.fab-inline {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3) !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 16px !important;
+    transition: all 0.2s ease !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+}
+
+.fab-inline:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.5) !important;
+}
+
+.fab-inline:active {
+    transform: scale(0.95) !important;
+}
+
+.fab-inline i {
+    font-size: 16px !important;
+    margin: 0 !important;
+}
+
+/* List Header Add - Adjust untuk FAB */
+.list-header-add {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 15px !important;
+    padding: 0 5px !important;
+    width: 100% !important;
+}
+
+.list-title-add {
+    font-size: 16px;
+    font-weight: bold;
+    color: #000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.list-badge-add {
+    background: var(--primary-blue);
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
