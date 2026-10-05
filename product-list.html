@@ -8,33 +8,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="product-list.css">
-    
-    <!-- PENTING: Script order yang betul -->
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="photo-picker.js"></script>
-    <!-- DataManager adalah optional - ada fallback jika tidak load -->
-    <script src="data-manager.js"></script> 
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
 
-    <!-- Header -->
     <div class="product-list-header">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <h1 class="product-list-title"><i class="fas fa-boxes-stacked"></i>Product List</h1>
     </div>
 
-    <!-- Main Container -->
     <div class="main-container">
-        
-        <!-- Search & Filter -->
         <div class="search-filter-section">
             <div class="search-input-wrapper">
                 <i class="fas fa-search"></i>
                 <input type="text" class="search-input" id="searchInput" placeholder="Search Part Name, Part No, or Location..." onkeyup="filterProducts()">
             </div>
-            
             <div class="filter-sort-container">
                 <div class="category-filter-container">
                     <div class="category-chip active" onclick="setCategoryFilter('all', this)">All</div>
@@ -44,52 +35,33 @@
                     <div class="category-chip" onclick="setCategoryFilter('Safety', this)">Safety</div>
                     <div class="category-chip" onclick="setCategoryFilter('Kaizen', this)">Kaizen</div>
                 </div>
-                
-                <!-- Sort Button -->
                 <div style="position: relative;">
-                    <button class="sort-btn" id="sortBtn" onclick="toggleSortMenu()">
-                        <i class="fas fa-sort-amount-down"></i>
-                    </button>
+                    <button class="sort-btn" id="sortBtn" onclick="toggleSortMenu()"><i class="fas fa-sort-amount-down"></i></button>
                     <div class="sort-dropdown" id="sortDropdown">
-                        <div class="sort-option active" onclick="setSortOrder('default', this)">
-                            <i class="fas fa-check"></i> Default Order
-                        </div>
-                        <div class="sort-option" onclick="setSortOrder('low', this)">
-                            <i class="fas fa-arrow-up"></i> Low Stock First
-                        </div>
-                        <div class="sort-option" onclick="setSortOrder('high', this)">
-                            <i class="fas fa-arrow-down"></i> High Stock First
-                        </div>
-                        <div class="sort-option" onclick="setSortOrder('name', this)">
-                            <i class="fas fa-font"></i> Sort by Name
-                        </div>
+                        <div class="sort-option active" onclick="setSortOrder('default', this)"><i class="fas fa-check"></i> Default Order</div>
+                        <div class="sort-option" onclick="setSortOrder('low', this)"><i class="fas fa-arrow-up"></i> Low Stock First</div>
+                        <div class="sort-option" onclick="setSortOrder('high', this)"><i class="fas fa-arrow-down"></i> High Stock First</div>
+                        <div class="sort-option" onclick="setSortOrder('name', this)"><i class="fas fa-font"></i> Sort by Name</div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Product List Grid -->
-        <div class="product-list-container" id="productListContainer">
-            <!-- Loading will be injected here by JS -->
-        </div>
+        <div class="product-list-container" id="productListContainer"></div>
     </div>
 
-    <!-- EDIT MODAL -->
     <div class="modal-overlay" id="editModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">Edit Product</h2>
                 <button class="modal-close" onclick="closeEditModal()">&times;</button>
             </div>
-            
             <div class="form-card">
                 <div class="form-section-title">Product Information</div>
                 <div class="form-group">
                     <label class="form-label">Product Photo</label>
                     <div class="photo-upload-wrapper" id="editPhotoWrapper">
                         <div class="photo-placeholder" id="editPhotoPlaceholder" onclick="showPhotoMenu(event)">
-                            <i class="fas fa-camera"></i>
-                            <span>Tap to upload<br>or take photo</span>
+                            <i class="fas fa-camera"></i><span>Tap to upload<br>or take photo</span>
                         </div>
                         <img id="editPhotoPreview" class="photo-preview-large" alt="Preview" onclick="showPhotoMenu(event)">
                         <input type="file" id="editPhotoInput" accept="image/*">
@@ -111,13 +83,11 @@
                     </select>
                 </div>
             </div>
-
             <div class="form-card">
                 <div class="form-section-title">Stock Information</div>
                 <div class="form-group"><label class="form-label">Current Stock</label><input type="number" class="form-input" id="editCurrentStock" min="0"></div>
                 <div class="form-group"><label class="form-label">Minimum Stock</label><input type="number" class="form-input" id="editMinimumStock" min="0"></div>
             </div>
-
             <div class="modal-btn-group">
                 <button class="modal-btn cancel" onclick="closeEditModal()">Cancel</button>
                 <button class="modal-btn save" id="saveBtn" onclick="saveEditProduct()">Update</button>
@@ -133,36 +103,37 @@
         let currentSort = 'default';
         let editingPartNo = null;
         let tempEditPhotoBase64 = '';
-        const PRODUCT_CACHE_KEY = 'ma_inventory_product_list';
-        const PROD_IMG_PREFIX = 'ma_prod_img';
-
-        console.log('[Init] Starting Product List...');
-        console.log('[Init] CONFIG:', typeof CONFIG !== 'undefined' ? CONFIG : 'UNDEFINED');
-        console.log('[Init] DataManager:', typeof DataManager !== 'undefined' ? 'LOADED' : 'NOT FOUND');
+        const PRODUCT_LIST_CACHE_KEY = 'ma_inventory_product_list';
+        const CACHE_EXPIRY = 5 * 60 * 1000;
 
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof PhotoPicker !== 'undefined') {
-                PhotoPicker.init({ wrapperId: 'editPhotoWrapper', inputId: 'editPhotoInput', previewId: 'editPhotoPreview', placeholderId: 'editPhotoPlaceholder' });
-            }
+            PhotoPicker.init({
+                wrapperId: 'editPhotoWrapper',
+                inputId: 'editPhotoInput',
+                previewId: 'editPhotoPreview',
+                placeholderId: 'editPhotoPlaceholder'
+            });
+
             document.getElementById('editPhotoInput').addEventListener('change', function(e) {
                 if (e.target.files && e.target.files[0]) {
                     const reader = new FileReader();
                     reader.onload = function(ev) { 
                         tempEditPhotoBase64 = ev.target.result;
-                        if (typeof Utils !== 'undefined') Utils.showToast('📷 Photo selected', 'info');
+                        Utils.showToast('Photo selected', 'info');
                     };
                     reader.readAsDataURL(e.target.files[0]);
                 }
             });
+
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('#sortBtn') && !e.target.closest('#sortDropdown')) {
                     document.getElementById('sortDropdown').classList.remove('show');
                 }
             });
+
             loadProductList();
         });
 
-        // PENTING: Fungsi khas untuk reset button state
         function resetButtonState() {
             const btn = document.getElementById('saveBtn');
             if (btn) {
@@ -173,222 +144,169 @@
             }
         }
 
-        // PENTING: Load dengan fallback penuh
-        async function loadProductList(forceRefresh = false) {
-            const container = document.getElementById('productListContainer');
-            container.innerHTML = `<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #1a73e8; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #666; font-weight: 500;">Loading products...</div></div></div>`;
+        function getCachedProductImage(partNo) {
+            try {
+                const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
+                const item = localStorage.getItem(key);
+                if (!item) return null;
+                const parsed = JSON.parse(item);
+                if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) return parsed.base64;
+                return null;
+            } catch(e) { return null; }
+        }
+
+        function setCachedProductImage(partNo, base64) {
+            const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
+            localStorage.setItem(key, JSON.stringify({ base64: base64, timestamp: new Date().getTime() }));
+        }
+
+        async function loadProductList(forceRefresh) {
+            var container = document.getElementById('productListContainer');
+            
+            if (!forceRefresh) {
+                var cachedData = localStorage.getItem(PRODUCT_LIST_CACHE_KEY);
+                if (cachedData) {
+                    try {
+                        var parsed = JSON.parse(cachedData);
+                        if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
+                            allProducts = parsed.data;
+                            renderProducts();
+                            return;
+                        }
+                    } catch(e) {}
+                }
+            }
+            
+            container.innerHTML = '<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #1a73e8; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #666; font-weight: 500;">Loading products...</div></div></div>';
             
             try {
-                // Debug API URL
-                const apiUrl = typeof CONFIG !== 'undefined' ? CONFIG.API_URL : '';
-                console.log('[LoadProductList] API URL:', apiUrl);
+                var res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
+                var result = await res.json();
                 
-                if (!apiUrl) {
-                    throw new Error('CONFIG.API_URL is not defined. Please check config.js');
-                }
-
-                let fetchedProducts = null;
-                
-                // Cuba guna DataManager jika ada
-                if (typeof DataManager !== 'undefined') {
-                    console.log('[LoadProductList] Using DataManager');
-                    try {
-                        fetchedProducts = await DataManager.fetchData(
-                            PRODUCT_CACHE_KEY, 
-                            apiUrl + '?action=getAllProducts', 
-                            'products', 
-                            forceRefresh
-                        );
-                    } catch (dmError) {
-                        console.warn('[LoadProductList] DataManager failed, using fallback:', dmError);
-                    }
-                } else {
-                    console.log('[LoadProductList] DataManager not available, using fallback');
-                }
-                
-                // FALLBACK: Guna cara lama jika DataManager gagal
-                if (!fetchedProducts) {
-                    console.log('[LoadProductList] Using fallback method');
-                    if (forceRefresh) {
-                        localStorage.removeItem(PRODUCT_CACHE_KEY);
-                    }
-                    
-                    const cachedData = localStorage.getItem(PRODUCT_CACHE_KEY);
-                    if (cachedData && !forceRefresh) {
-                        try {
-                            const p = JSON.parse(cachedData);
-                            if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) {
-                                fetchedProducts = p.data;
-                                console.log('[LoadProductList] Loaded from cache:', fetchedProducts.length, 'products');
-                            }
-                        } catch(e) {
-                            console.error('[LoadProductList] Cache parse error:', e);
-                        }
-                    }
-                    
-                    // Jika tiada cache atau force refresh, fetch dari API
-                    if (!fetchedProducts) {
-                        console.log('[LoadProductList] Fetching from API directly');
-                        const fullUrl = apiUrl + '?action=getAllProducts';
-                        console.log('[LoadProductList] Full URL:', fullUrl);
-                        
-                        const res = await fetch(fullUrl);
-                        console.log('[LoadProductList] Response status:', res.status);
-                        
-                        const result = await res.json();
-                        console.log('[LoadProductList] API Response:', result);
-                        
-                        if (result.success && result.products) {
-                            fetchedProducts = result.products;
-                            localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify({ 
-                                data: fetchedProducts, 
-                                timestamp: new Date().getTime() 
-                            }));
-                            console.log('[LoadProductList] Saved to cache:', fetchedProducts.length, 'products');
-                        } else {
-                            throw new Error('API returned no products or success=false');
-                        }
-                    }
-                }
-                
-                if (fetchedProducts !== null && fetchedProducts.length > 0) {
-                    allProducts = fetchedProducts;
-                    console.log('[LoadProductList] SUCCESS - Products loaded:', allProducts.length);
+                if (result.success && result.products) {
+                    allProducts = result.products;
+                    localStorage.setItem(PRODUCT_LIST_CACHE_KEY, JSON.stringify({ data: allProducts, timestamp: new Date().getTime() }));
                     renderProducts();
                 } else {
-                    console.warn('[LoadProductList] No products found');
-                    container.innerHTML = `<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-box-open" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #999;">No products found</div></div></div>`;
+                    container.innerHTML = '<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-box-open" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #999;">No products found</div></div></div>';
                 }
             } catch (error) {
-                console.error('[LoadProductList] CRITICAL ERROR:', error);
-                container.innerHTML = `
-                    <div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
-                        <div>
-                            <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #dc3545; margin-bottom: 15px; display: block;"></i>
-                            <div style="font-size: 14px; color: #999; margin-bottom: 10px;">Failed to load data</div>
-                            <div style="font-size: 12px; color: #dc3545; max-width: 400px; word-break: break-all;">${error.message}</div>
-                            <button onclick="loadProductList(true)" style="margin-top: 15px; padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer;">Retry</button>
-                        </div>
-                    </div>
-                `;
+                console.error('Load error:', error);
+                container.innerHTML = '<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #dc3545; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #999;">Failed to load data</div></div></div>';
             }
         }
 
         function getStockStatus(current, min) {
-            const thresholdOK = min + (min * 0.5);
-            return current > thresholdOK ? 'high' : (current > min ? 'mid' : 'low');
+            var thresholdOK = min + (min * 0.5);
+            if (current > thresholdOK) return 'high';
+            if (current > min) return 'mid';
+            return 'low';
         }
 
         function renderProducts() {
-            const container = document.getElementById('productListContainer');
-            
-            if (!allProducts || allProducts.length === 0) {
-                container.innerHTML = `<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-box-open" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #999;">No products found</div></div></div>`;
-                return;
-            }
-            
-            let filtered = allProducts.filter(p => {
-                const matchCategory = currentCategory === 'all' || p.category === currentCategory;
-                const searchLower = currentSearch.toLowerCase();
-                const matchSearch = p.partName.toLowerCase().includes(searchLower) || p.partNo.toLowerCase().includes(searchLower) || (p.location && p.location.toLowerCase().includes(searchLower));
+            var container = document.getElementById('productListContainer');
+            var filtered = allProducts.filter(function(p) {
+                var matchCategory = currentCategory === 'all' || p.category === currentCategory;
+                var searchLower = currentSearch.toLowerCase();
+                var matchSearch = p.partName.toLowerCase().includes(searchLower) || 
+                                  p.partNo.toLowerCase().includes(searchLower) || 
+                                  (p.location && p.location.toLowerCase().includes(searchLower));
                 return matchCategory && matchSearch;
             });
 
-            if (currentSort === 'low') filtered.sort((a, b) => ({ 'low': 0, 'mid': 1, 'high': 2 }[getStockStatus(parseInt(a.currentStock), parseInt(a.minimumStock))] - { 'low': 0, 'mid': 1, 'high': 2 }[getStockStatus(parseInt(b.currentStock), parseInt(b.minimumStock))]);
-            else if (currentSort === 'high') filtered.sort((a, b) => ({ 'low': 0, 'mid': 1, 'high': 2 }[getStockStatus(parseInt(b.currentStock), parseInt(b.minimumStock))] - { 'low': 0, 'mid': 1, 'high': 2 }[getStockStatus(parseInt(a.currentStock), parseInt(a.minimumStock))]);
-            else if (currentSort === 'name') filtered.sort((a, b) => a.partName.localeCompare(b.partName));
+            if (currentSort === 'low') {
+                filtered.sort(function(a, b) {
+                    var order = { 'low': 0, 'mid': 1, 'high': 2 };
+                    return order[getStockStatus(parseInt(a.currentStock), parseInt(a.minimumStock))] - order[getStockStatus(parseInt(b.currentStock), parseInt(b.minimumStock))];
+                });
+            } else if (currentSort === 'high') {
+                filtered.sort(function(a, b) {
+                    var order = { 'low': 0, 'mid': 1, 'high': 2 };
+                    return order[getStockStatus(parseInt(b.currentStock), parseInt(b.minimumStock))] - order[getStockStatus(parseInt(a.currentStock), parseInt(a.minimumStock))];
+                });
+            } else if (currentSort === 'name') {
+                filtered.sort(function(a, b) { return a.partName.localeCompare(b.partName); });
+            }
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-search" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #999;">No results found</div></div></div>`;
+                container.innerHTML = '<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-search" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #999;">No results found</div></div></div>';
                 return;
             }
 
-            let html = '';
-            filtered.forEach(product => {
-                const statusClass = getStockStatus(parseInt(product.currentStock), parseInt(product.minimumStock));
-                const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
+            var html = '';
+            for (var i = 0; i < filtered.length; i++) {
+                var product = filtered[i];
+                var statusClass = getStockStatus(parseInt(product.currentStock), parseInt(product.minimumStock));
+                var safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
+                var cachedImg = getCachedProductImage(product.partNo);
                 
-                // Fallback untuk getCachedImage
-                let cachedImg = null;
-                if (typeof DataManager !== 'undefined') {
-                    cachedImg = DataManager.getCachedImage(PROD_IMG_PREFIX, product.partNo);
-                } else {
-                    const key = PROD_IMG_PREFIX + '_' + safePartNo;
-                    const cached = localStorage.getItem(key);
-                    if (cached) {
-                        try {
-                            const p = JSON.parse(cached);
-                            if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) cachedImg = p.base64;
-                        } catch(e) {}
-                    }
+                var imgContent = '<i class="fas fa-box"></i>';
+                if (cachedImg) {
+                    imgContent = '<img src="' + cachedImg + '" alt="' + product.partName + '">';
+                } else if (product.pictureFileId) {
+                    imgContent = '<div id="img-placeholder-' + safePartNo + '" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#1a73e8;"><i class="fas fa-spinner fa-spin"></i></div>';
                 }
-                
-                let imgContent = '<i class="fas fa-box"></i>';
-                if (cachedImg) imgContent = `<img src="${cachedImg}" alt="${product.partName}">`;
-                else if (product.pictureFileId) imgContent = `<div id="img-placeholder-${safePartNo}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#1a73e8;"><i class="fas fa-spinner fa-spin"></i></div>`;
 
-                html += `<div class="product-card status-${statusClass}" onclick="openEditModal('${product.partNo}')">
-                    <div class="product-card-img" id="card-img-${safePartNo}">${imgContent}</div>
-                    <div class="product-card-body">
-                        <div class="product-card-name">${product.partName}</div>
-                        <span class="product-card-partno">${product.partNo}</span>
-                        <div class="product-card-location"><i class="fas fa-map-marker-alt"></i> ${product.location || '-'}</div>
-                    </div>
-                    <div class="product-card-footer">
-                        <div class="product-card-stock">
-                            <div class="status-dot ${statusClass}"></div>
-                            <div class="stock-info"><div class="stock-label">Stock</div><div class="stock-number">${product.currentStock}</div></div>
-                        </div>
-                        <button class="delete-btn-round" onclick="event.stopPropagation(); deleteProduct('${product.partNo}')"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>`;
-            });
+                html += '<div class="product-card status-' + statusClass + '" onclick="openEditModal(\'' + product.partNo + '\')">';
+                html += '<div class="product-card-img" id="card-img-' + safePartNo + '">' + imgContent + '</div>';
+                html += '<div class="product-card-body">';
+                html += '<div class="product-card-name">' + product.partName + '</div>';
+                html += '<span class="product-card-partno">' + product.partNo + '</span>';
+                html += '<div class="product-card-location"><i class="fas fa-map-marker-alt"></i> ' + (product.location || '-') + '</div>';
+                html += '</div>';
+                html += '<div class="product-card-footer">';
+                html += '<div class="product-card-stock">';
+                html += '<div class="status-dot ' + statusClass + '"></div>';
+                html += '<div class="stock-info">';
+                html += '<div class="stock-label">Stock</div>';
+                html += '<div class="stock-number">' + product.currentStock + '</div>';
+                html += '</div></div>';
+                html += '<button class="delete-btn-round" onclick="event.stopPropagation(); deleteProduct(\'' + product.partNo + '\')"><i class="fas fa-trash"></i></button>';
+                html += '</div></div>';
+            }
             container.innerHTML = html;
 
-            // Load gambar yang belum ada dalam cache
-            filtered.forEach(product => {
-                if (product.pictureFileId && product.pictureFileId !== 'new') {
-                    let hasCache = false;
-                    if (typeof DataManager !== 'undefined') {
-                        hasCache = !!DataManager.getCachedImage(PROD_IMG_PREFIX, product.partNo);
-                    } else {
-                        const key = PROD_IMG_PREFIX + '_' + product.partNo.replace(/[^a-zA-Z0-9]/g, '');
-                        hasCache = !!localStorage.getItem(key);
-                    }
-                    
-                    if (!hasCache) {
-                        const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
-                        const placeholderEl = document.getElementById(`img-placeholder-${safePartNo}`);
-                        if (placeholderEl && typeof APIHelper !== 'undefined') {
-                            APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
-                                if (imgResult.success && imgResult.base64) {
-                                    if (typeof DataManager !== 'undefined') {
-                                        DataManager.setCachedImage(PROD_IMG_PREFIX, product.partNo, imgResult.base64);
-                                    } else {
-                                        const key = PROD_IMG_PREFIX + '_' + safePartNo;
-                                        localStorage.setItem(key, JSON.stringify({ base64: imgResult.base64, timestamp: new Date().getTime() }));
-                                    }
-                                    const imgContainer = document.getElementById(`card-img-${safePartNo}`);
-                                    if (imgContainer) imgContainer.innerHTML = `<img src="${imgResult.base64}" alt="${product.partName}">`;
-                                }
-                            }).catch(err => console.error('[Render] Image fetch error:', err));
-                        }
+            for (var j = 0; j < filtered.length; j++) {
+                var prod = filtered[j];
+                if (prod.pictureFileId && !getCachedProductImage(prod.partNo)) {
+                    var sPartNo = prod.partNo.replace(/[^a-zA-Z0-9]/g, '');
+                    var placeholderEl = document.getElementById('img-placeholder-' + sPartNo);
+                    if (placeholderEl) {
+                        APIHelper.fetchImage(prod.pictureFileId).then(function(imgResult) {
+                            if (imgResult.success && imgResult.base64) {
+                                setCachedProductImage(prod.partNo, imgResult.base64);
+                                var imgContainer = document.getElementById('card-img-' + sPartNo);
+                                if (imgContainer) imgContainer.innerHTML = '<img src="' + imgResult.base64 + '" alt="' + prod.partName + '">';
+                            }
+                        }).catch(function(err) {
+                            console.error('Image load error:', err);
+                        });
                     }
                 }
-            });
+            }
         }
 
-        function filterProducts() { currentSearch = document.getElementById('searchInput').value; renderProducts(); }
+        function filterProducts() { 
+            currentSearch = document.getElementById('searchInput').value; 
+            renderProducts(); 
+        }
+        
         function setCategoryFilter(category, element) {
             currentCategory = category;
-            document.querySelectorAll('.category-chip').forEach(chip => chip.classList.remove('active'));
+            var chips = document.querySelectorAll('.category-chip');
+            for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
             element.classList.add('active');
             renderProducts();
         }
-        function toggleSortMenu() { document.getElementById('sortDropdown').classList.toggle('show'); }
+
+        function toggleSortMenu() {
+            document.getElementById('sortDropdown').classList.toggle('show');
+        }
+
         function setSortOrder(order, element) {
             currentSort = order;
-            document.querySelectorAll('.sort-option').forEach(opt => opt.classList.remove('active'));
+            var opts = document.querySelectorAll('.sort-option');
+            for (var i = 0; i < opts.length; i++) opts[i].classList.remove('active');
             element.classList.add('active');
             document.getElementById('sortBtn').classList.toggle('active', order !== 'default');
             document.getElementById('sortDropdown').classList.remove('show');
@@ -396,47 +314,40 @@
         }
 
         function openEditModal(partNo) {
-            const product = allProducts.find(p => p.partNo === partNo);
-            if (!product) { console.error('[OpenEditModal] Product not found:', partNo); return; }
-            
+            var product = allProducts.find(function(p) { return p.partNo === partNo; });
+            if (!product) return;
+
             editingPartNo = partNo;
             tempEditPhotoBase64 = '';
-            
+
             document.getElementById('editPartName').value = product.partName;
-            document.getElementById('editPartNo').value = product.partNo;
+            document.getElementById('editPartNo').value = product.partNo; 
             document.getElementById('editNoSpec').value = product.noSpec || '';
             document.getElementById('editLocation').value = product.location || '';
             document.getElementById('editCategory').value = product.category || 'Uncategorized';
             document.getElementById('editCurrentStock').value = product.currentStock;
             document.getElementById('editMinimumStock').value = product.minimumStock;
 
-            const preview = document.getElementById('editPhotoPreview');
-            const placeholder = document.getElementById('editPhotoPlaceholder');
+            var preview = document.getElementById('editPhotoPreview');
+            var placeholder = document.getElementById('editPhotoPlaceholder');
+            var cachedImg = getCachedProductImage(partNo);
             
-            let cachedImg = null;
-            if (typeof DataManager !== 'undefined') {
-                cachedImg = DataManager.getCachedImage(PROD_IMG_PREFIX, partNo);
-            } else {
-                const key = PROD_IMG_PREFIX + '_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
-                const cached = localStorage.getItem(key);
-                if (cached) {
-                    try {
-                        const p = JSON.parse(cached);
-                        if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) cachedImg = p.base64;
-                    } catch(e) {}
-                }
-            }
-            
-            if (cachedImg) { 
-                preview.src = cachedImg; preview.style.display = 'block'; placeholder.style.display = 'none'; 
-            } else if (product.pictureFileId && product.pictureFileId !== 'new' && typeof APIHelper !== 'undefined') {
+            if (cachedImg) {
+                preview.src = cachedImg; 
+                preview.style.display = 'block'; 
+                placeholder.style.display = 'none';
+            } else if (product.pictureFileId) {
                 placeholder.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Loading...</span>';
-                APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
+                APIHelper.fetchImage(product.pictureFileId).then(function(imgResult) {
                     if (imgResult.success && imgResult.base64) {
-                        if (typeof DataManager !== 'undefined') DataManager.setCachedImage(PROD_IMG_PREFIX, partNo, imgResult.base64);
-                        preview.src = imgResult.base64; preview.style.display = 'block'; placeholder.style.display = 'none';
-                    } else { resetPhotoPlaceholder(); }
-                }).catch(() => resetPhotoPlaceholder());
+                        setCachedProductImage(partNo, imgResult.base64);
+                        preview.src = imgResult.base64; 
+                        preview.style.display = 'block'; 
+                        placeholder.style.display = 'none';
+                    } else { 
+                        resetPhotoPlaceholder(); 
+                    }
+                }).catch(function() { resetPhotoPlaceholder(); });
             } else { 
                 resetPhotoPlaceholder(); 
             }
@@ -447,7 +358,7 @@
 
         function resetPhotoPlaceholder() {
             document.getElementById('editPhotoPreview').style.display = 'none';
-            const placeholder = document.getElementById('editPhotoPlaceholder');
+            var placeholder = document.getElementById('editPhotoPlaceholder');
             placeholder.style.display = 'flex';
             placeholder.innerHTML = '<i class="fas fa-camera"></i><span>Tap to upload<br>or take photo</span>';
         }
@@ -460,99 +371,112 @@
         }
 
         async function saveEditProduct() {
-            console.log('[SaveEditProduct] Starting, editingPartNo:', editingPartNo);
-            if (!editingPartNo) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ No product selected!', 'warning'); return; }
+            if (!editingPartNo) {
+                Utils.showToast('No product selected!', 'warning');
+                return;
+            }
             
-            const partName = document.getElementById('editPartName').value.trim();
-            const newPartNo = document.getElementById('editPartNo').value.trim();
-            if (!partName || !newPartNo) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Part Name and Part No. are required!', 'warning'); return; }
+            var partName = document.getElementById('editPartName').value.trim();
+            var newPartNo = document.getElementById('editPartNo').value.trim();
+            
+            if (!partName || !newPartNo) { 
+                Utils.showToast('Part Name and Part No. are required!', 'warning'); 
+                return; 
+            }
 
-            const btn = document.getElementById('saveBtn');
-            btn.innerText = 'Updating...'; 
+            var btn = document.getElementById('saveBtn');
+            btn.innerText = 'Updating...';  
             btn.disabled = true;
-            btn.style.opacity = '0.6';
-            btn.style.cursor = 'not-allowed';
 
-            const payload = { 
+            var currentStock = parseInt(document.getElementById('editCurrentStock').value) || 0;
+            var minimumStock = parseInt(document.getElementById('editMinimumStock').value) || 0;
+
+            var payload = { 
                 action: 'updateProduct', 
                 data: { 
-                    partName, partNo: newPartNo,
+                    partName: partName,
+                    partNo: newPartNo,
                     noSpec: document.getElementById('editNoSpec').value.trim(), 
                     location: document.getElementById('editLocation').value.trim(), 
                     category: document.getElementById('editCategory').value.trim(), 
-                    currentStock: parseInt(document.getElementById('editCurrentStock').value) || 0,
-                    minimumStock: parseInt(document.getElementById('editMinimumStock').value) || 0,
+                    currentStock: currentStock,
+                    minimumStock: minimumStock,
                     originalPartNo: editingPartNo
                 } 
             };
 
             try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000);
-                const response = await fetch(CONFIG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload), signal: controller.signal });
-                clearTimeout(timeoutId);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                var controller = new AbortController();
+                var timeoutId = setTimeout(function() { controller.abort(); }, 10000);
+
+                var response = await fetch(CONFIG.API_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain' }, 
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
+                });
                 
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
+
+                var result = await response.json();
+                console.log('API Response:', result);
+
                 if (tempEditPhotoBase64) {
-                    await fetch(CONFIG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'uploadProductPicture', data: { base64: tempEditPhotoBase64, partNo: newPartNo } }) });
-                    if (typeof DataManager !== 'undefined') {
-                        DataManager.setCachedImage(PROD_IMG_PREFIX, newPartNo, tempEditPhotoBase64);
+                    try {
+                        var photoPayload = { 
+                            action: 'uploadProductPicture', 
+                            data: { base64: tempEditPhotoBase64, partNo: newPartNo } 
+                        };
+                        
+                        await fetch(CONFIG.API_URL, { 
+                            method: 'POST', 
+                            headers: { 'Content-Type': 'text/plain' }, 
+                            body: JSON.stringify(photoPayload) 
+                        });
+                    } catch (photoError) {
+                        console.error('Photo upload error:', photoError);
                     }
                 }
 
-                // Clear cache
-                if (typeof DataManager !== 'undefined') {
-                    DataManager.clearCache(PRODUCT_CACHE_KEY);
-                } else {
-                    localStorage.removeItem(PRODUCT_CACHE_KEY);
-                }
-                
-                // Update local array serta-merta
-                const idx = allProducts.findIndex(p => p.partNo === editingPartNo);
-                if (idx !== -1) {
-                    allProducts[idx] = { ...allProducts[idx], partName, partNo: newPartNo, noSpec: payload.data.noSpec, location: payload.data.location, category: payload.data.category, currentStock: payload.data.currentStock, minimumStock: payload.data.minimumStock };
-                }
-                
                 resetButtonState();
-                
-                if (typeof Utils !== 'undefined') Utils.showToast('✅ Product updated!', 'success');
+                Utils.showToast('Product updated!', 'success');
                 closeEditModal();
-                renderProducts();
+                loadProductList(true);
                 
             } catch (error) {
-                console.error('[SaveEditProduct] Error:', error);
-                resetButtonState();
-                if (typeof Utils !== 'undefined') {
-                    Utils.showToast(error.name === 'AbortError' ? '⏱️ Request timeout.' : '❌ Failed to update: ' + error.message, 'error');
+                console.error('Save error:', error);
+                if (error.name === 'AbortError') {
+                    Utils.showToast('Request timeout. Please try again.', 'error');
+                } else {
+                    Utils.showToast('Failed to update: ' + error.message, 'error');
                 }
+                resetButtonState();
             }
         }
 
         async function deleteProduct(partNo) {
-            if (!confirm('⚠️ Are you sure you want to delete this product?')) return;
+            if (!confirm('Are you sure you want to delete this product?')) return;
+            
             try {
-                await fetch(CONFIG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'deleteProduct', data: { partNo } }) });
-                
-                if (typeof DataManager !== 'undefined') {
-                    DataManager.clearCache(PRODUCT_CACHE_KEY);
-                    DataManager.clearImageCache(PROD_IMG_PREFIX, partNo);
-                } else {
-                    localStorage.removeItem(PRODUCT_CACHE_KEY);
-                    const key = PROD_IMG_PREFIX + '_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
-                    localStorage.removeItem(key);
-                }
-                
-                allProducts = allProducts.filter(p => p.partNo !== partNo);
-                renderProducts();
-                
-                if (typeof Utils !== 'undefined') Utils.showToast('✅ Product deleted', 'success');
+                await fetch(CONFIG.API_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain' }, 
+                    body: JSON.stringify({ action: 'deleteProduct', data: { partNo: partNo } }) 
+                });
+                Utils.showToast('Product deleted', 'success');
+                loadProductList(true);
             } catch (error) { 
-                console.error('[DeleteProduct] Error:', error);
-                if (typeof Utils !== 'undefined') Utils.showToast('❌ Failed to delete', 'error'); 
+                Utils.showToast('Failed to delete', 'error'); 
             }
         }
 
-        document.getElementById('editModal').addEventListener('click', function(e) { if (e.target === this) closeEditModal(); });
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEditModal();
+        });
     </script>
 </body>
 </html>
