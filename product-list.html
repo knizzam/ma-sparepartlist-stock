@@ -9,10 +9,11 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="product-list.css">
     
-    <!-- PENTING: Script order -->
+    <!-- PENTING: Script order yang betul -->
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="photo-picker.js"></script>
+    <!-- DataManager adalah optional - ada fallback jika tidak load -->
     <script src="data-manager.js"></script> 
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
@@ -135,6 +136,10 @@
         const PRODUCT_CACHE_KEY = 'ma_inventory_product_list';
         const PROD_IMG_PREFIX = 'ma_prod_img';
 
+        console.log('[Init] Starting Product List...');
+        console.log('[Init] CONFIG:', typeof CONFIG !== 'undefined' ? CONFIG : 'UNDEFINED');
+        console.log('[Init] DataManager:', typeof DataManager !== 'undefined' ? 'LOADED' : 'NOT FOUND');
+
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof PhotoPicker !== 'undefined') {
                 PhotoPicker.init({ wrapperId: 'editPhotoWrapper', inputId: 'editPhotoInput', previewId: 'editPhotoPreview', placeholderId: 'editPhotoPlaceholder' });
@@ -157,7 +162,7 @@
             loadProductList();
         });
 
-        // PENTING: Fungsi khas untuk reset button state supaya tidak stuck
+        // PENTING: Fungsi khas untuk reset button state
         function resetButtonState() {
             const btn = document.getElementById('saveBtn');
             if (btn) {
@@ -166,52 +171,106 @@
                 btn.style.opacity = '1';
                 btn.style.cursor = 'pointer';
             }
-            console.log('[ResetButton] Button state reset');
         }
 
-        // PENTING: Load dengan fallback supaya tidak stuck loading jika DataManager gagal
+        // PENTING: Load dengan fallback penuh
         async function loadProductList(forceRefresh = false) {
             const container = document.getElementById('productListContainer');
             container.innerHTML = `<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #1a73e8; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #666; font-weight: 500;">Loading products...</div></div></div>`;
             
             try {
+                // Debug API URL
+                const apiUrl = typeof CONFIG !== 'undefined' ? CONFIG.API_URL : '';
+                console.log('[LoadProductList] API URL:', apiUrl);
+                
+                if (!apiUrl) {
+                    throw new Error('CONFIG.API_URL is not defined. Please check config.js');
+                }
+
                 let fetchedProducts = null;
                 
+                // Cuba guna DataManager jika ada
                 if (typeof DataManager !== 'undefined') {
-                    fetchedProducts = await DataManager.fetchData(PRODUCT_CACHE_KEY, CONFIG.API_URL + '?action=getAllProducts', 'products', forceRefresh);
+                    console.log('[LoadProductList] Using DataManager');
+                    try {
+                        fetchedProducts = await DataManager.fetchData(
+                            PRODUCT_CACHE_KEY, 
+                            apiUrl + '?action=getAllProducts', 
+                            'products', 
+                            forceRefresh
+                        );
+                    } catch (dmError) {
+                        console.warn('[LoadProductList] DataManager failed, using fallback:', dmError);
+                    }
                 } else {
-                    // FALLBACK: Guna cara biasa jika DataManager tidak load
-                    console.warn('[LoadProductList] DataManager not found, using fallback');
-                    if (forceRefresh) localStorage.removeItem(PRODUCT_CACHE_KEY);
-                    
-                    const cachedData = localStorage.getItem(PRODUCT_CACHE_KEY);
-                    if (cachedData) {
-                        try {
-                            const p = JSON.parse(cachedData);
-                            if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) fetchedProducts = p.data;
-                        } catch(e) {}
+                    console.log('[LoadProductList] DataManager not available, using fallback');
+                }
+                
+                // FALLBACK: Guna cara lama jika DataManager gagal
+                if (!fetchedProducts) {
+                    console.log('[LoadProductList] Using fallback method');
+                    if (forceRefresh) {
+                        localStorage.removeItem(PRODUCT_CACHE_KEY);
                     }
                     
+                    const cachedData = localStorage.getItem(PRODUCT_CACHE_KEY);
+                    if (cachedData && !forceRefresh) {
+                        try {
+                            const p = JSON.parse(cachedData);
+                            if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) {
+                                fetchedProducts = p.data;
+                                console.log('[LoadProductList] Loaded from cache:', fetchedProducts.length, 'products');
+                            }
+                        } catch(e) {
+                            console.error('[LoadProductList] Cache parse error:', e);
+                        }
+                    }
+                    
+                    // Jika tiada cache atau force refresh, fetch dari API
                     if (!fetchedProducts) {
-                        const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
+                        console.log('[LoadProductList] Fetching from API directly');
+                        const fullUrl = apiUrl + '?action=getAllProducts';
+                        console.log('[LoadProductList] Full URL:', fullUrl);
+                        
+                        const res = await fetch(fullUrl);
+                        console.log('[LoadProductList] Response status:', res.status);
+                        
                         const result = await res.json();
+                        console.log('[LoadProductList] API Response:', result);
+                        
                         if (result.success && result.products) {
                             fetchedProducts = result.products;
-                            localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify({ data: fetchedProducts, timestamp: new Date().getTime() }));
+                            localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify({ 
+                                data: fetchedProducts, 
+                                timestamp: new Date().getTime() 
+                            }));
+                            console.log('[LoadProductList] Saved to cache:', fetchedProducts.length, 'products');
+                        } else {
+                            throw new Error('API returned no products or success=false');
                         }
                     }
                 }
                 
-                if (fetchedProducts !== null) {
+                if (fetchedProducts !== null && fetchedProducts.length > 0) {
                     allProducts = fetchedProducts;
-                    console.log('[LoadProductList] Products loaded:', allProducts.length);
+                    console.log('[LoadProductList] SUCCESS - Products loaded:', allProducts.length);
                     renderProducts();
                 } else {
-                    container.innerHTML = `<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #dc3545; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #999;">Failed to load data</div></div></div>`;
+                    console.warn('[LoadProductList] No products found');
+                    container.innerHTML = `<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-box-open" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #999;">No products found</div></div></div>`;
                 }
             } catch (error) {
-                console.error('[LoadProductList] Error:', error);
-                container.innerHTML = `<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #dc3545; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #999;">Error: ${error.message}</div></div></div>`;
+                console.error('[LoadProductList] CRITICAL ERROR:', error);
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
+                        <div>
+                            <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #dc3545; margin-bottom: 15px; display: block;"></i>
+                            <div style="font-size: 14px; color: #999; margin-bottom: 10px;">Failed to load data</div>
+                            <div style="font-size: 12px; color: #dc3545; max-width: 400px; word-break: break-all;">${error.message}</div>
+                            <button onclick="loadProductList(true)" style="margin-top: 15px; padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer;">Retry</button>
+                        </div>
+                    </div>
+                `;
             }
         }
 
@@ -222,6 +281,12 @@
 
         function renderProducts() {
             const container = document.getElementById('productListContainer');
+            
+            if (!allProducts || allProducts.length === 0) {
+                container.innerHTML = `<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-box-open" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #999;">No products found</div></div></div>`;
+                return;
+            }
+            
             let filtered = allProducts.filter(p => {
                 const matchCategory = currentCategory === 'all' || p.category === currentCategory;
                 const searchLower = currentSearch.toLowerCase();
@@ -332,7 +397,7 @@
 
         function openEditModal(partNo) {
             const product = allProducts.find(p => p.partNo === partNo);
-            if (!product) return;
+            if (!product) { console.error('[OpenEditModal] Product not found:', partNo); return; }
             
             editingPartNo = partNo;
             tempEditPhotoBase64 = '';
@@ -376,7 +441,7 @@
                 resetPhotoPlaceholder(); 
             }
 
-            resetButtonState(); // PENTING: Reset button state bila buka modal
+            resetButtonState();
             document.getElementById('editModal').classList.add('show');
         }
 
@@ -391,7 +456,7 @@
             document.getElementById('editModal').classList.remove('show');
             editingPartNo = null;
             tempEditPhotoBase64 = '';
-            resetButtonState(); // PENTING: Reset button state bila tutup modal
+            resetButtonState();
         }
 
         async function saveEditProduct() {
@@ -403,8 +468,6 @@
             if (!partName || !newPartNo) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Part Name and Part No. are required!', 'warning'); return; }
 
             const btn = document.getElementById('saveBtn');
-            
-            // Set button ke state saving
             btn.innerText = 'Updating...'; 
             btn.disabled = true;
             btn.style.opacity = '0.6';
@@ -450,19 +513,15 @@
                     allProducts[idx] = { ...allProducts[idx], partName, partNo: newPartNo, noSpec: payload.data.noSpec, location: payload.data.location, category: payload.data.category, currentStock: payload.data.currentStock, minimumStock: payload.data.minimumStock };
                 }
                 
-                // PENTING: Reset button state SEBELUM UI update
                 resetButtonState();
                 
                 if (typeof Utils !== 'undefined') Utils.showToast('✅ Product updated!', 'success');
                 closeEditModal();
-                renderProducts(); // Render serta-merta
+                renderProducts();
                 
             } catch (error) {
                 console.error('[SaveEditProduct] Error:', error);
-                
-                // PENTING: Reset button state dalam catch block juga
                 resetButtonState();
-                
                 if (typeof Utils !== 'undefined') {
                     Utils.showToast(error.name === 'AbortError' ? '⏱️ Request timeout.' : '❌ Failed to update: ' + error.message, 'error');
                 }
@@ -484,7 +543,7 @@
                 }
                 
                 allProducts = allProducts.filter(p => p.partNo !== partNo);
-                renderProducts(); // Render serta-merta
+                renderProducts();
                 
                 if (typeof Utils !== 'undefined') Utils.showToast('✅ Product deleted', 'success');
             } catch (error) { 
