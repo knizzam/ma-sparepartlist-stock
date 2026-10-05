@@ -60,7 +60,6 @@
                 </div>
             </div>
 
-            <!-- BUTANG CANCEL & ADD/UPDATE - DIJAMIN KELUAR -->
             <div style="display: flex !important; flex-direction: row !important; gap: 10px !important; margin-top: 20px !important; width: 100% !important; min-height: 50px !important;">
                 <button type="button" id="cancelBtn" onclick="showListView()" style="flex: 1 !important; padding: 14px !important; background: #f5f5f5 !important; color: #666 !important; border: none !important; border-radius: 12px !important; font-size: 15px !important; font-weight: bold !important; cursor: pointer !important; min-height: 48px !important; display: inline-block !important; visibility: visible !important;">Cancel</button>
                 <button type="button" id="saveBtn" onclick="saveUser()" style="flex: 1 !important; padding: 14px !important; background: linear-gradient(to right, #1a73e8, #1557b0) !important; color: white !important; border: none !important; border-radius: 12px !important; font-size: 15px !important; font-weight: bold !important; cursor: pointer !important; box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3) !important; min-height: 48px !important; display: inline-block !important; visibility: visible !important;">Add User</button>
@@ -134,19 +133,28 @@
         }
 
         function showAddForm() {
+            // PENTING: Reset editingEmail untuk mode Add
             editingEmail = null;
             resetForm();
             document.getElementById('saveBtn').innerText = 'Add User';
             document.getElementById('formView').style.display = 'block';
             document.getElementById('listView').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            console.log('[ShowAddForm] editingEmail set to:', editingEmail);
         }
 
         function showEditForm() {
+            // PENTING: Pastikan editingEmail sudah diset sebelum panggil ini
+            if (!editingEmail) {
+                console.error('[ShowEditForm] ERROR: editingEmail is null!');
+                alert('Error: No user selected for editing');
+                return;
+            }
             document.getElementById('saveBtn').innerText = 'Update User';
             document.getElementById('formView').style.display = 'block';
             document.getElementById('listView').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            console.log('[ShowEditForm] editingEmail:', editingEmail);
         }
 
         function filterUsers() {
@@ -199,12 +207,13 @@
                 
                 if (fetchedUsers !== null) {
                     allUsers = fetchedUsers;
+                    console.log('[LoadUserList] Users loaded:', allUsers.length);
                     renderUserList(allUsers);
                 } else {
                     container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Failed to load data</div></div>';
                 }
             } catch (error) {
-                console.error('[LoadUser] Error:', error);
+                console.error('[LoadUserList] Error:', error);
                 container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Error: ' + error.message + '</div></div>';
             }
         }
@@ -289,13 +298,21 @@
         }
 
         function editUser(email, role, name, noKad, active, pictureFileId) {
-            editingEmail = email;
-            document.getElementById('userName').value = name;
-            document.getElementById('userNoKad').value = noKad;
-            document.getElementById('userRole').value = role;
-            document.getElementById('userEmail').value = email;
-            document.getElementById('userActive').checked = active;
+            console.log('[EditUser] Called with email:', email);
             
+            // PENTING: Set editingEmail SEBELUM panggil showEditForm
+            editingEmail = email;
+            
+            // Load data ke form
+            document.getElementById('userName').value = name || '';
+            document.getElementById('userNoKad').value = noKad || '';
+            document.getElementById('userRole').value = role || '';
+            document.getElementById('userEmail').value = email || '';
+            document.getElementById('userActive').checked = active !== false;
+            
+            console.log('[EditUser] Form loaded, editingEmail:', editingEmail);
+            
+            // Load gambar
             const preview = document.getElementById('photoPreview');
             const placeholder = document.getElementById('photoPlaceholder');
             
@@ -314,16 +331,26 @@
             }
             
             if (cachedImage) { 
-                preview.src = cachedImage; preview.style.display = 'block'; placeholder.style.display = 'none'; tempPhotoBase64 = ''; 
+                preview.src = cachedImage; 
+                preview.style.display = 'block'; 
+                placeholder.style.display = 'none'; 
+                tempPhotoBase64 = ''; 
             } else if (pictureFileId && pictureFileId.trim() !== '' && typeof APIHelper !== 'undefined') {
                 APIHelper.fetchImage(pictureFileId).then(imgResult => {
                     if (imgResult.success && imgResult.base64) {
-                        preview.src = imgResult.base64; preview.style.display = 'block'; placeholder.style.display = 'none'; tempPhotoBase64 = '';
+                        preview.src = imgResult.base64; 
+                        preview.style.display = 'block'; 
+                        placeholder.style.display = 'none'; 
+                        tempPhotoBase64 = '';
                     }
                 });
             } else { 
-                preview.style.display = 'none'; placeholder.style.display = 'flex'; tempPhotoBase64 = ''; 
+                preview.style.display = 'none'; 
+                placeholder.style.display = 'flex'; 
+                tempPhotoBase64 = ''; 
             }
+            
+            // Panggil showEditForm selepas semua data siap
             showEditForm();
         }
 
@@ -335,10 +362,13 @@
             document.getElementById('userActive').checked = true;
             if (typeof PhotoPicker !== 'undefined') PhotoPicker.reset();
             tempPhotoBase64 = ''; 
-            editingEmail = null;
+            editingEmail = null; // PENTING: Reset editingEmail
+            console.log('[ResetForm] Form reset, editingEmail:', editingEmail);
         }
 
         async function saveUser() {
+            console.log('[SaveUser] Called, editingEmail:', editingEmail);
+            
             const name = document.getElementById('userName').value.trim();
             const noKad = document.getElementById('userNoKad').value.trim();
             const role = document.getElementById('userRole').value.trim();
@@ -351,36 +381,86 @@
                 return; 
             }
 
+            // PENTING: Validate editingEmail
+            if (editingEmail && editingEmail !== email) {
+                console.log('[SaveUser] Email changed from', editingEmail, 'to', email);
+            }
+
             const btn = document.getElementById('saveBtn');
-            btn.innerText = 'Saving...'; btn.disabled = true;
+            btn.innerText = 'Saving...'; 
+            btn.disabled = true;
 
             const action = editingEmail ? 'updateUser' : 'addUser';
-            const payload = { action, data: { email, role, name, noKad, active, originalEmail: editingEmail } };
+            const payload = { 
+                action, 
+                data: { 
+                    email, 
+                    role, 
+                    name, 
+                    noKad, 
+                    active, 
+                    originalEmail: editingEmail // Untuk backend tahu record mana yang nak update
+                } 
+            };
+
+            console.log('[SaveUser] Payload:', payload);
 
             try {
-                await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+                await fetch(CONFIG.API_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'text/plain' }, 
+                    body: JSON.stringify(payload) 
+                });
                 
                 if (tempPhotoBase64) {
-                    await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'uploadUserPicture', data: { base64: tempPhotoBase64, email } }) });
+                    await fetch(CONFIG.API_URL, { 
+                        method: 'POST', 
+                        mode: 'no-cors', 
+                        headers: { 'Content-Type': 'text/plain' }, 
+                        body: JSON.stringify({ 
+                            action: 'uploadUserPicture', 
+                            data: { base64: tempPhotoBase64, email } 
+                        }) 
+                    });
                     if (typeof DataManager !== 'undefined') {
                         DataManager.setCachedImage(USER_IMG_PREFIX, email, tempPhotoBase64);
                     }
                 }
 
+                // Clear cache
                 if (typeof DataManager !== 'undefined') {
                     DataManager.clearCache(USER_CACHE_KEY);
                 } else {
                     localStorage.removeItem(USER_CACHE_KEY);
                 }
                 
-                const newUser = { email, role, name, noKad, active, pictureFileId: tempPhotoBase64 ? 'new' : (editingEmail ? allUsers.find(u=>u.email===editingEmail)?.pictureFileId : '') };
+                // Update allUsers array
+                const newUser = { 
+                    email, 
+                    role, 
+                    name, 
+                    noKad, 
+                    active, 
+                    pictureFileId: tempPhotoBase64 ? 'new' : (editingEmail ? allUsers.find(u => u.email === editingEmail)?.pictureFileId : '') 
+                };
+                
                 if (editingEmail) {
                     const index = allUsers.findIndex(u => u.email === editingEmail);
-                    if (index !== -1) allUsers[index] = newUser;
+                    if (index !== -1) {
+                        allUsers[index] = newUser;
+                        console.log('[SaveUser] Updated user at index:', index);
+                    } else {
+                        console.warn('[SaveUser] User not found in array, adding new');
+                        allUsers.push(newUser);
+                    }
                 } else {
                     allUsers.push(newUser);
+                    console.log('[SaveUser] Added new user');
                 }
 
+                console.log('[SaveUser] Success, allUsers count:', allUsers.length);
+                
                 renderUserList(allUsers);
                 if (typeof Utils !== 'undefined') Utils.showToast('✅ Pengguna berjaya disimpan!', 'success');
                 else alert('Pengguna berjaya disimpan!');
@@ -390,14 +470,20 @@
                 console.error('[SaveUser] Error:', error);
                 if (typeof Utils !== 'undefined') Utils.showToast('❌ Ralat semasa menyimpan', 'error');
                 else alert('Ralat semasa menyimpan');
-                btn.innerText = editingEmail ? 'Update User' : 'Add User'; btn.disabled = false;
+                btn.innerText = editingEmail ? 'Update User' : 'Add User'; 
+                btn.disabled = false;
             }
         }
 
         async function deleteUser(email) {
-            if (!confirm('⚠️ Adakah anda pasti ingin memadam pengguna ini?')) return;
+            if (!confirm('️ Adakah anda pasti ingin memadam pengguna ini?')) return;
             try {
-                await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'deleteUser', data: { email } }) });
+                await fetch(CONFIG.API_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'text/plain' }, 
+                    body: JSON.stringify({ action: 'deleteUser', data: { email } }) 
+                });
                 
                 if (typeof DataManager !== 'undefined') {
                     DataManager.clearCache(USER_CACHE_KEY);
