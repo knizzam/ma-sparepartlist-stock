@@ -24,13 +24,14 @@
         
         <!-- VIEW 1: FORM (Default Visible) -->
         <div id="formView">
-            <!-- FAB BUTTON: View Recent Products (ATAS KANAN) -->
-            <button class="fab-button" onclick="showListView()" title="View Recent Products" type="button">
-                <i class="fas fa-history"></i>
-            </button>
-
             <div class="form-card">
-                <div class="form-section-title">Product Information</div>
+                <!-- HEADER CARD DENGAN FAB BUTTON -->
+                <div class="form-card-header">
+                    <div class="form-section-title" style="margin-bottom: 0;">Product Information</div>
+                    <button class="fab-inline" onclick="showListView()" title="View Recent Products" type="button">
+                        <i class="fas fa-history"></i>
+                    </button>
+                </div>
                 
                 <div class="form-group">
                     <label class="form-label">Product Photo</label>
@@ -77,11 +78,6 @@
 
         <!-- VIEW 2: RECENT PRODUCTS LIST (Default Hidden) -->
         <div id="listView" style="display: none;">
-            <!-- FAB BUTTON: Add New Product (ATAS KANAN) -->
-            <button class="fab-button" onclick="showFormView()" title="Add New Product" type="button">
-                <i class="fas fa-plus"></i>
-            </button>
-
             <div class="product-search-section">
                 <div class="product-search-wrapper">
                     <i class="fas fa-search"></i>
@@ -89,8 +85,12 @@
                 </div>
             </div>
 
+            <!-- HEADER LIST DENGAN FAB BUTTON -->
             <div class="list-header-add">
                 <div class="list-title-add" id="listTitleAdd">Recent Products <span class="list-badge-add" id="productCount">0</span></div>
+                <button class="fab-inline" onclick="showFormView()" title="Add New Product" type="button">
+                    <i class="fas fa-plus"></i>
+                </button>
             </div>
             
             <div class="product-list-add" id="productList">
@@ -115,13 +115,32 @@
             document.getElementById('photoInput').addEventListener('change', function(e) {
                 if (e.target.files && e.target.files[0]) {
                     const reader = new FileReader();
-                    reader.onload = function(ev) { tempPhotoBase64 = ev.target.result; };
+                    reader.onload = function(ev) { 
+                        tempPhotoBase64 = ev.target.result;
+                        // Show preview immediately
+                        const preview = document.getElementById('photoPreview');
+                        const placeholder = document.getElementById('photoPlaceholder');
+                        preview.src = ev.target.result;
+                        preview.style.display = 'block';
+                        placeholder.style.display = 'none';
+                    };
                     reader.readAsDataURL(e.target.files[0]);
                 }
             });
             showFormView();
             loadProductList();
         });
+
+        // PHOTO MENU FUNCTION (Fallback jika photo-picker.js tidak load)
+        function showPhotoMenu(event) {
+            if (event) event.preventDefault();
+            const photoInput = document.getElementById('photoInput');
+            if (photoInput) {
+                photoInput.click();
+            } else {
+                alert('Photo picker tidak tersedia');
+            }
+        }
 
         function showFormView() {
             document.getElementById('formView').style.display = 'block';
@@ -356,7 +375,7 @@
                 Utils.showToast('✅ Produk berjaya disimpan!', 'success');
                 resetForm(); 
             } catch (error) {
-                Utils.showToast('❌ Ralat semasa menyimpan', 'error');
+                Utils.showToast(' Ralat semasa menyimpan', 'error');
                 btn.innerText = editingPartNo ? 'Update Product' : 'Add Product'; btn.disabled = false;
             }
         }
