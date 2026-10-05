@@ -9,12 +9,11 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="add-product.css">
     
-    <!-- PENTING: Load Data Manager SEBELUM script lain -->
-    <script src="data-manager.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="photo-picker.js"></script>
+    <script src="data-manager.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
     <div class="add-product-header">
@@ -23,11 +22,14 @@
     </div>
 
     <div class="main-container">
+        <!-- VIEW 1: FORM -->
         <div id="formView">
             <div class="form-card">
                 <div class="form-card-header">
                     <div class="form-section-title" style="margin-bottom: 0;">Product Information</div>
-                    <button class="fab-inline" onclick="showListView()" title="View Recent Products" type="button"><i class="fas fa-history"></i></button>
+                    <button class="fab-inline" onclick="showListView()" title="View Recent Products" type="button">
+                        <i class="fas fa-history"></i>
+                    </button>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Product Photo</label>
@@ -55,17 +57,21 @@
                     </select>
                 </div>
             </div>
+
             <div class="form-card">
                 <div class="form-section-title">Stock Information</div>
                 <div class="form-group"><label class="form-label">Current Stock</label><input type="number" class="form-input" id="currentStock" placeholder="0" min="0"></div>
                 <div class="form-group"><label class="form-label">Minimum Stock</label><input type="number" class="form-input" id="minimumStock" placeholder="0" min="0"></div>
             </div>
-            <div style="display: flex !important; gap: 10px; margin-top: 15px; width: 100%;">
-                <button type="button" id="cancelBtn" onclick="cancelEdit()" style="flex: 1; padding: 14px; background: #f5f5f5; color: #666; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; min-height: 48px;">Cancel</button>
-                <button type="button" id="saveBtn" onclick="saveProduct()" style="flex: 1; padding: 14px; background: linear-gradient(to right, #1a73e8, #1557b0); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3); min-height: 48px;">Add Product</button>
+
+            <!-- ACTION BUTTONS -->
+            <div style="display: flex !important; flex-direction: row !important; gap: 10px !important; margin-top: 20px !important; width: 100% !important; min-height: 50px !important;">
+                <button type="button" id="cancelBtn" onclick="cancelEdit()" style="flex: 1 !important; padding: 14px !important; background: #f5f5f5 !important; color: #666 !important; border: none !important; border-radius: 12px !important; font-size: 15px !important; font-weight: bold !important; cursor: pointer !important; min-height: 48px !important; display: inline-block !important; visibility: visible !important;">Cancel</button>
+                <button type="button" id="saveBtn" onclick="saveProduct()" style="flex: 1 !important; padding: 14px !important; background: linear-gradient(to right, #1a73e8, #1557b0) !important; color: white !important; border: none !important; border-radius: 12px !important; font-size: 15px !important; font-weight: bold !important; cursor: pointer !important; box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3) !important; min-height: 48px !important; display: inline-block !important; visibility: visible !important;">Add Product</button>
             </div>
         </div>
 
+        <!-- VIEW 2: RECENT PRODUCTS LIST -->
         <div id="listView" style="display: none;">
             <div class="product-search-section">
                 <div class="product-search-wrapper">
@@ -73,10 +79,14 @@
                     <input type="text" class="product-search-input" id="recentProductSearch" placeholder="Search by Part Name, Part No, or Location..." onkeyup="filterRecentProducts()">
                 </div>
             </div>
+
             <div class="list-header-add">
                 <div class="list-title-add" id="listTitleAdd">Recent Products <span class="list-badge-add" id="productCount">0</span></div>
-                <button class="fab-inline" onclick="showFormView()" title="Add New Product" type="button"><i class="fas fa-plus"></i></button>
+                <button class="fab-inline" onclick="showFormView()" title="Add New Product" type="button">
+                    <i class="fas fa-plus"></i>
+                </button>
             </div>
+            
             <div class="product-list-add" id="productList">
                 <div class="empty-state-list"><i class="fas fa-spinner fa-spin"></i><div>Loading recent products...</div></div>
             </div>
@@ -86,11 +96,19 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let tempPhotoBase64 = '', editingPartNo = null, allProducts = [];
-        const PRODUCT_CACHE_KEY = 'ma_inventory_product_list'; // Kunci sama dengan product-list.html
+        const PRODUCT_CACHE_KEY = 'ma_inventory_product_list';
         const PROD_IMG_PREFIX = 'ma_prod_img';
 
         document.addEventListener('DOMContentLoaded', function() {
-            PhotoPicker.init({ wrapperId: 'photoWrapper', inputId: 'photoInput', previewId: 'photoPreview', placeholderId: 'photoPlaceholder' });
+            if (typeof PhotoPicker !== 'undefined') {
+                PhotoPicker.init({ 
+                    wrapperId: 'photoWrapper', 
+                    inputId: 'photoInput', 
+                    previewId: 'photoPreview', 
+                    placeholderId: 'photoPlaceholder' 
+                });
+            }
+            
             document.getElementById('photoInput').addEventListener('change', function(e) {
                 if (e.target.files && e.target.files[0]) {
                     const reader = new FileReader();
@@ -103,6 +121,7 @@
                     reader.readAsDataURL(e.target.files[0]);
                 }
             });
+
             showFormView();
             loadProductList();
         });
@@ -112,16 +131,31 @@
             document.getElementById('photoInput').click();
         }
 
+        // PENTING: Fungsi khas untuk reset button state
+        function resetButtonState() {
+            const btn = document.getElementById('saveBtn');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = editingPartNo ? 'Update Product' : 'Add Product';
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            }
+            console.log('[ResetButton] Button state reset, editingPartNo:', editingPartNo);
+        }
+
         function showFormView() {
             document.getElementById('formView').style.display = 'block';
             document.getElementById('listView').style.display = 'none';
             document.getElementById('recentProductSearch').value = '';
+            resetButtonState(); // PENTING: Reset button state
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            console.log('[ShowFormView] Ready');
         }
 
         function showListView() {
             document.getElementById('formView').style.display = 'none';
             document.getElementById('listView').style.display = 'block';
+            resetForm();
             renderFromCache();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -141,22 +175,69 @@
             loadProductList(true);
         }
 
-        async function loadProductList(forceRefresh = false) {
-            const container = document.getElementById('productList');
-            container.innerHTML = '<div class="empty-state-list"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>';
-            
-            const fetchedProducts = await DataManager.fetchData(PRODUCT_CACHE_KEY, CONFIG.API_URL + '?action=getAllProducts', 'products', forceRefresh);
-            
-            if (fetchedProducts !== null) {
-                allProducts = fetchedProducts;
-                renderProductList('');
-            } else { 
-                container.innerHTML = '<div class="empty-state-list"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Gagal memuatkan data</div></div>'; 
-            }
+        function cancelEdit() {
+            resetForm();
+            resetButtonState(); // PENTING: Reset button state
+            showFormView();
+            console.log('[CancelEdit] Form cancelled');
         }
 
         function filterRecentProducts() {
             renderProductList(document.getElementById('recentProductSearch').value.toLowerCase().trim());
+        }
+
+        async function loadProductList(forceRefresh = false) {
+            const container = document.getElementById('productList');
+            container.innerHTML = '<div class="empty-state-list"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>';
+            
+            try {
+                let fetchedProducts = null;
+                
+                if (typeof DataManager !== 'undefined') {
+                    fetchedProducts = await DataManager.fetchData(
+                        PRODUCT_CACHE_KEY, 
+                        CONFIG.API_URL + '?action=getAllProducts', 
+                        'products',
+                        forceRefresh
+                    );
+                } else {
+                    if (forceRefresh) {
+                        localStorage.removeItem(PRODUCT_CACHE_KEY);
+                    }
+                    const cachedData = localStorage.getItem(PRODUCT_CACHE_KEY);
+                    if (cachedData) {
+                        try {
+                            const p = JSON.parse(cachedData);
+                            if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) {
+                                fetchedProducts = p.data;
+                            }
+                        } catch(e) {}
+                    }
+                    
+                    if (!fetchedProducts) {
+                        const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
+                        const result = await res.json();
+                        if (result.success && result.products) {
+                            fetchedProducts = result.products;
+                            localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify({
+                                data: fetchedProducts,
+                                timestamp: new Date().getTime()
+                            }));
+                        }
+                    }
+                }
+                
+                if (fetchedProducts !== null) {
+                    allProducts = fetchedProducts;
+                    console.log('[LoadProductList] Products loaded:', allProducts.length);
+                    renderProductList('');
+                } else { 
+                    container.innerHTML = '<div class="empty-state-list"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Gagal memuatkan data</div></div>'; 
+                }
+            } catch (error) {
+                console.error('[LoadProductList] Error:', error);
+                container.innerHTML = '<div class="empty-state-list"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Error: ' + error.message + '</div></div>';
+            }
         }
 
         function renderProductList(searchTerm = '') {
@@ -202,7 +283,21 @@
                 let statusClass = currentStock > thresholdOK ? 'high' : (currentStock > minimumStock ? 'mid' : 'low');
                 const isEditing = editingPartNo === product.partNo ? 'editing' : '';
                 const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
-                const cachedImg = DataManager.getCachedImage(PROD_IMG_PREFIX, product.partNo);
+                
+                let cachedImg = null;
+                if (typeof DataManager !== 'undefined') {
+                    cachedImg = DataManager.getCachedImage(PROD_IMG_PREFIX, product.partNo);
+                } else {
+                    const key = PROD_IMG_PREFIX + '_' + safePartNo;
+                    const cached = localStorage.getItem(key);
+                    if (cached) {
+                        try {
+                            const p = JSON.parse(cached);
+                            if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) cachedImg = p.base64;
+                        } catch(e) {}
+                    }
+                }
+                
                 let avatarHTML = cachedImg ? `<img src="${cachedImg}" alt="${product.partName}">` : '<i class="fas fa-box"></i>';
                 
                 html += `<div class="product-card-add status-${statusClass} ${isEditing}" onclick="editProduct('${product.partNo}', '${product.partName}', '${product.noSpec}', '${product.location}', '${product.category}', ${product.currentStock}, ${product.minimumStock}, '${product.pictureFileId}')">`;
@@ -214,111 +309,90 @@
             productList.innerHTML = html;
             
             displayProducts.forEach(product => {
-                if (product.pictureFileId && !DataManager.getCachedImage(PROD_IMG_PREFIX, product.partNo)) {
-                    const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
-                    const avatarBox = document.getElementById(`prod-avatar-${safePartNo}`);
-                    if (avatarBox && avatarBox.querySelector('i')) {
-                        APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
-                            if (imgResult.success && imgResult.base64) {
-                                DataManager.setCachedImage(PROD_IMG_PREFIX, product.partNo, imgResult.base64);
-                                avatarBox.innerHTML = `<img src="${imgResult.base64}" alt="${product.partName}">`;
-                            }
-                        });
+                if (product.pictureFileId && product.pictureFileId !== 'new') {
+                    let hasCache = false;
+                    if (typeof DataManager !== 'undefined') {
+                        hasCache = !!DataManager.getCachedImage(PROD_IMG_PREFIX, product.partNo);
+                    } else {
+                        const key = PROD_IMG_PREFIX + '_' + product.partNo.replace(/[^a-zA-Z0-9]/g, '');
+                        hasCache = !!localStorage.getItem(key);
+                    }
+                    
+                    if (!hasCache) {
+                        const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
+                        const avatarBox = document.getElementById(`prod-avatar-${safePartNo}`);
+                        if (avatarBox && avatarBox.querySelector('i') && typeof APIHelper !== 'undefined') {
+                            APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
+                                if (imgResult.success && imgResult.base64) {
+                                    if (typeof DataManager !== 'undefined') {
+                                        DataManager.setCachedImage(PROD_IMG_PREFIX, product.partNo, imgResult.base64);
+                                    } else {
+                                        const key = PROD_IMG_PREFIX + '_' + safePartNo;
+                                        localStorage.setItem(key, JSON.stringify({ base64: imgResult.base64, timestamp: new Date().getTime() }));
+                                    }
+                                    avatarBox.innerHTML = `<img src="${imgResult.base64}" alt="${product.partName}">`;
+                                }
+                            });
+                        }
                     }
                 }
             });
         }
 
         function editProduct(partNo, partName, noSpec, location, category, currentStock, minimumStock, pictureFileId) {
+            console.log('[EditProduct] Called with partNo:', partNo);
+            
             editingPartNo = partNo;
-            document.getElementById('partName').value = partName;
-            document.getElementById('partNo').value = partNo;
-            document.getElementById('noSpec').value = noSpec;
-            document.getElementById('location').value = location;
+            document.getElementById('partName').value = partName || '';
+            document.getElementById('partNo').value = partNo || '';
+            document.getElementById('noSpec').value = noSpec || '';
+            document.getElementById('location').value = location || '';
             document.getElementById('category').value = category || 'Uncategorized';
-            document.getElementById('currentStock').value = currentStock;
-            document.getElementById('minimumStock').value = minimumStock;
-            document.getElementById('saveBtn').innerText = 'Update Product';
+            document.getElementById('currentStock').value = currentStock || 0;
+            document.getElementById('minimumStock').value = minimumStock || 0;
             
             const preview = document.getElementById('photoPreview');
             const placeholder = document.getElementById('photoPlaceholder');
-            const cachedImg = DataManager.getCachedImage(PROD_IMG_PREFIX, partNo);
             
-            if (cachedImg) { preview.src = cachedImg; preview.style.display = 'block'; placeholder.style.display = 'none'; tempPhotoBase64 = ''; } 
-            else if (pictureFileId && pictureFileId.trim() !== '') {
+            let cachedImg = null;
+            if (typeof DataManager !== 'undefined') {
+                cachedImg = DataManager.getCachedImage(PROD_IMG_PREFIX, partNo);
+            } else {
+                const key = PROD_IMG_PREFIX + '_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
+                const cached = localStorage.getItem(key);
+                if (cached) {
+                    try {
+                        const p = JSON.parse(cached);
+                        if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) cachedImg = p.base64;
+                    } catch(e) {}
+                }
+            }
+            
+            if (cachedImg) { 
+                preview.src = cachedImg; 
+                preview.style.display = 'block'; 
+                placeholder.style.display = 'none'; 
+                tempPhotoBase64 = ''; 
+            } else if (pictureFileId && pictureFileId.trim() !== '' && pictureFileId !== 'new' && typeof APIHelper !== 'undefined') {
                 APIHelper.fetchImage(pictureFileId).then(imgResult => {
                     if (imgResult.success && imgResult.base64) {
-                        preview.src = imgResult.base64; preview.style.display = 'block'; placeholder.style.display = 'none'; tempPhotoBase64 = '';
+                        preview.src = imgResult.base64; 
+                        preview.style.display = 'block'; 
+                        placeholder.style.display = 'none'; 
+                        tempPhotoBase64 = '';
                     }
+                }).catch(err => {
+                    console.error('[EditProduct] Image fetch error:', err);
+                    preview.style.display = 'none'; 
+                    placeholder.style.display = 'flex';
                 });
-            } else { preview.style.display = 'none'; placeholder.style.display = 'flex'; tempPhotoBase64 = ''; }
-            showFormView();
-        }
-
-        function cancelEdit() { resetForm(); Utils.showToast('Form dikosongkan', 'info'); }
-
-        async function saveProduct() {
-            const partName = document.getElementById('partName').value.trim();
-            const partNo = document.getElementById('partNo').value.trim();
-            const noSpec = document.getElementById('noSpec').value.trim();
-            const location = document.getElementById('location').value.trim();
-            const category = document.getElementById('category').value.trim();
-            const currentStock = document.getElementById('currentStock').value || 0;
-            const minimumStock = document.getElementById('minimumStock').value || 0;
-
-            if (!partName || !partNo) { Utils.showToast('⚠️ Part Name dan Part No. wajib diisi!', 'warning'); return; }
-
-            const btn = document.getElementById('saveBtn');
-            btn.innerText = 'Saving...'; btn.disabled = true;
-
-            const action = editingPartNo ? 'updateProduct' : 'addProduct';
-            const payload = { action, data: { partName, partNo, noSpec, location, category, currentStock, minimumStock, originalPartNo: editingPartNo } };
-
-            try {
-                await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
-                if (tempPhotoBase64) {
-                    await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'uploadProductPicture', data: { base64: tempPhotoBase64, partNo } }) });
-                    DataManager.setCachedImage(PROD_IMG_PREFIX, partNo, tempPhotoBase64);
-                }
-
-                // 🔥 INSTANT UPDATE & CACHE CLEAR
-                DataManager.clearCache(PRODUCT_CACHE_KEY);
-                const newProduct = { partName, partNo, noSpec, location, category, currentStock, minimumStock, pictureFileId: tempPhotoBase64 ? 'new' : (editingPartNo ? allProducts.find(p=>p.partNo===editingPartNo)?.pictureFileId : '') };
-                
-                if (editingPartNo) {
-                    const idx = allProducts.findIndex(p => p.partNo === editingPartNo);
-                    if (idx !== -1) allProducts[idx] = newProduct;
-                } else {
-                    allProducts.push(newProduct);
-                }
-
-                if (document.getElementById('listView').style.display === 'block') {
-                    renderProductList(document.getElementById('recentProductSearch').value.toLowerCase().trim());
-                }
-
-                Utils.showToast('✅ Produk berjaya disimpan!', 'success');
-                resetForm(); 
-            } catch (error) {
-                Utils.showToast('❌ Ralat semasa menyimpan', 'error');
-                btn.innerText = editingPartNo ? 'Update Product' : 'Add Product'; btn.disabled = false;
+            } else { 
+                preview.style.display = 'none'; 
+                placeholder.style.display = 'flex'; 
+                tempPhotoBase64 = ''; 
             }
-        }
-
-        async function deleteProduct(partNo) {
-            if (!confirm('⚠️ Adakah anda pasti ingin memadam produk ini?')) return;
-            try {
-                await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'deleteProduct', data: { partNo } }) });
-                
-                // 🔥 INSTANT DELETE & CACHE CLEAR
-                DataManager.clearCache(PRODUCT_CACHE_KEY);
-                DataManager.clearImageCache(PROD_IMG_PREFIX, partNo);
-                allProducts = allProducts.filter(p => p.partNo !== partNo);
-                
-                if (document.getElementById('listView').style.display === 'block') {
-                    renderProductList(document.getElementById('recentProductSearch').value.toLowerCase().trim());
-                }
-                Utils.showToast('✅ Produk berjaya dipadam', 'success');
-            } catch (error) { Utils.showToast('❌ Gagal memadam produk', 'error'); }
+            
+            showFormView();
         }
 
         function resetForm() {
@@ -329,10 +403,139 @@
             document.getElementById('category').value = 'Uncategorized';
             document.getElementById('currentStock').value = '';
             document.getElementById('minimumStock').value = '';
-            PhotoPicker.reset();
+            if (typeof PhotoPicker !== 'undefined') PhotoPicker.reset();
             tempPhotoBase64 = ''; 
             editingPartNo = null;
-            document.getElementById('saveBtn').innerText = 'Add Product';
+            console.log('[ResetForm] Form reset');
+        }
+
+        async function saveProduct() {
+            console.log('[SaveProduct] Starting, editingPartNo:', editingPartNo);
+            
+            const partName = document.getElementById('partName').value.trim();
+            const partNo = document.getElementById('partNo').value.trim();
+            const noSpec = document.getElementById('noSpec').value.trim();
+            const location = document.getElementById('location').value.trim();
+            const category = document.getElementById('category').value.trim();
+            const currentStock = document.getElementById('currentStock').value || 0;
+            const minimumStock = document.getElementById('minimumStock').value || 0;
+
+            if (!partName || !partNo) { 
+                if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Part Name dan Part No. wajib diisi!', 'warning');
+                else alert('Part Name dan Part No. wajib diisi!');
+                return; 
+            }
+
+            const btn = document.getElementById('saveBtn');
+            
+            // Set button ke state saving
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+            btn.style.opacity = '0.6';
+            btn.style.cursor = 'not-allowed';
+
+            const action = editingPartNo ? 'updateProduct' : 'addProduct';
+            const payload = { 
+                action, 
+                data: { 
+                    partName, 
+                    partNo, 
+                    noSpec, 
+                    location, 
+                    category, 
+                    currentStock, 
+                    minimumStock, 
+                    originalPartNo: editingPartNo 
+                } 
+            };
+
+            console.log('[SaveProduct] Payload:', payload);
+
+            try {
+                // Fetch 1: Save product data
+                await fetch(CONFIG.API_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'text/plain' }, 
+                    body: JSON.stringify(payload) 
+                });
+                console.log('[SaveProduct] Product data saved');
+                
+                // Fetch 2: Upload photo jika ada
+                if (tempPhotoBase64) {
+                    await fetch(CONFIG.API_URL, { 
+                        method: 'POST', 
+                        mode: 'no-cors', 
+                        headers: { 'Content-Type': 'text/plain' }, 
+                        body: JSON.stringify({ 
+                            action: 'uploadProductPicture', 
+                            data: { base64: tempPhotoBase64, partNo } 
+                        }) 
+                    });
+                    console.log('[SaveProduct] Photo uploaded');
+                    if (typeof DataManager !== 'undefined') {
+                        DataManager.setCachedImage(PROD_IMG_PREFIX, partNo, tempPhotoBase64);
+                    }
+                }
+
+                // Clear cache
+                if (typeof DataManager !== 'undefined') {
+                    DataManager.clearCache(PRODUCT_CACHE_KEY);
+                } else {
+                    localStorage.removeItem(PRODUCT_CACHE_KEY);
+                }
+                console.log('[SaveProduct] Cache cleared');
+
+                // PENTING: Reset button state SEBELUM navigation
+                resetButtonState();
+                console.log('[SaveProduct] Button state reset');
+
+                // Show success message
+                if (typeof Utils !== 'undefined') Utils.showToast('✅ Produk berjaya disimpan!', 'success');
+                else alert('Produk berjaya disimpan!');
+
+                // Navigation ke list view
+                showListView();
+
+            } catch (error) {
+                console.error('[SaveProduct] Error:', error);
+                
+                // PENTING: Reset button state dalam catch block juga
+                resetButtonState();
+                
+                if (typeof Utils !== 'undefined') Utils.showToast('❌ Ralat semasa menyimpan', 'error');
+                else alert('Ralat semasa menyimpan');
+            }
+        }
+
+        async function deleteProduct(partNo) {
+            if (!confirm('⚠️ Adakah anda pasti ingin memadam produk ini?')) return;
+            try {
+                await fetch(CONFIG.API_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'text/plain' }, 
+                    body: JSON.stringify({ action: 'deleteProduct', data: { partNo } }) 
+                });
+                
+                if (typeof DataManager !== 'undefined') {
+                    DataManager.clearCache(PRODUCT_CACHE_KEY);
+                    DataManager.clearImageCache(PROD_IMG_PREFIX, partNo);
+                } else {
+                    localStorage.removeItem(PRODUCT_CACHE_KEY);
+                    const key = PROD_IMG_PREFIX + '_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
+                    localStorage.removeItem(key);
+                }
+                
+                allProducts = allProducts.filter(p => p.partNo !== partNo);
+                renderProductList(document.getElementById('recentProductSearch').value.toLowerCase().trim());
+                if (typeof Utils !== 'undefined') Utils.showToast('✅ Produk berjaya dipadam', 'success');
+                else alert('Produk berjaya dipadam');
+            } catch (error) { 
+                console.error('[DeleteProduct] Error:', error);
+                if (typeof Utils !== 'undefined') Utils.showToast(' Gagal memadam produk', 'error');
+                else alert('Gagal memadam produk');
+            }
         }
     </script>
 </body>
