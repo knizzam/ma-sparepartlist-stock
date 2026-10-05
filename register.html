@@ -125,26 +125,25 @@
             document.getElementById('photoInput').click();
         }
 
-        function showListView() {
+        // PENTING: showListView sekarang async untuk force refresh selepas save
+        async function showListView(forceRefresh = false) {
             document.getElementById('formView').style.display = 'none';
             document.getElementById('listView').style.display = 'block';
             resetForm();
-            loadUserList();
+            await loadUserList(forceRefresh); // Force refresh jika perlu
         }
 
         function showAddForm() {
-            // PENTING: Reset editingEmail untuk mode Add
             editingEmail = null;
             resetForm();
             document.getElementById('saveBtn').innerText = 'Add User';
             document.getElementById('formView').style.display = 'block';
             document.getElementById('listView').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            console.log('[ShowAddForm] editingEmail set to:', editingEmail);
+            console.log('[ShowAddForm] editingEmail:', editingEmail);
         }
 
         function showEditForm() {
-            // PENTING: Pastikan editingEmail sudah diset sebelum panggil ini
             if (!editingEmail) {
                 console.error('[ShowEditForm] ERROR: editingEmail is null!');
                 alert('Error: No user selected for editing');
@@ -168,7 +167,7 @@
             renderUserList(filtered);
         }
 
-        async function loadUserList() {
+        async function loadUserList(forceRefresh = false) {
             const container = document.getElementById('userList');
             container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><div>Loading users...</div></div>';
             
@@ -179,9 +178,13 @@
                     fetchedUsers = await DataManager.fetchData(
                         USER_CACHE_KEY, 
                         CONFIG.API_URL + '?action=getAllUsers', 
-                        'users'
+                        'users',
+                        forceRefresh // PENTING: Force refresh dari server
                     );
                 } else {
+                    if (forceRefresh) {
+                        localStorage.removeItem(USER_CACHE_KEY);
+                    }
                     const cachedData = localStorage.getItem(USER_CACHE_KEY);
                     if (cachedData) {
                         try {
@@ -207,7 +210,7 @@
                 
                 if (fetchedUsers !== null) {
                     allUsers = fetchedUsers;
-                    console.log('[LoadUserList] Users loaded:', allUsers.length);
+                    console.log('[LoadUserList] Users loaded:', allUsers.length, 'Force refresh:', forceRefresh);
                     renderUserList(allUsers);
                 } else {
                     container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Failed to load data</div></div>';
@@ -267,7 +270,7 @@
             userList.innerHTML = html;
 
             users.forEach(user => {
-                if (user.pictureFileId) {
+                if (user.pictureFileId && user.pictureFileId !== 'new') {
                     let hasCache = false;
                     if (typeof DataManager !== 'undefined') {
                         hasCache = !!DataManager.getCachedImage(USER_IMG_PREFIX, user.email);
@@ -298,7 +301,7 @@
         }
 
         function editUser(email, role, name, noKad, active, pictureFileId) {
-            console.log('[EditUser] Called with email:', email);
+            console.log('[EditUser] Called with email:', email, 'pictureFileId:', pictureFileId);
             
             // PENTING: Set editingEmail SEBELUM panggil showEditForm
             editingEmail = email;
@@ -335,7 +338,7 @@
                 preview.style.display = 'block'; 
                 placeholder.style.display = 'none'; 
                 tempPhotoBase64 = ''; 
-            } else if (pictureFileId && pictureFileId.trim() !== '' && typeof APIHelper !== 'undefined') {
+            } else if (pictureFileId && pictureFileId.trim() !== '' && pictureFileId !== 'new' && typeof APIHelper !== 'undefined') {
                 APIHelper.fetchImage(pictureFileId).then(imgResult => {
                     if (imgResult.success && imgResult.base64) {
                         preview.src = imgResult.base64; 
@@ -350,7 +353,6 @@
                 tempPhotoBase64 = ''; 
             }
             
-            // Panggil showEditForm selepas semua data siap
             showEditForm();
         }
 
@@ -362,7 +364,7 @@
             document.getElementById('userActive').checked = true;
             if (typeof PhotoPicker !== 'undefined') PhotoPicker.reset();
             tempPhotoBase64 = ''; 
-            editingEmail = null; // PENTING: Reset editingEmail
+            editingEmail = null;
             console.log('[ResetForm] Form reset, editingEmail:', editingEmail);
         }
 
@@ -381,11 +383,6 @@
                 return; 
             }
 
-            // PENTING: Validate editingEmail
-            if (editingEmail && editingEmail !== email) {
-                console.log('[SaveUser] Email changed from', editingEmail, 'to', email);
-            }
-
             const btn = document.getElementById('saveBtn');
             btn.innerText = 'Saving...'; 
             btn.disabled = true;
@@ -399,7 +396,7 @@
                     name, 
                     noKad, 
                     active, 
-                    originalEmail: editingEmail // Untuk backend tahu record mana yang nak update
+                    originalEmail: editingEmail
                 } 
             };
 
@@ -435,36 +432,12 @@
                     localStorage.removeItem(USER_CACHE_KEY);
                 }
                 
-                // Update allUsers array
-                const newUser = { 
-                    email, 
-                    role, 
-                    name, 
-                    noKad, 
-                    active, 
-                    pictureFileId: tempPhotoBase64 ? 'new' : (editingEmail ? allUsers.find(u => u.email === editingEmail)?.pictureFileId : '') 
-                };
+                // PENTING: Force refresh dari server untuk dapat pictureFileId yang betul
+                console.log('[SaveUser] Force refreshing data from server...');
+                await showListView(true); // Force refresh = true
                 
-                if (editingEmail) {
-                    const index = allUsers.findIndex(u => u.email === editingEmail);
-                    if (index !== -1) {
-                        allUsers[index] = newUser;
-                        console.log('[SaveUser] Updated user at index:', index);
-                    } else {
-                        console.warn('[SaveUser] User not found in array, adding new');
-                        allUsers.push(newUser);
-                    }
-                } else {
-                    allUsers.push(newUser);
-                    console.log('[SaveUser] Added new user');
-                }
-
-                console.log('[SaveUser] Success, allUsers count:', allUsers.length);
-                
-                renderUserList(allUsers);
                 if (typeof Utils !== 'undefined') Utils.showToast('✅ Pengguna berjaya disimpan!', 'success');
                 else alert('Pengguna berjaya disimpan!');
-                showListView();
 
             } catch (error) {
                 console.error('[SaveUser] Error:', error);
@@ -476,7 +449,7 @@
         }
 
         async function deleteUser(email) {
-            if (!confirm('️ Adakah anda pasti ingin memadam pengguna ini?')) return;
+            if (!confirm('⚠️ Adakah anda pasti ingin memadam pengguna ini?')) return;
             try {
                 await fetch(CONFIG.API_URL, { 
                     method: 'POST', 
