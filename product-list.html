@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="product-list.css">
     <script src="config.js"></script>
     <script src="utils.js"></script>
-    <script src="photo-picker.js"></script>
     <script src="data-manager.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
@@ -109,18 +108,31 @@
         var PROD_IMG_PREFIX = 'ma_prod_img';
 
         document.addEventListener('DOMContentLoaded', function() {
-            PhotoPicker.init({
-                wrapperId: 'editPhotoWrapper',
-                inputId: 'editPhotoInput',
-                previewId: 'editPhotoPreview',
-                placeholderId: 'editPhotoPlaceholder'
-            });
+            // PhotoPicker.init DIKOMENKAN kerana override preview image
+            // PhotoPicker.init({
+            //     wrapperId: 'editPhotoWrapper',
+            //     inputId: 'editPhotoInput',
+            //     previewId: 'editPhotoPreview',
+            //     placeholderId: 'editPhotoPlaceholder'
+            // });
 
+            // Event listener untuk photo input - UPDATE PREVIEW SERTA-MERTA
             document.getElementById('editPhotoInput').addEventListener('change', function(e) {
                 if (e.target.files && e.target.files[0]) {
                     var reader = new FileReader();
                     reader.onload = function(ev) { 
                         tempEditPhotoBase64 = ev.target.result;
+                        
+                        // PENTING: Update preview image serta-merta
+                        var preview = document.getElementById('editPhotoPreview');
+                        var placeholder = document.getElementById('editPhotoPlaceholder');
+                        
+                        if (preview && placeholder) {
+                            preview.src = ev.target.result;
+                            preview.style.display = 'block';
+                            placeholder.style.display = 'none';
+                        }
+                        
                         Utils.showToast('Photo selected', 'info');
                     };
                     reader.readAsDataURL(e.target.files[0]);
@@ -135,6 +147,15 @@
 
             loadProductList();
         });
+
+        // Fungsi untuk klik photo placeholder/preview
+        function showPhotoMenu(event) {
+            if (event) event.preventDefault();
+            var photoInput = document.getElementById('editPhotoInput');
+            if (photoInput) {
+                photoInput.click();
+            }
+        }
 
         function resetButtonState() {
             var btn = document.getElementById('saveBtn');
@@ -199,7 +220,6 @@
                 }
             }
             
-            // Loading dengan inline style untuk center
             container.innerHTML = '<div style="grid-column: 1 / -1; width: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;"><div><i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #1a73e8; margin-bottom: 15px; display: block;"></i><div style="font-size: 14px; color: #666; font-weight: 500;">Loading products...</div></div></div>';
             
             try {
@@ -290,27 +310,32 @@
             }
             container.innerHTML = html;
 
-            // Load images AFTER render - GUNA PATTERN SAMA SEPERTI PRINT QR
-            filtered.forEach(function(product) {
-                if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
-                    var safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
-                    var placeholderEl = document.getElementById('img-placeholder-' + safePartNo);
+            // Load images AFTER render - Pattern sama seperti Print QR Code
+            for (var j = 0; j < filtered.length; j++) {
+                var prod = filtered[j];
+                if (prod.pictureFileId && !getCachedProductImage(prod.partNo)) {
+                    var sPartNo = prod.partNo.replace(/[^a-zA-Z0-9]/g, '');
+                    var placeholderEl = document.getElementById('img-placeholder-' + sPartNo);
                     
-                    if (placeholderEl) {
-                        APIHelper.fetchImage(product.pictureFileId).then(function(imgResult) {
-                            if (imgResult.success && imgResult.base64) {
-                                setCachedProductImage(product.partNo, imgResult.base64);
-                                placeholderEl.outerHTML = '<img src="' + imgResult.base64 + '" alt="' + product.partName + '">';
-                            }
-                        }).catch(function(err) {
-                            console.error('Error loading image:', err);
-                            if (placeholderEl) {
-                                placeholderEl.innerHTML = '<i class="fas fa-box"></i>';
-                            }
-                        });
+                    if (placeholderEl && typeof APIHelper !== 'undefined') {
+                        (function(p, safeNo, el) {
+                            APIHelper.fetchImage(p.pictureFileId).then(function(imgResult) {
+                                if (imgResult.success && imgResult.base64) {
+                                    setCachedProductImage(p.partNo, imgResult.base64);
+                                    if (el && el.parentNode) {
+                                        el.outerHTML = '<img src="' + imgResult.base64 + '" alt="' + p.partName + '">';
+                                    }
+                                }
+                            }).catch(function(err) {
+                                console.error('Image load error:', err);
+                                if (el && el.parentNode) {
+                                    el.innerHTML = '<i class="fas fa-box"></i>';
+                                }
+                            });
+                        })(prod, sPartNo, placeholderEl);
                     }
                 }
-            });
+            }
         }
 
         function filterProducts() { 
@@ -345,7 +370,7 @@
             if (!product) return;
 
             editingPartNo = partNo;
-            tempEditPhotoBase64 = '';
+            tempEditPhotoBase64 = ''; // PENTING: Reset gambar baru
 
             document.getElementById('editPartName').value = product.partName;
             document.getElementById('editPartNo').value = product.partNo; 
@@ -452,6 +477,7 @@
                 var result = await response.json();
                 console.log('API Response:', result);
 
+                // UPLOAD GAMBAR BARU JIKA ADA
                 if (tempEditPhotoBase64) {
                     try {
                         var photoPayload = { 
@@ -464,17 +490,39 @@
                             headers: { 'Content-Type': 'text/plain' }, 
                             body: JSON.stringify(photoPayload) 
                         });
+                        
+                        // PENTING: Save gambar baru ke cache
                         setCachedProductImage(newPartNo, tempEditPhotoBase64);
+                        console.log('New photo cached for:', newPartNo);
                     } catch (photoError) {
                         console.error('Photo upload error:', photoError);
                     }
                 }
 
+                // Clear cache data
                 clearProductCache();
+                
+                // Update local array serta-merta
+                var idx = allProducts.findIndex(function(p) { return p.partNo === editingPartNo; });
+                if (idx !== -1) {
+                    allProducts[idx] = { 
+                        partName: partName, 
+                        partNo: newPartNo, 
+                        noSpec: payload.data.noSpec, 
+                        location: payload.data.location, 
+                        category: payload.data.category, 
+                        currentStock: payload.data.currentStock, 
+                        minimumStock: payload.data.minimumStock,
+                        pictureFileId: tempEditPhotoBase64 ? 'new_' + Date.now() : allProducts[idx].pictureFileId
+                    };
+                }
+
                 resetButtonState();
                 Utils.showToast('Product updated!', 'success');
                 closeEditModal();
-                loadProductList(true);
+                
+                // Render semula untuk tunjuk gambar baru
+                renderProducts();
                 
             } catch (error) {
                 console.error('Save error:', error);
