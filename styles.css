@@ -92,7 +92,6 @@ body.index-page {
     padding-bottom: 0;
 }
 
-/* HEADER SAMA SAIZ DENGAN PAGE LAIN */
 .app-header {
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
     color: white; 
@@ -128,7 +127,6 @@ body.index-page {
     position: relative;
 }
 
-/* Logout button di penjuru kanan atas */
 .profile-section .logout-btn {
     position: absolute;
     top: 15px;
@@ -168,7 +166,6 @@ body.index-page {
     height: 100px !important; 
     border-radius: 50% !important;
     object-fit: cover !important; 
-    /* border: 3px solid var(--primary-blue) !important; <-- DIBUANG */
     display: block !important; 
     background-color: #e0e0e0;
 }
@@ -238,32 +235,14 @@ body.index-page {
     align-items: center; 
     justify-content: center; 
     margin-bottom: 10px; 
+    position: relative; /* PENTING: Untuk positioning badge */
 }
 .icon-circle i { 
     font-size: 1.5rem; 
     color: white; 
 }
 
-.bg-scan { background: linear-gradient(135deg, #198754, #146c43); }
-.bg-confirm { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
-.bg-history { background: linear-gradient(135deg, #6f42c1, #5a32a3); }
-.bg-add { background: linear-gradient(135deg, #fd7e14, #e8590c); }
-.bg-register { background: linear-gradient(135deg, #d63384, #b52a6f); }
-.bg-export { background: linear-gradient(135deg, #20c997, #17a085); }
-.bg-print { background: linear-gradient(135deg, #6c757d, #565e64); }
-.bg-product { background: linear-gradient(135deg, #0dcaf0, #0aa2c0); }
-.bg-order { background: linear-gradient(135deg, #ffc107, #e0a800); }
-.bg-transaction { background: linear-gradient(135deg, #dc3545, #b02a37); }
-.bg-help { background: linear-gradient(135deg, #20c997, #17a085); } /* DITAMBAH */
-.bg-setting { background: linear-gradient(135deg, #495057, #343a40); }
-
-.menu-label { 
-    font-size: 0.72rem; 
-    font-weight: 600; 
-    line-height: 1.2; 
-    color: #333; 
-}
-
+/* BADGE STYLES */
 .badge-new { 
     position: absolute; 
     top: -5px; 
@@ -276,7 +255,52 @@ body.index-page {
     font-weight: bold; 
 }
 
-/* BOTTOM NAV - SAMA SAIZ DENGAN HEADER ATAS */
+.order-badge { 
+    position: absolute; 
+    top: -5px; 
+    right: -5px; 
+    background: #dc3545; 
+    color: white; 
+    font-size: 11px; 
+    font-weight: bold; 
+    min-width: 20px; 
+    height: 20px; 
+    border-radius: 10px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 0 5px; 
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.4); 
+    animation: pulse 2s infinite; 
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+.bg-scan { background: linear-gradient(135deg, #198754, #146c43); }
+.bg-confirm { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
+.bg-history { background: linear-gradient(135deg, #6f42c1, #5a32a3); }
+.bg-add { background: linear-gradient(135deg, #fd7e14, #e8590c); }
+.bg-register { background: linear-gradient(135deg, #d63384, #b52a6f); }
+.bg-export { background: linear-gradient(135deg, #20c997, #17a085); }
+.bg-print { background: linear-gradient(135deg, #6c757d, #565e64); }
+.bg-product { background: linear-gradient(135deg, #0dcaf0, #0aa2c0); }
+.bg-order { background: linear-gradient(135deg, #ffc107, #e0a800); }
+.bg-transaction { background: linear-gradient(135deg, #dc3545, #b02a37); }
+.bg-help { background: linear-gradient(135deg, #20c997, #17a085); }
+.bg-setting { background: linear-gradient(135deg, #495057, #343a40); }
+
+.menu-label { 
+    font-size: 0.72rem; 
+    font-weight: 600; 
+    line-height: 1.2; 
+    color: #333; 
+}
+
+/* BOTTOM NAV */
 .bottom-nav { 
     position: fixed; 
     bottom: 0; 
@@ -332,7 +356,7 @@ body.index-page {
 }
 
 .photo-option-item {
-    width: 50px; height: 50px; border-radius: 50%; border: none; /* DIBETULKAN DARI 600px */
+    width: 50px; height: 50px; border-radius: 50%; border: none;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
