@@ -11,17 +11,17 @@
     
     <script src="config.js"></script>
     <script src="utils.js"></script>
+    <!-- PENTING: Tambah data-manager.js untuk konsistensi cache -->
+    <script src="data-manager.js"></script>
 </head>
 <body class="index-page">
 
-    <!-- HEADER YANG LEBIH RENDAH & STANDARD -->
+    <!-- HEADER -->
     <div class="app-header">
         <h1 class="page-title">MA INVENTORY SYSTEM</h1>
     </div>
 
     <div id="profileSection" class="profile-section">
-        <!-- HELP BUTTON SUDAH DIBUANG -->
-        
         <div class="profile-center">
             <div class="profile-img-container">
                 <img id="profileImage" src="https://ui-avatars.com/api/?name=User&background=1a73e8&color=fff&size=150" alt="Profile" class="profile-img">
@@ -49,7 +49,6 @@
         <a href="settings.html" class="menu-card"><div class="icon-circle bg-setting"><i class="fas fa-gear"></i></div><span class="menu-label">Setting</span></a>
     </div>
 
-    <!-- BOTTOM NAV YANG LEBIH BESAR -->
     <div class="bottom-nav">
         <a href="scanner.html" class="fab-scan">
             <i class="fas fa-qrcode"></i>
@@ -67,44 +66,83 @@
             const nameEl = document.getElementById('profileName');
             const roleEl = document.getElementById('profileRole');
 
-            const cachedProfile = CacheManager.get(CONFIG.PROFILE_CACHE_KEY);
-            const cachedImage = CacheManager.get(CONFIG.IMAGE_CACHE_KEY);
+            // GUNA KEY YANG SAMA DENGAN EDIT-PROFILE.HTML
+            const PROFILE_CACHE_KEY = 'ma_inventory_profile_data';
+            const PROFILE_IMG_PREFIX = 'ma_profile_img';
+            const PROFILE_IMG_ID = 'current_user';
 
-            if (cachedProfile) {
-                nameEl.textContent = cachedProfile.name || 'User';
-                roleEl.textContent = cachedProfile.role || 'Role';
-                
-                const initialsUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(cachedProfile.name || 'User')}&background=1a73e8&color=fff&size=150`;
-                imgEl.src = initialsUrl;
-
-                if (cachedImage) {
-                    imgEl.src = cachedImage;
-                }
+            const cachedProfileStr = localStorage.getItem(PROFILE_CACHE_KEY);
+            let cachedImage = null;
+            if (typeof DataManager !== 'undefined') {
+                cachedImage = DataManager.getCachedImage(PROFILE_IMG_PREFIX, PROFILE_IMG_ID);
             }
 
+            // 1. Papar data dari cache dahulu (instant load)
+            if (cachedProfileStr) {
+                try {
+                    const cachedProfile = JSON.parse(cachedProfileStr);
+                    nameEl.textContent = cachedProfile.name || 'User';
+                    roleEl.textContent = cachedProfile.role || 'Role';
+                    
+                    if (cachedImage) {
+                        imgEl.src = cachedImage;
+                    } else {
+                        imgEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(cachedProfile.name || 'User')}&background=1a73e8&color=fff&size=150`;
+                    }
+                } catch(e) {}
+            }
+
+            // 2. Fetch data terbaru dari API untuk pastikan ia sentiasa update
             try {
-                const data = await APIHelper.fetchProfile();
+                let data;
+                if (typeof APIHelper !== 'undefined' && APIHelper.fetchProfile) {
+                    data = await APIHelper.fetchProfile();
+                } else {
+                    const res = await fetch(CONFIG.API_URL + '?action=getProfile');
+                    data = await res.json();
+                }
+
                 if (data.success && data.user) {
                     const user = data.user;
-                    CacheManager.set(CONFIG.PROFILE_CACHE_KEY, user);
+                    localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(user));
                     
                     nameEl.textContent = user.name || 'User';
                     roleEl.textContent = user.role || 'Role';
 
-                    const newInitialsUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=1a73e8&color=fff&size=150`;
-                    
                     if (user.pictureFileId && user.pictureFileId.trim() !== '') {
-                        if (!cachedImage || cachedProfile?.pictureFileId !== user.pictureFileId) {
-                            const imgData = await APIHelper.fetchImage(user.pictureFileId);
+                        // Semak jika pictureFileId sama, tak perlu fetch semula
+                        let needsFetch = true;
+                        if (cachedImage && cachedProfileStr) {
+                            try {
+                                const cp = JSON.parse(cachedProfileStr);
+                                if (cp.pictureFileId === user.pictureFileId) {
+                                    needsFetch = false;
+                                }
+                            } catch(e) {}
+                        }
+
+                        if (needsFetch) {
+                            let imgData;
+                            if (typeof APIHelper !== 'undefined' && APIHelper.fetchImage) {
+                                imgData = await APIHelper.fetchImage(user.pictureFileId);
+                            } else {
+                                const imgRes = await fetch(CONFIG.API_URL + '?action=getImage&fileId=' + encodeURIComponent(user.pictureFileId));
+                                imgData = await imgRes.json();
+                            }
+
                             if (imgData.success && imgData.base64) {
-                                CacheManager.set(CONFIG.IMAGE_CACHE_KEY, imgData.base64);
+                                if (typeof DataManager !== 'undefined') {
+                                    DataManager.setCachedImage(PROFILE_IMG_PREFIX, PROFILE_IMG_ID, imgData.base64);
+                                }
                                 imgEl.src = imgData.base64;
                             } else {
-                                imgEl.src = newInitialsUrl;
+                                imgEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=1a73e8&color=fff&size=150`;
                             }
+                        } else {
+                            imgEl.src = cachedImage;
                         }
                     } else {
-                        imgEl.src = newInitialsUrl;
+                        imgEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=1a73e8&color=fff&size=150`;
                     }
                 }
             } catch (error) {
@@ -113,7 +151,8 @@
         }
 
         function handleLogout() {
-            CacheManager.clearAll();
+            // Clear semua cache termasuk DataManager
+            localStorage.clear();
             window.location.href = 'index.html';
         }
     </script>
