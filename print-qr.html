@@ -12,7 +12,10 @@
     
     <script src="config.js"></script>
     <script src="utils.js"></script>
+    <!-- PENTING: Tambah data-manager.js untuk konsistensi cache -->
+    <script src="data-manager.js"></script>
     <script src="floating-actions.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -85,6 +88,7 @@
         let currentSort = 'default';
         const PRODUCT_CACHE_KEY = 'ma_inventory_product_list';
         const CACHE_EXPIRY = 5 * 60 * 1000;
+        const PROD_IMG_PREFIX = 'ma_prod_img';
 
         document.addEventListener('DOMContentLoaded', function() {
             loadProducts();
@@ -97,57 +101,71 @@
             });
             
             // Initialize Floating Action Menu
-            HeaderMenu.init({
-                triggerId: 'headerMenuTrigger',
-                buttons: [
-                    { 
-                        icon: 'fas fa-check-double', 
-                        title: 'Select All', 
-                        color: '#1a73e8', 
-                        action: toggleSelectAll 
-                    },
-                    { 
-                        icon: 'fas fa-print', 
-                        title: 'Print Selected', 
-                        color: '#6c757d', 
-                        action: printSelected 
-                    },
-                    { 
-                        icon: 'fas fa-download', 
-                        title: 'Download Selected', 
-                        color: '#28a745', 
-                        action: downloadSelected 
-                    },
-                    { 
-                        icon: 'fas fa-share-alt', 
-                        title: 'Share Selected', 
-                        color: '#17a2b8', 
-                        action: shareSelected 
-                    }
-                ]
-            });
+            if (typeof HeaderMenu !== 'undefined') {
+                HeaderMenu.init({
+                    triggerId: 'headerMenuTrigger',
+                    buttons: [
+                        { 
+                            icon: 'fas fa-check-double', 
+                            title: 'Select All', 
+                            color: '#1a73e8', 
+                            action: toggleSelectAll 
+                        },
+                        { 
+                            icon: 'fas fa-print', 
+                            title: 'Print Selected', 
+                            color: '#6c757d', 
+                            action: printSelected 
+                        },
+                        { 
+                            icon: 'fas fa-download', 
+                            title: 'Download Selected', 
+                            color: '#28a745', 
+                            action: downloadSelected 
+                        },
+                        { 
+                            icon: 'fas fa-share-alt', 
+                            title: 'Share Selected', 
+                            color: '#17a2b8', 
+                            action: shareSelected 
+                        }
+                    ]
+                });
+            }
         });
 
+        // FUNGSI CACHE GAMBAR MENGGUNAKAN DATA MANAGER (KONSISTEN DENGAN PAGE LAIN)
         function getCachedProductImage(partNo) {
             try {
-                const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
-                const item = localStorage.getItem(key);
-                if (!item) return null;
-                const parsed = JSON.parse(item);
-                if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) return parsed.base64;
-                localStorage.removeItem(key);
-                return null;
+                if (typeof DataManager !== 'undefined') {
+                    return DataManager.getCachedImage(PROD_IMG_PREFIX, partNo);
+                } else {
+                    const key = PROD_IMG_PREFIX + '_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
+                    const item = localStorage.getItem(key);
+                    if (!item) return null;
+                    const parsed = JSON.parse(item);
+                    if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) return parsed.base64;
+                    localStorage.removeItem(key);
+                    return null;
+                }
             } catch(e) { return null; }
         }
 
         function setCachedProductImage(partNo, base64) {
             try {
-                const key = 'ma_prod_img_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
-                localStorage.setItem(key, JSON.stringify({ base64: base64, timestamp: new Date().getTime() }));
+                if (typeof DataManager !== 'undefined') {
+                    DataManager.setCachedImage(PROD_IMG_PREFIX, partNo, base64);
+                } else {
+                    const key = PROD_IMG_PREFIX + '_' + partNo.replace(/[^a-zA-Z0-9]/g, '');
+                    localStorage.setItem(key, JSON.stringify({ base64: base64, timestamp: new Date().getTime() }));
+                }
             } catch(e) { console.warn('Cache failed:', e); }
         }
 
         async function loadProducts() {
+            const container = document.getElementById('productGrid');
+            
+            // Cuba ambil dari cache dahulu untuk paparan serta-merta
             const cachedData = localStorage.getItem(PRODUCT_CACHE_KEY);
             if (cachedData) {
                 try {
@@ -155,11 +173,13 @@
                     if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
                         allProducts = parsed.data;
                         filterProducts();
-                        return;
+                        return; // Exit awal, tiada loading spinner
                     }
                 } catch(e) { console.error("Cache error", e); }
             }
 
+            // Jika tiada cache atau sudah expired, fetch dari API
+            container.innerHTML = '<div class="loading-container"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>';
             try {
                 const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
                 const result = await res.json();
@@ -168,11 +188,11 @@
                     localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify({ data: allProducts, timestamp: new Date().getTime() }));
                     filterProducts();
                 } else {
-                    document.getElementById('productGrid').innerHTML = '<div class="loading-container">No products found</div>';
+                    container.innerHTML = '<div class="loading-container">No products found</div>';
                 }
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('productGrid').innerHTML = '<div class="loading-container" style="color: #dc3545;">Failed to load data</div>';
+                container.innerHTML = '<div class="loading-container" style="color: #dc3545;">Failed to load data</div>';
             }
         }
 
@@ -235,7 +255,7 @@
             }
 
             let html = '';
-            products.forEach((product) => {
+            products.forEach((product, index) => {
                 const qrData = `MA Inventory\nPart Name: ${product.partName}\nPart No: ${product.partNo}\nNo. Spec: ${product.noSpec || '-'}`;
                 const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(qrData);
                 const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -285,21 +305,23 @@
             });
             container.innerHTML = html;
 
-            // Load images
+            // Load images secara background (Pattern sama seperti product-list)
             products.forEach(product => {
                 if (product.pictureFileId && !getCachedProductImage(product.partNo)) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
                     const placeholderEl = document.getElementById(`img-placeholder-${safePartNo}`);
                     
-                    if (placeholderEl) {
+                    if (placeholderEl && typeof APIHelper !== 'undefined') {
                         APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
                             if (imgResult.success && imgResult.base64) {
                                 setCachedProductImage(product.partNo, imgResult.base64);
-                                placeholderEl.outerHTML = `<img src="${imgResult.base64}" alt="${product.partName}">`;
+                                if (placeholderEl && placeholderEl.parentNode) {
+                                    placeholderEl.outerHTML = `<img src="${imgResult.base64}" alt="${product.partName}">`;
+                                }
                             }
                         }).catch(err => {
                             console.error('Error loading image:', err);
-                            if (placeholderEl) {
+                            if (placeholderEl && placeholderEl.parentNode) {
                                 placeholderEl.innerHTML = '<i class="fas fa-box"></i>';
                             }
                         });
@@ -337,7 +359,9 @@
                 }
             });
             updateSelectedInfo();
-            Utils.showToast(newState ? '✅ All items selected' : 'All items deselected', 'info');
+            if (typeof Utils !== 'undefined') {
+                Utils.showToast(newState ? '✅ All items selected' : 'All items deselected', 'info');
+            }
         }
 
         function updateSelectedInfo() {
@@ -358,14 +382,20 @@
 
         function printSelected() {
             const selected = getSelectedProducts();
-            if (selected.length === 0) { Utils.showToast('️ Please select at least one product!', 'warning'); return; }
+            if (selected.length === 0) { 
+                if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); 
+                return; 
+            }
             window.print();
         }
 
         async function downloadSelected() {
             const selected = getSelectedProducts();
-            if (selected.length === 0) { Utils.showToast('⚠️ Please select at least one product!', 'warning'); return; }
-            Utils.showToast('⏳ Generating images...', 'info');
+            if (selected.length === 0) { 
+                if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); 
+                return; 
+            }
+            if (typeof Utils !== 'undefined') Utils.showToast('⏳ Generating images...', 'info');
             let downloadCount = 0;
 
             for (const product of selected) {
@@ -387,13 +417,16 @@
                     } catch (err) { console.error('Error:', err); }
                 }
             }
-            Utils.showToast(`✅ Downloaded ${downloadCount} image(s)!`, 'success');
+            if (typeof Utils !== 'undefined') Utils.showToast(`✅ Downloaded ${downloadCount} image(s)!`, 'success');
         }
 
         async function shareSelected() {
             const selected = getSelectedProducts();
-            if (selected.length === 0) { Utils.showToast('️ Please select at least one product!', 'warning'); return; }
-            Utils.showToast('⏳ Preparing files...', 'info');
+            if (selected.length === 0) { 
+                if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); 
+                return; 
+            }
+            if (typeof Utils !== 'undefined') Utils.showToast('⏳ Preparing files...', 'info');
             const files = [];
 
             for (const product of selected) {
@@ -408,12 +441,15 @@
                 }
             }
 
-            if (files.length === 0) { Utils.showToast('❌ Failed to generate images!', 'error'); return; }
+            if (files.length === 0) { 
+                if (typeof Utils !== 'undefined') Utils.showToast('❌ Failed to generate images!', 'error'); 
+                return; 
+            }
 
             if (navigator.canShare && navigator.canShare({ files: files })) {
                 try {
                     await navigator.share({ files: files, title: 'MA Inventory QR Codes', text: `${files.length} product QR code(s)` });
-                    Utils.showToast(`✅ Shared ${files.length} image(s)!`, 'success');
+                    if (typeof Utils !== 'undefined') Utils.showToast(`✅ Shared ${files.length} image(s)!`, 'success');
                 } catch (err) {
                     if (err.name !== 'AbortError') {
                         for (const file of files) {
@@ -425,7 +461,7 @@
                             URL.revokeObjectURL(url);
                             await new Promise(r => setTimeout(r, 500));
                         }
-                        Utils.showToast(`✅ ${files.length} image(s) downloaded`, 'info');
+                        if (typeof Utils !== 'undefined') Utils.showToast(`✅ ${files.length} image(s) downloaded`, 'info');
                     }
                 }
             } else {
@@ -438,7 +474,7 @@
                     URL.revokeObjectURL(url);
                     await new Promise(r => setTimeout(r, 500));
                 }
-                Utils.showToast(`✅ ${files.length} image(s) downloaded!`, 'success');
+                if (typeof Utils !== 'undefined') Utils.showToast(`✅ ${files.length} image(s) downloaded!`, 'success');
             }
         }
     </script>
