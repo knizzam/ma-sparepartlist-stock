@@ -28,26 +28,14 @@
 
     <!-- Summary Bar -->
     <div class="summary-bar">
-        <div class="summary-item">
-            <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
-            <span id="lowStockCount">0</span> Low
-        </div>
-        <div class="summary-item">
-            <i class="fas fa-exclamation-circle" style="color: #ffc107;"></i>
-            <span id="warningStockCount">0</span> Warning
-        </div>
-        <div class="summary-item">
-            <i class="fas fa-check-circle" style="color: #28a745;"></i>
-            <span id="selectedCount">0</span> Selected
-        </div>
+        <div class="summary-item"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><span id="lowStockCount">0</span> Low</div>
+        <div class="summary-item"><i class="fas fa-exclamation-circle" style="color: #ffc107;"></i><span id="warningStockCount">0</span> Warning</div>
+        <div class="summary-item"><i class="fas fa-check-circle" style="color: #28a745;"></i><span id="selectedCount">0</span> Selected</div>
     </div>
 
     <!-- Product List -->
     <div class="order-list-container" id="orderListContainer">
-        <div class="loading-container">
-            <i class="fas fa-spinner fa-spin"></i>
-            <div>Loading products...</div>
-        </div>
+        <div class="loading-container"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>
     </div>
 
     <!-- Floating Action Bar -->
@@ -57,15 +45,9 @@
             <span id="floatingSelectedCount">0</span> items | Total: <span id="floatingTotalQty">0</span> units
         </div>
         <div class="action-buttons">
-            <button class="action-btn btn-csv" onclick="downloadCSV()">
-                <i class="fas fa-file-csv"></i> CSV
-            </button>
-            <button class="action-btn btn-picture" onclick="downloadPicture()">
-                <i class="fas fa-image"></i> Picture
-            </button>
-            <button class="action-btn btn-share" onclick="shareText()">
-                <i class="fas fa-share-alt"></i> Share
-            </button>
+            <button class="action-btn btn-csv" onclick="downloadCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+            <button class="action-btn btn-picture" onclick="downloadPicture()"><i class="fas fa-image"></i> Picture</button>
+            <button class="action-btn btn-share" onclick="shareText()"><i class="fas fa-share-alt"></i> Share</button>
         </div>
     </div>
 
@@ -77,8 +59,6 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadProducts();
-            
-            // Initialize Header Menu
             if (typeof HeaderMenu !== 'undefined') {
                 HeaderMenu.init({
                     triggerId: 'headerMenuTrigger',
@@ -92,24 +72,16 @@
 
         async function loadProducts() {
             const container = document.getElementById('orderListContainer');
-            
             try {
                 let fetchedProducts = null;
-                
                 if (typeof DataManager !== 'undefined') {
-                    fetchedProducts = await DataManager.fetchData(
-                        'ma_inventory_product_list',
-                        CONFIG.API_URL + '?action=getAllProducts',
-                        'products'
-                    );
+                    fetchedProducts = await DataManager.fetchData('ma_inventory_product_list', CONFIG.API_URL + '?action=getAllProducts', 'products');
                 } else {
                     const cachedData = localStorage.getItem('ma_inventory_product_list');
                     if (cachedData) {
                         try {
                             const p = JSON.parse(cachedData);
-                            if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) {
-                                fetchedProducts = p.data;
-                            }
+                            if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) fetchedProducts = p.data;
                         } catch(e) {}
                     }
                     if (!fetchedProducts) {
@@ -117,14 +89,10 @@
                         const result = await res.json();
                         if (result.success && result.products) {
                             fetchedProducts = result.products;
-                            localStorage.setItem('ma_inventory_product_list', JSON.stringify({
-                                data: fetchedProducts,
-                                timestamp: new Date().getTime()
-                            }));
+                            localStorage.setItem('ma_inventory_product_list', JSON.stringify({ data: fetchedProducts, timestamp: new Date().getTime() }));
                         }
                     }
                 }
-                
                 if (fetchedProducts !== null) {
                     allProducts = fetchedProducts;
                     filterOrderProducts();
@@ -138,20 +106,16 @@
         }
 
         function filterOrderProducts() {
-            // Hanya ambil barang yang currentStock <= minimumStock
             orderProducts = allProducts.filter(p => {
                 const current = parseInt(p.currentStock) || 0;
                 const minimum = parseInt(p.minimumStock) || 0;
                 return current <= minimum;
             });
-            
-            // Susun: Low stock (current <= min/2) paling atas, lepas tu warning
             orderProducts.sort((a, b) => {
                 const aRatio = (parseInt(a.currentStock) || 0) / (parseInt(a.minimumStock) || 1);
                 const bRatio = (parseInt(b.currentStock) || 0) / (parseInt(b.minimumStock) || 1);
                 return aRatio - bRatio;
             });
-            
             renderOrderList();
         }
 
@@ -164,7 +128,6 @@
 
         function renderOrderList() {
             const container = document.getElementById('orderListContainer');
-            
             if (orderProducts.length === 0) {
                 container.innerHTML = '<div class="loading-container"><i class="fas fa-check-circle" style="font-size: 48px; color: #28a745; margin-bottom: 15px;"></i><div>All products are well stocked!</div></div>';
                 return;
@@ -172,8 +135,8 @@
             
             let lowCount = 0;
             let warningCount = 0;
-            
             let html = '';
+            
             orderProducts.forEach((product, index) => {
                 const current = parseInt(product.currentStock) || 0;
                 const minimum = parseInt(product.minimumStock) || 0;
@@ -182,13 +145,24 @@
                 if (status === 'low') lowCount++;
                 else if (status === 'warning') warningCount++;
                 
-                // Auto-calculate suggested order qty
-                const suggestedQty = Math.ceil((minimum * 1.5) - current);
+                const suggestedQty = Math.max(1, Math.ceil((minimum * 1.5) - current));
                 const isSelected = selectedProducts.has(index);
-                
                 const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
-                const cachedImg = (typeof DataManager !== 'undefined') ? 
-                    DataManager.getCachedImage('ma_prod_img', product.partNo) : null;
+                
+                // FIX: Dapatkan cachedImg di sini dengan selamat
+                let cachedImg = null;
+                if (typeof DataManager !== 'undefined') {
+                    cachedImg = DataManager.getCachedImage('ma_prod_img', product.partNo);
+                } else {
+                    const key = 'ma_prod_img_' + safePartNo;
+                    const cached = localStorage.getItem(key);
+                    if (cached) {
+                        try {
+                            const parsed = JSON.parse(cached);
+                            if (new Date().getTime() - parsed.timestamp < 5 * 60 * 1000) cachedImg = parsed.base64;
+                        } catch(e) {}
+                    }
+                }
                 
                 let imgContent = '<i class="fas fa-box"></i>';
                 if (cachedImg) {
@@ -202,9 +176,7 @@
                         <div class="order-checkbox" onclick="toggleSelection(${index})">
                             <i class="fas ${isSelected ? 'fa-check-circle' : 'fa-circle'}"></i>
                         </div>
-                        <div class="order-image">
-                            ${imgContent}
-                        </div>
+                        <div class="order-image">${imgContent}</div>
                         <div class="order-info">
                             <div class="order-name">${product.partName}</div>
                             <div class="order-partno">${product.partNo}</div>
@@ -221,48 +193,61 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="order-status-badge ${status}">
-                            ${status === 'low' ? ' LOW' : '🟡 WARNING'}
-                        </div>
+                        <div class="order-status-badge ${status}">${status === 'low' ? '🔴 LOW' : ' WARNING'}</div>
                     </div>
                 `;
             });
             
             container.innerHTML = html;
-            
-            // Update summary counts
             document.getElementById('lowStockCount').textContent = lowCount;
             document.getElementById('warningStockCount').textContent = warningCount;
             
-            // Load images
+            // Load images background
             orderProducts.forEach((product, index) => {
-                if (product.pictureFileId && !cachedImg) {
+                if (product.pictureFileId) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
-                    const placeholderEl = document.getElementById(`img-placeholder-${safePartNo}`);
-                    if (placeholderEl && typeof APIHelper !== 'undefined') {
-                        APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
-                            if (imgResult.success && imgResult.base64) {
-                                if (typeof DataManager !== 'undefined') {
-                                    DataManager.setCachedImage('ma_prod_img', product.partNo, imgResult.base64);
+                    let hasCache = false;
+                    if (typeof DataManager !== 'undefined') {
+                        hasCache = !!DataManager.getCachedImage('ma_prod_img', product.partNo);
+                    } else {
+                        const key = 'ma_prod_img_' + safePartNo;
+                        const cached = localStorage.getItem(key);
+                        if (cached) {
+                            try {
+                                const parsed = JSON.parse(cached);
+                                if (new Date().getTime() - parsed.timestamp < 5 * 60 * 1000) hasCache = true;
+                            } catch(e) {}
+                        }
+                    }
+                    
+                    if (!hasCache) {
+                        const placeholderEl = document.getElementById(`img-placeholder-${safePartNo}`);
+                        if (placeholderEl && typeof APIHelper !== 'undefined') {
+                            APIHelper.fetchImage(product.pictureFileId).then(imgResult => {
+                                if (imgResult.success && imgResult.base64) {
+                                    if (typeof DataManager !== 'undefined') {
+                                        DataManager.setCachedImage('ma_prod_img', product.partNo, imgResult.base64);
+                                    } else {
+                                        const key = 'ma_prod_img_' + safePartNo;
+                                        localStorage.setItem(key, JSON.stringify({ base64: imgResult.base64, timestamp: new Date().getTime() }));
+                                    }
+                                    if (placeholderEl && placeholderEl.parentNode) {
+                                        placeholderEl.outerHTML = `<img src="${imgResult.base64}" alt="${product.partName}">`;
+                                    }
                                 }
-                                if (placeholderEl && placeholderEl.parentNode) {
-                                    placeholderEl.outerHTML = `<img src="${imgResult.base64}" alt="${product.partName}">`;
-                                }
-                            }
-                        });
+                            }).catch(() => {
+                                if (placeholderEl && placeholderEl.parentNode) placeholderEl.innerHTML = '<i class="fas fa-box"></i>';
+                            });
+                        }
                     }
                 }
             });
-            
             updateFloatingBar();
         }
 
         function toggleSelection(index) {
-            if (selectedProducts.has(index)) {
-                selectedProducts.delete(index);
-            } else {
-                selectedProducts.add(index);
-            }
+            if (selectedProducts.has(index)) selectedProducts.delete(index);
+            else selectedProducts.add(index);
             
             const card = document.getElementById(`order-card-${index}`);
             if (card) {
@@ -270,7 +255,6 @@
                 const icon = card.querySelector('.order-checkbox i');
                 icon.className = selectedProducts.has(index) ? 'fas fa-check-circle' : 'fas fa-circle';
             }
-            
             updateFloatingBar();
         }
 
@@ -280,8 +264,7 @@
                 const card = document.getElementById(`order-card-${index}`);
                 if (card) {
                     card.classList.add('selected');
-                    const icon = card.querySelector('.order-checkbox i');
-                    icon.className = 'fas fa-check-circle';
+                    card.querySelector('.order-checkbox i').className = 'fas fa-check-circle';
                 }
             });
             updateFloatingBar();
@@ -294,8 +277,7 @@
                 const card = document.getElementById(`order-card-${index}`);
                 if (card) {
                     card.classList.remove('selected');
-                    const icon = card.querySelector('.order-checkbox i');
-                    icon.className = 'fas fa-circle';
+                    card.querySelector('.order-checkbox i').className = 'fas fa-circle';
                 }
             });
             updateFloatingBar();
@@ -305,9 +287,7 @@
         function adjustQty(index, change) {
             const input = document.getElementById(`qty-${index}`);
             if (input) {
-                let newVal = parseInt(input.value) || 0;
-                newVal = Math.max(0, newVal + change);
-                input.value = newVal;
+                input.value = Math.max(0, (parseInt(input.value) || 0) + change);
                 updateFloatingBar();
             }
         }
@@ -319,24 +299,16 @@
         function updateFloatingBar() {
             const floatingBar = document.getElementById('floatingActionBar');
             const selectedCount = selectedProducts.size;
-            
             document.getElementById('selectedCount').textContent = selectedCount;
             document.getElementById('floatingSelectedCount').textContent = selectedCount;
             
             let totalQty = 0;
             selectedProducts.forEach(index => {
                 const qtyInput = document.getElementById(`qty-${index}`);
-                if (qtyInput) {
-                    totalQty += parseInt(qtyInput.value) || 0;
-                }
+                if (qtyInput) totalQty += parseInt(qtyInput.value) || 0;
             });
             document.getElementById('floatingTotalQty').textContent = totalQty;
-            
-            if (selectedCount > 0) {
-                floatingBar.style.display = 'flex';
-            } else {
-                floatingBar.style.display = 'none';
-            }
+            floatingBar.style.display = selectedCount > 0 ? 'flex' : 'none';
         }
 
         function getSelectedProductsData() {
@@ -344,71 +316,41 @@
             selectedProducts.forEach(index => {
                 const product = orderProducts[index];
                 const qtyInput = document.getElementById(`qty-${index}`);
-                const qty = parseInt(qtyInput?.value) || 0;
-                
                 selected.push({
-                    partName: product.partName,
-                    partNo: product.partNo,
-                    currentStock: product.currentStock,
-                    minimumStock: product.minimumStock,
-                    orderQty: qty
+                    partName: product.partName, partNo: product.partNo,
+                    currentStock: product.currentStock, minimumStock: product.minimumStock,
+                    orderQty: parseInt(qtyInput?.value) || 0
                 });
             });
             return selected;
         }
 
-        // DOWNLOAD CSV
         function downloadCSV() {
             const selected = getSelectedProductsData();
-            if (selected.length === 0) {
-                if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning');
-                return;
-            }
-            
+            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); return; }
             let csv = 'Part Name,Part No,Current Stock,Minimum Stock,Order Qty\n';
-            selected.forEach(p => {
-                csv += `"${p.partName}","${p.partNo}",${p.currentStock},${p.minimumStock},${p.orderQty}\n`;
-            });
-            
+            selected.forEach(p => { csv += `"${p.partName}","${p.partNo}",${p.currentStock},${p.minimumStock},${p.orderQty}\n`; });
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = url;
-            link.download = `Predictive_Order_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-            URL.revokeObjectURL(url);
-            
+            link.href = url; link.download = `Predictive_Order_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click(); URL.revokeObjectURL(url);
             if (typeof Utils !== 'undefined') Utils.showToast(`✅ CSV downloaded with ${selected.length} items`, 'success');
         }
 
-        // DOWNLOAD PICTURE
         async function downloadPicture() {
             const selected = getSelectedProductsData();
-            if (selected.length === 0) {
-                if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning');
-                return;
-            }
+            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); return; }
+            if (typeof Utils !== 'undefined') Utils.showToast(' Generating images...', 'info');
             
-            if (typeof Utils !== 'undefined') Utils.showToast('⏳ Generating images...', 'info');
-            
-            // Create a temporary container for rendering
             const tempContainer = document.createElement('div');
             tempContainer.style.cssText = 'position: fixed; left: -9999px; top: 0; background: white; padding: 20px; width: 800px;';
-            
             let html = '<h2 style="text-align: center; margin-bottom: 20px;">Predictive Order List</h2>';
             html += '<table style="width: 100%; border-collapse: collapse;">';
             html += '<tr style="background: #f0f0f0;"><th style="padding: 10px; border: 1px solid #ddd;">Part Name</th><th style="padding: 10px; border: 1px solid #ddd;">Part No</th><th style="padding: 10px; border: 1px solid #ddd;">Current</th><th style="padding: 10px; border: 1px solid #ddd;">Min</th><th style="padding: 10px; border: 1px solid #ddd;">Order Qty</th></tr>';
-            
             selected.forEach(p => {
-                html += `<tr>
-                    <td style="padding: 10px; border: 1px solid #ddd;">${p.partName}</td>
-                    <td style="padding: 10px; border: 1px solid #ddd;">${p.partNo}</td>
-                    <td style="padding: 10px; border: 1px solid #ddd;">${p.currentStock}</td>
-                    <td style="padding: 10px; border: 1px solid #ddd;">${p.minimumStock}</td>
-                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">${p.orderQty}</td>
-                </tr>`;
+                html += `<tr><td style="padding: 10px; border: 1px solid #ddd;">${p.partName}</td><td style="padding: 10px; border: 1px solid #ddd;">${p.partNo}</td><td style="padding: 10px; border: 1px solid #ddd;">${p.currentStock}</td><td style="padding: 10px; border: 1px solid #ddd;">${p.minimumStock}</td><td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">${p.orderQty}</td></tr>`;
             });
-            
             html += '</table>';
             tempContainer.innerHTML = html;
             document.body.appendChild(tempContainer);
@@ -419,58 +361,32 @@
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.download = `Predictive_Order_${new Date().toISOString().split('T')[0]}.png`;
-                    link.href = url;
-                    link.click();
-                    URL.revokeObjectURL(url);
+                    link.href = url; link.click(); URL.revokeObjectURL(url);
                 }, 'image/png');
-                
                 if (typeof Utils !== 'undefined') Utils.showToast(`✅ Picture downloaded`, 'success');
             } catch (err) {
                 console.error('Error:', err);
                 if (typeof Utils !== 'undefined') Utils.showToast('❌ Failed to generate picture', 'error');
             }
-            
             document.body.removeChild(tempContainer);
         }
 
-        // SHARE TEXT (WhatsApp)
         function shareText() {
             const selected = getSelectedProductsData();
-            if (selected.length === 0) {
-                if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning');
-                return;
-            }
-            
+            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); return; }
             let text = '📦 *Predictive Order List*\n\n';
             selected.forEach((p, i) => {
-                text += `${i + 1}. *${p.partName}* (${p.partNo})\n`;
-                text += `   Current: ${p.currentStock} | Min: ${p.minimumStock}\n`;
-                text += `   Order Qty: *${p.orderQty}*\n\n`;
+                text += `${i + 1}. *${p.partName}* (${p.partNo})\nCurrent: ${p.currentStock} | Min: ${p.minimumStock}\nOrder Qty: *${p.orderQty}*\n\n`;
             });
-            
-            text += `Total Items: ${selected.length}\n`;
             const totalQty = selected.reduce((sum, p) => sum + p.orderQty, 0);
-            text += `Total Qty: ${totalQty}\n\n`;
-            text += 'Please confirm availability. Thank you!';
+            text += `Total Items: ${selected.length}\nTotal Qty: ${totalQty}\n\nPlease confirm availability. Thank you!`;
             
-            // Try Web Share API first
             if (navigator.share) {
-                navigator.share({
-                    title: 'Predictive Order List',
-                    text: text
-                }).then(() => {
-                    if (typeof Utils !== 'undefined') Utils.showToast('✅ Shared successfully!', 'success');
-                }).catch(err => {
-                    if (err.name !== 'AbortError') {
-                        // Fallback to WhatsApp
-                        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-                        window.open(whatsappUrl, '_blank');
-                    }
+                navigator.share({ title: 'Predictive Order List', text: text }).catch(() => {
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                 });
             } else {
-                // Fallback to WhatsApp
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-                window.open(whatsappUrl, '_blank');
+                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
             }
         }
     </script>
