@@ -125,7 +125,6 @@
             document.getElementById('photoInput').click();
         }
 
-        // RESET BUTTON STATE - Fungsi khas untuk pastikan button sentiasa boleh ditekan
         function resetButtonState() {
             const btn = document.getElementById('saveBtn');
             if (btn) {
@@ -134,39 +133,35 @@
                 btn.style.opacity = '1';
                 btn.style.cursor = 'pointer';
             }
-            console.log('[ResetButton] Button state reset, editingEmail:', editingEmail);
         }
 
         function showListView() {
             document.getElementById('formView').style.display = 'none';
             document.getElementById('listView').style.display = 'block';
             resetForm();
-            loadUserList(); // Tidak perlu force refresh, guna cache
+            loadUserList();
         }
 
         function showAddForm() {
             editingEmail = null;
             resetForm();
-            resetButtonState(); // PENTING: Reset button state
+            resetButtonState();
             document.getElementById('saveBtn').innerText = 'Add User';
             document.getElementById('formView').style.display = 'block';
             document.getElementById('listView').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            console.log('[ShowAddForm] Ready for new user');
         }
 
         function showEditForm() {
             if (!editingEmail) {
-                console.error('[ShowEditForm] ERROR: editingEmail is null!');
                 showListView();
                 return;
             }
-            resetButtonState(); // PENTING: Reset button state
+            resetButtonState();
             document.getElementById('saveBtn').innerText = 'Update User';
             document.getElementById('formView').style.display = 'block';
             document.getElementById('listView').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            console.log('[ShowEditForm] Ready to update:', editingEmail);
         }
 
         function cancelForm() {
@@ -194,38 +189,27 @@
                 let fetchedUsers = null;
                 
                 if (typeof DataManager !== 'undefined') {
-                    fetchedUsers = await DataManager.fetchData(
-                        USER_CACHE_KEY, 
-                        CONFIG.API_URL + '?action=getAllUsers', 
-                        'users'
-                    );
+                    fetchedUsers = await DataManager.fetchData(USER_CACHE_KEY, CONFIG.API_URL + '?action=getAllUsers', 'users');
                 } else {
                     const cachedData = localStorage.getItem(USER_CACHE_KEY);
                     if (cachedData) {
                         try {
                             const p = JSON.parse(cachedData);
-                            if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) {
-                                fetchedUsers = p.data;
-                            }
+                            if (new Date().getTime() - p.timestamp < 5 * 60 * 1000) fetchedUsers = p.data;
                         } catch(e) {}
                     }
-                    
                     if (!fetchedUsers) {
                         const res = await fetch(CONFIG.API_URL + '?action=getAllUsers');
                         const result = await res.json();
                         if (result.success && result.users) {
                             fetchedUsers = result.users;
-                            localStorage.setItem(USER_CACHE_KEY, JSON.stringify({
-                                data: fetchedUsers,
-                                timestamp: new Date().getTime()
-                            }));
+                            localStorage.setItem(USER_CACHE_KEY, JSON.stringify({ data: fetchedUsers, timestamp: new Date().getTime() }));
                         }
                     }
                 }
                 
                 if (fetchedUsers !== null) {
                     allUsers = fetchedUsers;
-                    console.log('[LoadUserList] Users loaded:', allUsers.length);
                     renderUserList(allUsers);
                 } else {
                     container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><div>Failed to load data</div></div>';
@@ -316,10 +300,7 @@
         }
 
         function editUser(email, role, name, noKad, active, pictureFileId) {
-            console.log('[EditUser] Called with email:', email);
-            
             editingEmail = email;
-            
             document.getElementById('userName').value = name || '';
             document.getElementById('userNoKad').value = noKad || '';
             document.getElementById('userRole').value = role || '';
@@ -357,7 +338,6 @@
                         tempPhotoBase64 = '';
                     }
                 }).catch(err => {
-                    console.error('[EditUser] Image fetch error:', err);
                     preview.style.display = 'none'; 
                     placeholder.style.display = 'flex';
                 });
@@ -366,7 +346,6 @@
                 placeholder.style.display = 'flex'; 
                 tempPhotoBase64 = ''; 
             }
-            
             showEditForm();
         }
 
@@ -379,12 +358,9 @@
             if (typeof PhotoPicker !== 'undefined') PhotoPicker.reset();
             tempPhotoBase64 = ''; 
             editingEmail = null;
-            console.log('[ResetForm] Form reset');
         }
 
         async function saveUser() {
-            console.log('[SaveUser] Starting, editingEmail:', editingEmail);
-            
             const name = document.getElementById('userName').value.trim();
             const noKad = document.getElementById('userNoKad').value.trim();
             const role = document.getElementById('userRole').value.trim();
@@ -398,96 +374,44 @@
             }
 
             const btn = document.getElementById('saveBtn');
-            const originalText = btn.innerText;
-            
-            // Set button ke state saving
             btn.disabled = true;
             btn.innerText = 'Saving...';
             btn.style.opacity = '0.6';
-            btn.style.cursor = 'not-allowed';
 
             const action = editingEmail ? 'updateUser' : 'addUser';
-            const payload = { 
-                action, 
-                data: { 
-                    email, 
-                    role, 
-                    name, 
-                    noKad, 
-                    active, 
-                    originalEmail: editingEmail
-                } 
-            };
-
-            console.log('[SaveUser] Payload:', payload);
+            const payload = { action, data: { email, role, name, noKad, active, originalEmail: editingEmail } };
 
             try {
-                // Fetch 1: Save user data
-                await fetch(CONFIG.API_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'text/plain' }, 
-                    body: JSON.stringify(payload) 
-                });
-                console.log('[SaveUser] User data saved');
+                await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
                 
-                // Fetch 2: Upload photo jika ada
                 if (tempPhotoBase64) {
-                    await fetch(CONFIG.API_URL, { 
-                        method: 'POST', 
-                        mode: 'no-cors', 
-                        headers: { 'Content-Type': 'text/plain' }, 
-                        body: JSON.stringify({ 
-                            action: 'uploadUserPicture', 
-                            data: { base64: tempPhotoBase64, email } 
-                        }) 
-                    });
-                    console.log('[SaveUser] Photo uploaded');
+                    await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'uploadUserPicture', data: { base64: tempPhotoBase64, email } }) });
                     if (typeof DataManager !== 'undefined') {
                         DataManager.setCachedImage(USER_IMG_PREFIX, email, tempPhotoBase64);
                     }
                 }
 
-                // Clear cache
                 if (typeof DataManager !== 'undefined') {
                     DataManager.clearCache(USER_CACHE_KEY);
                 } else {
                     localStorage.removeItem(USER_CACHE_KEY);
                 }
-                console.log('[SaveUser] Cache cleared');
 
-                // PENTING: Reset button state SEBELUM navigation
                 resetButtonState();
-                console.log('[SaveUser] Button state reset');
-
-                // Show success message
                 if (typeof Utils !== 'undefined') Utils.showToast('✅ Pengguna berjaya disimpan!', 'success');
-                else alert('Pengguna berjaya disimpan!');
-
-                // Navigation ke list view
                 showListView();
 
             } catch (error) {
                 console.error('[SaveUser] Error:', error);
-                
-                // PENTING: Reset button state dalam catch block juga
                 resetButtonState();
-                
                 if (typeof Utils !== 'undefined') Utils.showToast('❌ Ralat semasa menyimpan', 'error');
-                else alert('Ralat semasa menyimpan');
             }
-            // TIADA finally block kerana kita handle dalam try dan catch
         }
 
         async function deleteUser(email) {
             if (!confirm('⚠️ Adakah anda pasti ingin memadam pengguna ini?')) return;
             try {
-                await fetch(CONFIG.API_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'text/plain' }, 
-                    body: JSON.stringify({ action: 'deleteUser', data: { email } }) 
-                });
+                await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'deleteUser', data: { email } }) });
                 
                 if (typeof DataManager !== 'undefined') {
                     DataManager.clearCache(USER_CACHE_KEY);
@@ -501,11 +425,8 @@
                 allUsers = allUsers.filter(u => u.email !== email);
                 renderUserList(allUsers);
                 if (typeof Utils !== 'undefined') Utils.showToast('✅ Pengguna berjaya dipadam', 'success');
-                else alert('Pengguna berjaya dipadam');
             } catch (error) { 
-                console.error('[DeleteUser] Error:', error);
                 if (typeof Utils !== 'undefined') Utils.showToast('❌ Gagal memadam pengguna', 'error');
-                else alert('Gagal memadam pengguna');
             }
         }
     </script>
