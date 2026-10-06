@@ -10,9 +10,38 @@
     <link rel="stylesheet" href="product-list.css">
     <script src="config.js"></script>
     <script src="utils.js"></script>
-    <script src="photo-picker.js"></script>
     <script src="data-manager.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <style>
+        /* CSS UNTUK FLOATING PHOTO MENU */
+        .photo-menu-backdrop {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 9998; display: none;
+        }
+        .photo-option-menu {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: white; padding: 15px 25px; border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: none; flex-direction: row; gap: 20px; z-index: 9999;
+            animation: slideUp 0.3s ease;
+        }
+        .photo-option-item {
+            width: 55px; height: 55px; border-radius: 50%; border: none;
+            color: white; font-size: 22px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .photo-option-item:active { transform: scale(0.9); }
+        .photo-option-item.btn-camera { background: linear-gradient(135deg, #1a73e8, #1557b0); }
+        .photo-option-item.btn-gallery { background: linear-gradient(135deg, #28a745, #218838); }
+        .photo-option-item.btn-cancel { background: linear-gradient(135deg, #dc3545, #c82333); }
+        
+        @keyframes slideUp { 
+            from { transform: translate(-50%, 100px); opacity: 0; } 
+            to { transform: translate(-50%, 0); opacity: 1; } 
+        }
+    </style>
 </head>
 <body>
 
@@ -50,6 +79,7 @@
         <div class="product-list-container" id="productListContainer"></div>
     </div>
 
+    <!-- MODAL EDIT -->
     <div class="modal-overlay" id="editModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -65,7 +95,9 @@
                             <i class="fas fa-camera"></i><span>Tap to upload<br>or take photo</span>
                         </div>
                         <img id="editPhotoPreview" class="photo-preview-large" alt="Preview" onclick="showPhotoMenu(event)">
-                        <input type="file" id="editPhotoInput" accept="image/*">
+                        <!-- INPUT TERPISAH UNTUK KAMERA DAN GALERI -->
+                        <input type="file" id="editPhotoInputCamera" accept="image/*" capture="environment" style="display: none;">
+                        <input type="file" id="editPhotoInputGallery" accept="image/*" style="display: none;">
                     </div>
                 </div>
                 <div class="form-group"><label class="form-label">Part Name</label><input type="text" class="form-input" id="editPartName"></div>
@@ -96,6 +128,19 @@
         </div>
     </div>
 
+    <!-- FLOATING PHOTO MENU (Diletak di luar modal supaya z-index berfungsi dengan baik) -->
+    <div class="photo-menu-backdrop" id="photoMenuBackdrop" onclick="closePhotoMenu()"></div>
+    <div class="photo-option-menu" id="photoOptionMenu">
+        <button class="photo-option-item btn-camera" id="btnTakePhoto" title="Take Photo">
+            <i class="fas fa-camera"></i>
+        </button>
+        <button class="photo-option-item btn-gallery" id="btnChooseGallery" title="Choose from Gallery">
+            <i class="fas fa-images"></i>
+        </button>
+        <button class="photo-option-item btn-cancel" id="btnCancelPhoto" title="Cancel">
+            <i class="fas fa-times"></i>
+        </button</div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         var allProducts = [];
@@ -109,36 +154,10 @@
         var PROD_IMG_PREFIX = 'ma_prod_img';
 
         document.addEventListener('DOMContentLoaded', function() {
-            // PhotoPicker.init DIKOMENKAN kerana override preview image
-            // PhotoPicker.init({
-            //     wrapperId: 'editPhotoWrapper',
-            //     inputId: 'editPhotoInput',
-            //     previewId: 'editPhotoPreview',
-            //     placeholderId: 'editPhotoPlaceholder'
-            // });
-
-            // Event listener untuk photo input - UPDATE PREVIEW SERTA-MERTA
-            document.getElementById('editPhotoInput').addEventListener('change', function(e) {
-                if (e.target.files && e.target.files[0]) {
-                    var reader = new FileReader();
-                    reader.onload = function(ev) { 
-                        tempEditPhotoBase64 = ev.target.result;
-                        
-                        // PENTING: Update preview image serta-merta
-                        var preview = document.getElementById('editPhotoPreview');
-                        var placeholder = document.getElementById('editPhotoPlaceholder');
-                        
-                        if (preview && placeholder) {
-                            preview.src = ev.target.result;
-                            preview.style.display = 'block';
-                            placeholder.style.display = 'none';
-                        }
-                        
-                        Utils.showToast('Photo selected', 'info');
-                    };
-                    reader.readAsDataURL(e.target.files[0]);
-                }
-            });
+            // 1. Event listener untuk KAMERA
+            document.getElementById('editPhotoInputCamera').addEventListener('change', handlePhotoSelect);
+            // 2. Event listener untuk GALERI
+            document.getElementById('editPhotoInputGallery').addEventListener('change', handlePhotoSelect);
 
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('#sortBtn') && !e.target.closest('#sortDropdown')) {
@@ -149,13 +168,53 @@
             loadProductList();
         });
 
-        // Fungsi untuk klik photo placeholder/preview
+        // --- FUNGSI FLOATING MENU ---
         function showPhotoMenu(event) {
             if (event) event.preventDefault();
-            var photoInput = document.getElementById('editPhotoInput');
-            if (photoInput) {
-                photoInput.click();
+            document.getElementById('photoMenuBackdrop').style.display = 'block';
+            document.getElementById('photoOptionMenu').style.display = 'flex';
+        }
+
+        function closePhotoMenu() {
+            document.getElementById('photoMenuBackdrop').style.display = 'none';
+            document.getElementById('photoOptionMenu').style.display = 'none';
+        }
+
+        document.getElementById('btnTakePhoto').addEventListener('click', function() {
+            closePhotoMenu();
+            document.getElementById('editPhotoInputCamera').click();
+        });
+
+        document.getElementById('btnChooseGallery').addEventListener('click', function() {
+            closePhotoMenu();
+            document.getElementById('editPhotoInputGallery').click();
+        });
+
+        document.getElementById('btnCancelPhoto').addEventListener('click', closePhotoMenu);
+
+        // --- FUNGSI HANDLE PILIHAN GAMBAR (PREVIEW SERTA-MERTA) ---
+        function handlePhotoSelect(e) {
+            if (e.target.files && e.target.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(ev) { 
+                    tempEditPhotoBase64 = ev.target.result;
+                    
+                    // PENTING: Update preview image serta-merta
+                    var preview = document.getElementById('editPhotoPreview');
+                    var placeholder = document.getElementById('editPhotoPlaceholder');
+                    
+                    if (preview && placeholder) {
+                        preview.src = ev.target.result;
+                        preview.style.display = 'block';
+                        placeholder.style.display = 'none';
+                    }
+                    
+                    Utils.showToast('Photo selected', 'info');
+                };
+                reader.readAsDataURL(e.target.files[0]);
             }
+            // Reset input value supaya boleh pilih fail yang sama lagi jika perlu
+            e.target.value = '';
         }
 
         function resetButtonState() {
@@ -311,7 +370,6 @@
             }
             container.innerHTML = html;
 
-            // Load images AFTER render - Pattern sama seperti Print QR Code
             for (var j = 0; j < filtered.length; j++) {
                 var prod = filtered[j];
                 if (prod.pictureFileId && !getCachedProductImage(prod.partNo)) {
@@ -371,7 +429,7 @@
             if (!product) return;
 
             editingPartNo = partNo;
-            tempEditPhotoBase64 = ''; // PENTING: Reset gambar baru
+            tempEditPhotoBase64 = '';
 
             document.getElementById('editPartName').value = product.partName;
             document.getElementById('editPartNo').value = product.partNo; 
@@ -420,6 +478,7 @@
             document.getElementById('editModal').classList.remove('show');
             editingPartNo = null;
             tempEditPhotoBase64 = '';
+            resetPhotoPlaceholder();
             resetButtonState();
         }
 
@@ -476,9 +535,7 @@
                 }
 
                 var result = await response.json();
-                console.log('API Response:', result);
 
-                // UPLOAD GAMBAR BARU JIKA ADA
                 if (tempEditPhotoBase64) {
                     try {
                         var photoPayload = { 
@@ -492,18 +549,14 @@
                             body: JSON.stringify(photoPayload) 
                         });
                         
-                        // PENTING: Save gambar baru ke cache
                         setCachedProductImage(newPartNo, tempEditPhotoBase64);
-                        console.log('New photo cached for:', newPartNo);
                     } catch (photoError) {
                         console.error('Photo upload error:', photoError);
                     }
                 }
 
-                // Clear cache data
                 clearProductCache();
                 
-                // Update local array serta-merta
                 var idx = allProducts.findIndex(function(p) { return p.partNo === editingPartNo; });
                 if (idx !== -1) {
                     allProducts[idx] = { 
@@ -521,8 +574,6 @@
                 resetButtonState();
                 Utils.showToast('Product updated!', 'success');
                 closeEditModal();
-                
-                // Render semula untuk tunjuk gambar baru
                 renderProducts();
                 
             } catch (error) {
