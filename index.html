@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="styles.css">
     <script src="config.js"></script>
     <script src="utils.js"></script>
-    <!-- PENTING: Tambah data-manager.js -->
     <script src="data-manager.js"></script>
 </head>
 <body class="index-page">
@@ -39,7 +38,16 @@
         <a href="export.html" class="menu-card"><div class="icon-circle bg-export"><i class="fas fa-file-export"></i></div><span class="menu-label">Export Report<br>(CSV)</span></a>
         <a href="print-qr.html" class="menu-card"><div class="icon-circle bg-print"><i class="fas fa-print"></i></div><span class="menu-label">Print QR<br>Code</span></a>
         <a href="product-list.html" class="menu-card"><div class="icon-circle bg-product"><i class="fas fa-boxes-stacked"></i></div><span class="menu-label">Product</span></a>
-        <a href="order.html" class="menu-card"><div class="icon-circle bg-order"><i class="fas fa-cart-shopping"></i></div><span class="menu-label">Order</span></a>
+        
+        <!-- PREDICTIVE ORDERING DENGAN BADGE -->
+        <a href="order.html" class="menu-card">
+            <div class="icon-circle bg-order">
+                <i class="fas fa-cart-shopping"></i>
+                <span class="order-badge" id="orderBadge" style="display: none;">0</span>
+            </div>
+            <span class="menu-label">Predictive<br>Ordering</span>
+        </a>
+        
         <a href="transaction.html" class="menu-card"><div class="icon-circle bg-transaction"><i class="fas fa-exchange-alt"></i></div><span class="menu-label">Transaction</span></a>
         <a href="help.html" class="menu-card"><div class="icon-circle bg-help"><i class="fas fa-question-circle"></i></div><span class="menu-label">Help</span></a>
         <a href="settings.html" class="menu-card"><div class="icon-circle bg-setting"><i class="fas fa-gear"></i></div><span class="menu-label">Setting</span></a>
@@ -51,7 +59,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() { loadProfileWithCache(); });
+        document.addEventListener('DOMContentLoaded', function() { 
+            loadProfileWithCache(); 
+            updateOrderBadge(); // Panggil fungsi untuk update badge nombor
+        });
 
         async function loadProfileWithCache() {
             const imgEl = document.getElementById('profileImage');
@@ -62,7 +73,6 @@
             const PROFILE_IMG_PREFIX = 'ma_profile_img';
             const PROFILE_IMG_ID = 'current_user';
 
-            // 1. Baca cache serta-merta (Instant load, tiada spinner)
             const cachedProfileStr = localStorage.getItem(PROFILE_CACHE_KEY);
             let cachedImage = (typeof DataManager !== 'undefined') ? DataManager.getCachedImage(PROFILE_IMG_PREFIX, PROFILE_IMG_ID) : null;
 
@@ -73,14 +83,13 @@
                     roleEl.textContent = cachedProfile.role || 'Role';
                     
                     if (cachedImage) {
-                        imgEl.src = cachedImage; // Tunjuk gambar dari cache serta-merta
+                        imgEl.src = cachedImage;
                     } else {
                         imgEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(cachedProfile.name || 'User')}&background=1a73e8&color=fff&size=150`;
                     }
                 } catch(e) {}
             }
 
-            // 2. Fetch background untuk pastikan data sentiasa fresh (tapi UI dah siap tunjuk dulu)
             try {
                 let data;
                 if (typeof APIHelper !== 'undefined' && APIHelper.fetchProfile) {
@@ -130,6 +139,60 @@
                     }
                 }
             } catch (error) { console.error('Error loading profile:', error); }
+        }
+
+        // FUNGSI BARU: KIRA DAN UPDATE BADGE PREDICTIVE ORDERING
+        async function updateOrderBadge() {
+            const badge = document.getElementById('orderBadge');
+            if (!badge) return;
+            
+            const PRODUCT_CACHE_KEY = 'ma_inventory_product_list';
+            const CACHE_EXPIRY = 5 * 60 * 1000;
+            
+            try {
+                let allProducts = [];
+                const cachedData = localStorage.getItem(PRODUCT_CACHE_KEY);
+                
+                if (cachedData) {
+                    try {
+                        const parsed = JSON.parse(cachedData);
+                        if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
+                            allProducts = parsed.data;
+                        }
+                    } catch(e) {}
+                }
+                
+                if (allProducts.length === 0) {
+                    const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
+                    const result = await res.json();
+                    if (result.success && result.products) {
+                        allProducts = result.products;
+                        localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify({ 
+                            data: allProducts, 
+                            timestamp: new Date().getTime() 
+                        }));
+                    }
+                }
+                
+                // Kira barang yang currentStock <= minimumStock
+                const lowStockItems = allProducts.filter(p => {
+                    const current = parseInt(p.currentStock) || 0;
+                    const minimum = parseInt(p.minimumStock) || 0;
+                    return current <= minimum;
+                });
+                
+                const count = lowStockItems.length;
+                
+                // Update badge (jika lebih dari 99, tunjuk 99+)
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error updating order badge:', error);
+            }
         }
 
         function handleLogout() {
