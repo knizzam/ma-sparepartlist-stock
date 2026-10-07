@@ -132,7 +132,6 @@
             document.getElementById('photoInput').click();
         }
 
-        // PENTING: Fungsi khas untuk reset button state
         function resetButtonState() {
             const btn = document.getElementById('saveBtn');
             if (btn) {
@@ -148,7 +147,7 @@
             document.getElementById('formView').style.display = 'block';
             document.getElementById('listView').style.display = 'none';
             document.getElementById('recentProductSearch').value = '';
-            resetButtonState(); // PENTING: Reset button state
+            resetButtonState();
             window.scrollTo({ top: 0, behavior: 'smooth' });
             console.log('[ShowFormView] Ready');
         }
@@ -178,7 +177,7 @@
 
         function cancelEdit() {
             resetForm();
-            resetButtonState(); // PENTING: Reset button state
+            resetButtonState();
             showFormView();
             console.log('[CancelEdit] Form cancelled');
         }
@@ -303,8 +302,11 @@
                 
                 html += `<div class="product-card-add status-${statusClass} ${isEditing}" onclick="editProduct('${product.partNo}', '${product.partName}', '${product.noSpec}', '${product.location}', '${product.category}', ${product.currentStock}, ${product.minimumStock}, '${product.pictureFileId}')">`;
                 html += `<div class="product-avatar-add" id="prod-avatar-${safePartNo}">${avatarHTML}</div>`;
-                html += `<div class="product-info-add"><div class="product-name-add">${product.partName} <span class="status-badge-add ${statusClass}">${statusClass.toUpperCase()}</span></div><span class="product-badge-add">${product.partNo}</span><div class="product-location-add"><i class="fas fa-map-marker-alt"></i> ${product.location || '-'}</div></div>`;
-                html += `<div class="product-stock-add"><div class="product-status-add ${statusClass}"></div><div class="stock-label-add">Stock</div><div class="stock-number-add">${product.currentStock}</div></div>`;
+                html += `<div class="product-info-add"><div class="product-name-add">${product.partName}</div><span class="product-badge-add">${product.partNo}</span><div class="product-location-add"><i class="fas fa-map-marker-alt"></i> ${product.location || '-'}</div></div>`;
+                
+                // DIUBAH: Ganti indicator bulat lama dengan badge teks baru di atas Stock
+                html += `<div class="product-stock-add"><div class="stock-status-badge-add ${statusClass}">${statusClass.toUpperCase()}</div><div class="stock-label-add">Stock</div><div class="stock-number-add">${product.currentStock}</div></div>`;
+                
                 html += `<button class="delete-btn-add" onclick="event.stopPropagation(); deleteProduct('${product.partNo}')"><i class="fas fa-trash"></i></button></div>`;
             });
             productList.innerHTML = html;
@@ -428,8 +430,6 @@
             }
 
             const btn = document.getElementById('saveBtn');
-            
-            // Set button ke state saving
             btn.disabled = true;
             btn.innerText = 'Saving...';
             btn.style.opacity = '0.6';
@@ -453,7 +453,6 @@
             console.log('[SaveProduct] Payload:', payload);
 
             try {
-                // Fetch 1: Save product data
                 await fetch(CONFIG.API_URL, { 
                     method: 'POST', 
                     mode: 'no-cors', 
@@ -462,7 +461,6 @@
                 });
                 console.log('[SaveProduct] Product data saved');
                 
-                // Fetch 2: Upload photo jika ada
                 if (tempPhotoBase64) {
                     await fetch(CONFIG.API_URL, { 
                         method: 'POST', 
@@ -479,7 +477,6 @@
                     }
                 }
 
-                // Clear cache
                 if (typeof DataManager !== 'undefined') {
                     DataManager.clearCache(PRODUCT_CACHE_KEY);
                 } else {
@@ -487,23 +484,17 @@
                 }
                 console.log('[SaveProduct] Cache cleared');
 
-                // PENTING: Reset button state SEBELUM navigation
                 resetButtonState();
                 console.log('[SaveProduct] Button state reset');
 
-                // Show success message
                 if (typeof Utils !== 'undefined') Utils.showToast('✅ Produk berjaya disimpan!', 'success');
                 else alert('Produk berjaya disimpan!');
 
-                // Navigation ke list view
                 showListView();
 
             } catch (error) {
                 console.error('[SaveProduct] Error:', error);
-                
-                // PENTING: Reset button state dalam catch block juga
                 resetButtonState();
-                
                 if (typeof Utils !== 'undefined') Utils.showToast('❌ Ralat semasa menyimpan', 'error');
                 else alert('Ralat semasa menyimpan');
             }
