@@ -13,6 +13,7 @@
     <script src="config.js"></script>
     <script src="utils.js"></script>
     <script src="data-manager.js"></script>
+    <script src="floating-actions.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
@@ -55,15 +56,22 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadProducts();
-            if (typeof HeaderMenu !== 'undefined') {
-                HeaderMenu.init({
-                    triggerId: 'headerMenuTrigger',
-                    buttons: [
-                        { icon: 'fas fa-check-double', title: 'Select All', color: '#1a73e8', action: selectAll },
-                        { icon: 'fas fa-times', title: 'Deselect All', color: '#6c757d', action: deselectAll }
-                    ]
-                });
-            }
+            
+            // PENTING: Pastikan HeaderMenu load sebelum init
+            setTimeout(function() {
+                if (typeof HeaderMenu !== 'undefined') {
+                    HeaderMenu.init({
+                        triggerId: 'headerMenuTrigger',
+                        buttons: [
+                            { icon: 'fas fa-check-double', title: 'Select All', color: '#1a73e8', action: selectAll },
+                            { icon: 'fas fa-times', title: 'Deselect All', color: '#6c757d', action: deselectAll }
+                        ]
+                    });
+                    console.log('[Order] HeaderMenu initialized');
+                } else {
+                    console.error('[Order] HeaderMenu not loaded!');
+                }
+            }, 500);
         });
 
         async function loadProducts() {
@@ -101,7 +109,6 @@
             }
         }
 
-        // FORMULA SAMA SEPERTI PRODUCT-LIST DAN ADD-PRODUCT
         function getStockStatus(current, min) {
             var thresholdOK = min + (min * 0.5);
             if (current > thresholdOK) return 'high';
@@ -110,7 +117,6 @@
         }
 
         function filterOrderProducts() {
-            // Ambil barang yang currentStock <= thresholdOK (min * 1.5)
             orderProducts = allProducts.filter(p => {
                 const current = parseInt(p.currentStock) || 0;
                 const minimum = parseInt(p.minimumStock) || 0;
@@ -118,7 +124,6 @@
                 return current <= thresholdOK;
             });
             
-            // Susun: Low stock paling atas, lepas tu mid
             orderProducts.sort((a, b) => {
                 const aCurrent = parseInt(a.currentStock) || 0;
                 const aMin = parseInt(a.minimumStock) || 1;
@@ -201,7 +206,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="order-status-badge ${status}">${status === 'low' ? '🔴 LOW' : ' MID'}</div>
+                        <div class="order-status-badge ${status}">${status === 'low' ? '🔴 LOW' : '🟡 MID'}</div>
                     </div>
                 `;
             });
@@ -334,7 +339,7 @@
 
         function downloadCSV() {
             const selected = getSelectedProductsData();
-            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); return; }
+            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('️ Please select at least one product!', 'warning'); return; }
             let csv = 'Part Name,Part No,Current Stock,Minimum Stock,Order Qty\n';
             selected.forEach(p => { csv += `"${p.partName}","${p.partNo}",${p.currentStock},${p.minimumStock},${p.orderQty}\n`; });
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -347,7 +352,7 @@
 
         async function downloadPicture() {
             const selected = getSelectedProductsData();
-            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('️ Please select at least one product!', 'warning'); return; }
+            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); return; }
             if (typeof Utils !== 'undefined') Utils.showToast('⏳ Generating images...', 'info');
             
             const tempContainer = document.createElement('div');
@@ -373,7 +378,7 @@
                 if (typeof Utils !== 'undefined') Utils.showToast(`✅ Picture downloaded`, 'success');
             } catch (err) {
                 console.error('Error:', err);
-                if (typeof Utils !== 'undefined') Utils.showToast(' Failed to generate picture', 'error');
+                if (typeof Utils !== 'undefined') Utils.showToast('❌ Failed to generate picture', 'error');
             }
             document.body.removeChild(tempContainer);
         }
@@ -381,7 +386,7 @@
         function shareText() {
             const selected = getSelectedProductsData();
             if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); return; }
-            let text = '📦 *Predictive Order List*\n\n';
+            let text = ' *Predictive Order List*\n\n';
             selected.forEach((p, i) => {
                 text += `${i + 1}. *${p.partName}* (${p.partNo})\nCurrent: ${p.currentStock} | Min: ${p.minimumStock}\nOrder Qty: *${p.orderQty}*\n\n`;
             });
