@@ -2,7 +2,6 @@
    PREDICTIVE ORDERING SPECIFIC
    ========================================= */
 
-/* Order Header */
 .order-header {
     background: linear-gradient(135deg, #1a73e8 0%, #4a90e2 100%);
     color: white; text-align: center; padding: 15px 20px 20px;
@@ -24,7 +23,6 @@
     display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 1.5px; 
 }
 
-/* Summary Bar */
 .summary-bar {
     display: flex; justify-content: space-around; background: white;
     padding: 15px; margin: 10px 15px; border-radius: 12px;
@@ -37,7 +35,6 @@
 
 .summary-item i { font-size: 18px; }
 
-/* Order List Container */
 .order-list-container { 
     padding: 0 15px 100px; 
 }
@@ -50,7 +47,6 @@
     font-size: 48px; margin-bottom: 15px; display: block; 
 }
 
-/* Order Card */
 .order-card {
     background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center;
@@ -66,7 +62,7 @@
     border-left-color: #dc3545; 
 }
 
-.order-card.warning { 
+.order-card.mid { 
     border-left-color: #ffc107; 
 }
 
@@ -156,11 +152,10 @@
     background: #dc3545; 
 }
 
-.order-status-badge.warning { 
+.order-status-badge.mid { 
     background: #ffc107; color: #000; 
 }
 
-/* Floating Action Bar */
 .floating-action-bar {
     position: fixed; bottom: 0; left: 0; right: 0; background: white;
     padding: 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
