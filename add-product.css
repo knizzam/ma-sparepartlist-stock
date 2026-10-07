@@ -399,3 +399,30 @@ html, body {
     border-radius: 10px;
     font-weight: 600;
 }
+
+/* Status Badge untuk Recent Products */
+.status-badge-add {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 9px;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin-left: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.status-badge-add.high {
+    background: #1a73e8;
+}
+
+.status-badge-add.mid {
+    background: #ffc107;
+    color: #000;
+}
+
+.status-badge-add.low {
+    background: #dc3545;
+}
