@@ -143,57 +143,57 @@
 
         // FUNGSI BARU: KIRA DAN UPDATE BADGE PREDICTIVE ORDERING
         async function updateOrderBadge() {
-            const badge = document.getElementById('orderBadge');
-            if (!badge) return;
-            
-            const PRODUCT_CACHE_KEY = 'ma_inventory_product_list';
-            const CACHE_EXPIRY = 5 * 60 * 1000;
-            
+    const badge = document.getElementById('orderBadge');
+    if (!badge) return;
+    
+    const PRODUCT_CACHE_KEY = 'ma_inventory_product_list';
+    const CACHE_EXPIRY = 5 * 60 * 1000;
+    
+    try {
+        let allProducts = [];
+        const cachedData = localStorage.getItem(PRODUCT_CACHE_KEY);
+        
+        if (cachedData) {
             try {
-                let allProducts = [];
-                const cachedData = localStorage.getItem(PRODUCT_CACHE_KEY);
-                
-                if (cachedData) {
-                    try {
-                        const parsed = JSON.parse(cachedData);
-                        if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
-                            allProducts = parsed.data;
-                        }
-                    } catch(e) {}
+                const parsed = JSON.parse(cachedData);
+                if (new Date().getTime() - parsed.timestamp < CACHE_EXPIRY) {
+                    allProducts = parsed.data;
                 }
-                
-                if (allProducts.length === 0) {
-                    const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
-                    const result = await res.json();
-                    if (result.success && result.products) {
-                        allProducts = result.products;
-                        localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify({ 
-                            data: allProducts, 
-                            timestamp: new Date().getTime() 
-                        }));
-                    }
-                }
-                
-                // Kira barang yang currentStock <= minimumStock
-                const lowStockItems = allProducts.filter(p => {
-                    const current = parseInt(p.currentStock) || 0;
-                    const minimum = parseInt(p.minimumStock) || 0;
-                    return current <= minimum;
-                });
-                
-                const count = lowStockItems.length;
-                
-                // Update badge (jika lebih dari 99, tunjuk 99+)
-                if (count > 0) {
-                    badge.textContent = count > 99 ? '99+' : count;
-                    badge.style.display = 'flex';
-                } else {
-                    badge.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Error updating order badge:', error);
+            } catch(e) {}
+        }
+        
+        if (allProducts.length === 0) {
+            const res = await fetch(CONFIG.API_URL + '?action=getAllProducts');
+            const result = await res.json();
+            if (result.success && result.products) {
+                allProducts = result.products;
+                localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify({ 
+                    data: allProducts, 
+                    timestamp: new Date().getTime() 
+                }));
             }
         }
+        
+        // Kira barang yang currentStock <= thresholdOK (Low + Mid)
+        const needOrderItems = allProducts.filter(p => {
+            const current = parseInt(p.currentStock) || 0;
+            const minimum = parseInt(p.minimumStock) || 0;
+            const thresholdOK = minimum + (minimum * 0.5);
+            return current <= thresholdOK;
+        });
+        
+        const count = needOrderItems.length;
+        
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error updating order badge:', error);
+    }
+}
 
         function handleLogout() {
             localStorage.clear();
