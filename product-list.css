@@ -75,10 +75,10 @@ body, .main-container {
 .sort-option:hover { background: #f0f4f8; }
 .sort-option.active { background: #e7f1ff; color: var(--primary-blue); font-weight: 600; }
 
-/* 4. PRODUCT GRID: PHONE (1 COLUMN) */
+/* 4. PRODUCT GRID: PHONE (2 COLUMNS) */
 .product-list-container { 
     padding: 0 15px 100px !important; display: grid; 
-    grid-template-columns: 1fr; gap: 10px; 
+    grid-template-columns: repeat(2, 1fr); gap: 10px; 
     width: 100% !important; box-sizing: border-box;
 }
 
