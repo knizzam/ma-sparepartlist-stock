@@ -17,7 +17,6 @@
 </head>
 <body>
 
-    <!-- Header -->
     <div class="order-header">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <h1 class="order-title"><i class="fas fa-brain"></i>Predictive Ordering</h1>
@@ -26,19 +25,16 @@
         </div>
     </div>
 
-    <!-- Summary Bar -->
     <div class="summary-bar">
         <div class="summary-item"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><span id="lowStockCount">0</span> Low</div>
-        <div class="summary-item"><i class="fas fa-exclamation-circle" style="color: #ffc107;"></i><span id="warningStockCount">0</span> Warning</div>
+        <div class="summary-item"><i class="fas fa-exclamation-circle" style="color: #ffc107;"></i><span id="warningStockCount">0</span> Mid</div>
         <div class="summary-item"><i class="fas fa-check-circle" style="color: #28a745;"></i><span id="selectedCount">0</span> Selected</div>
     </div>
 
-    <!-- Product List -->
     <div class="order-list-container" id="orderListContainer">
         <div class="loading-container"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>
     </div>
 
-    <!-- Floating Action Bar -->
     <div class="floating-action-bar" id="floatingActionBar" style="display: none;">
         <div class="action-info">
             <i class="fas fa-check-circle"></i>
@@ -105,25 +101,38 @@
             }
         }
 
+        // FORMULA SAMA SEPERTI PRODUCT-LIST DAN ADD-PRODUCT
+        function getStockStatus(current, min) {
+            var thresholdOK = min + (min * 0.5);
+            if (current > thresholdOK) return 'high';
+            if (current > min) return 'mid';
+            return 'low';
+        }
+
         function filterOrderProducts() {
+            // Ambil barang yang currentStock <= thresholdOK (min * 1.5)
             orderProducts = allProducts.filter(p => {
                 const current = parseInt(p.currentStock) || 0;
                 const minimum = parseInt(p.minimumStock) || 0;
-                return current <= minimum;
+                const thresholdOK = minimum + (minimum * 0.5);
+                return current <= thresholdOK;
             });
+            
+            // Susun: Low stock paling atas, lepas tu mid
             orderProducts.sort((a, b) => {
-                const aRatio = (parseInt(a.currentStock) || 0) / (parseInt(a.minimumStock) || 1);
-                const bRatio = (parseInt(b.currentStock) || 0) / (parseInt(b.minimumStock) || 1);
-                return aRatio - bRatio;
+                const aCurrent = parseInt(a.currentStock) || 0;
+                const aMin = parseInt(a.minimumStock) || 1;
+                const bCurrent = parseInt(b.currentStock) || 0;
+                const bMin = parseInt(b.minimumStock) || 1;
+                
+                const aStatus = getStockStatus(aCurrent, aMin);
+                const bStatus = getStockStatus(bCurrent, bMin);
+                
+                const order = { 'low': 0, 'mid': 1, 'high': 2 };
+                return order[aStatus] - order[bStatus];
             });
+            
             renderOrderList();
-        }
-
-        function getStockStatus(current, min) {
-            const ratio = current / min;
-            if (ratio <= 0.5) return 'low';
-            if (ratio <= 1) return 'warning';
-            return 'normal';
         }
 
         function renderOrderList() {
@@ -134,7 +143,7 @@
             }
             
             let lowCount = 0;
-            let warningCount = 0;
+            let midCount = 0;
             let html = '';
             
             orderProducts.forEach((product, index) => {
@@ -143,13 +152,12 @@
                 const status = getStockStatus(current, minimum);
                 
                 if (status === 'low') lowCount++;
-                else if (status === 'warning') warningCount++;
+                else if (status === 'mid') midCount++;
                 
                 const suggestedQty = Math.max(1, Math.ceil((minimum * 1.5) - current));
                 const isSelected = selectedProducts.has(index);
                 const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
                 
-                // FIX: Dapatkan cachedImg di sini dengan selamat
                 let cachedImg = null;
                 if (typeof DataManager !== 'undefined') {
                     cachedImg = DataManager.getCachedImage('ma_prod_img', product.partNo);
@@ -193,16 +201,15 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="order-status-badge ${status}">${status === 'low' ? '🔴 LOW' : ' WARNING'}</div>
+                        <div class="order-status-badge ${status}">${status === 'low' ? '🔴 LOW' : ' MID'}</div>
                     </div>
                 `;
             });
             
             container.innerHTML = html;
             document.getElementById('lowStockCount').textContent = lowCount;
-            document.getElementById('warningStockCount').textContent = warningCount;
+            document.getElementById('warningStockCount').textContent = midCount;
             
-            // Load images background
             orderProducts.forEach((product, index) => {
                 if (product.pictureFileId) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -340,8 +347,8 @@
 
         async function downloadPicture() {
             const selected = getSelectedProductsData();
-            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); return; }
-            if (typeof Utils !== 'undefined') Utils.showToast(' Generating images...', 'info');
+            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('️ Please select at least one product!', 'warning'); return; }
+            if (typeof Utils !== 'undefined') Utils.showToast('⏳ Generating images...', 'info');
             
             const tempContainer = document.createElement('div');
             tempContainer.style.cssText = 'position: fixed; left: -9999px; top: 0; background: white; padding: 20px; width: 800px;';
@@ -366,7 +373,7 @@
                 if (typeof Utils !== 'undefined') Utils.showToast(`✅ Picture downloaded`, 'success');
             } catch (err) {
                 console.error('Error:', err);
-                if (typeof Utils !== 'undefined') Utils.showToast('❌ Failed to generate picture', 'error');
+                if (typeof Utils !== 'undefined') Utils.showToast(' Failed to generate picture', 'error');
             }
             document.body.removeChild(tempContainer);
         }
