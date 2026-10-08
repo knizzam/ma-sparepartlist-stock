@@ -26,10 +26,31 @@
         </div>
     </div>
 
+    <!-- Summary Bar (CLICKABLE) -->
     <div class="summary-bar">
-        <div class="summary-item"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i><span id="lowStockCount">0</span> Low</div>
-        <div class="summary-item"><i class="fas fa-exclamation-circle" style="color: #ffc107;"></i><span id="warningStockCount">0</span> Mid</div>
-        <div class="summary-item"><i class="fas fa-check-circle" style="color: #28a745;"></i><span id="selectedCount">0</span> Selected</div>
+        <div class="summary-item clickable" id="summaryLow" onclick="filterByStatus('low')">
+            <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
+            <span id="lowStockCount">0</span> Low
+        </div>
+        <div class="summary-item clickable" id="summaryMid" onclick="filterByStatus('mid')">
+            <i class="fas fa-exclamation-circle" style="color: #ffc107;"></i>
+            <span id="warningStockCount">0</span> Mid
+        </div>
+        <div class="summary-item" id="summaryAll" onclick="filterByStatus('all')">
+            <i class="fas fa-check-circle" style="color: #28a745;"></i>
+            <span id="selectedCount">0</span> Selected
+        </div>
+    </div>
+
+    <!-- Category Filter Chips -->
+    <div class="category-filter-section">
+        <div class="category-chip active" onclick="setCategoryFilter('all', this)">All</div>
+        <div class="category-chip" onclick="setCategoryFilter('Maintenance', this)">Maintenance</div>
+        <div class="category-chip" onclick="setCategoryFilter('Consumable', this)">Consumable</div>
+        <div class="category-chip" onclick="setCategoryFilter('Tools', this)">Tools</div>
+        <div class="category-chip" onclick="setCategoryFilter('Safety', this)">Safety</div>
+        <div class="category-chip" onclick="setCategoryFilter('Kaizen', this)">Kaizen</div>
+        <div class="category-chip" onclick="setCategoryFilter('5s', this)">5s</div>
     </div>
 
     <div class="order-list-container" id="orderListContainer">
@@ -53,11 +74,12 @@
         let allProducts = [];
         let orderProducts = [];
         let selectedProducts = new Set();
+        let currentCategory = 'all';
+        let currentStatusFilter = 'all'; // 'all', 'low', atau 'mid'
 
         document.addEventListener('DOMContentLoaded', function() {
             loadProducts();
             
-            // PENTING: Pastikan HeaderMenu load sebelum init
             setTimeout(function() {
                 if (typeof HeaderMenu !== 'undefined') {
                     HeaderMenu.init({
@@ -116,12 +138,59 @@
             return 'low';
         }
 
+        // BARU: Fungsi untuk filter by status (Low/Mid/All)
+        function filterByStatus(status) {
+            currentStatusFilter = status;
+            
+            // Update visual active state
+            document.getElementById('summaryLow').style.opacity = (status === 'low' || status === 'all') ? '1' : '0.5';
+            document.getElementById('summaryMid').style.opacity = (status === 'mid' || status === 'all') ? '1' : '0.5';
+            document.getElementById('summaryAll').style.opacity = '1';
+            
+            filterOrderProducts();
+            
+            if (status === 'low') {
+                Utils.showToast('Showing Low stock items only', 'info');
+            } else if (status === 'mid') {
+                Utils.showToast('Showing Mid stock items only', 'info');
+            } else {
+                Utils.showToast('Showing all items', 'info');
+            }
+        }
+
+        // BARU: Fungsi untuk filter by category
+        function setCategoryFilter(category, element) {
+            currentCategory = category;
+            
+            // Update active chip
+            document.querySelectorAll('.category-chip').forEach(chip => chip.classList.remove('active'));
+            element.classList.add('active');
+            
+            filterOrderProducts();
+        }
+
         function filterOrderProducts() {
             orderProducts = allProducts.filter(p => {
                 const current = parseInt(p.currentStock) || 0;
                 const minimum = parseInt(p.minimumStock) || 0;
                 const thresholdOK = minimum + (minimum * 0.5);
-                return current <= thresholdOK;
+                
+                // Check if stock is low or mid (bukan high)
+                const isLowOrMid = current <= thresholdOK;
+                
+                // Check category
+                const matchCategory = currentCategory === 'all' || p.category === currentCategory;
+                
+                // Check status filter
+                const status = getStockStatus(current, minimum);
+                let matchStatus = true;
+                if (currentStatusFilter === 'low') {
+                    matchStatus = (status === 'low');
+                } else if (currentStatusFilter === 'mid') {
+                    matchStatus = (status === 'mid');
+                }
+                
+                return isLowOrMid && matchCategory && matchStatus;
             });
             
             orderProducts.sort((a, b) => {
@@ -215,6 +284,7 @@
             document.getElementById('lowStockCount').textContent = lowCount;
             document.getElementById('warningStockCount').textContent = midCount;
             
+            // Load images
             orderProducts.forEach((product, index) => {
                 if (product.pictureFileId) {
                     const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
@@ -339,7 +409,7 @@
 
         function downloadCSV() {
             const selected = getSelectedProductsData();
-            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('️ Please select at least one product!', 'warning'); return; }
+            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); return; }
             let csv = 'Part Name,Part No,Current Stock,Minimum Stock,Order Qty\n';
             selected.forEach(p => { csv += `"${p.partName}","${p.partNo}",${p.currentStock},${p.minimumStock},${p.orderQty}\n`; });
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -385,8 +455,8 @@
 
         function shareText() {
             const selected = getSelectedProductsData();
-            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); return; }
-            let text = ' *Predictive Order List*\n\n';
+            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('️ Please select at least one product!', 'warning'); return; }
+            let text = '📦 *Predictive Order List*\n\n';
             selected.forEach((p, i) => {
                 text += `${i + 1}. *${p.partName}* (${p.partNo})\nCurrent: ${p.currentStock} | Min: ${p.minimumStock}\nOrder Qty: *${p.orderQty}*\n\n`;
             });
