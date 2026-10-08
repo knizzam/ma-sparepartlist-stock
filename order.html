@@ -26,46 +26,58 @@
         </div>
     </div>
 
-    <!-- Summary Bar (CLICKABLE) -->
-    <div class="summary-bar">
-        <div class="summary-item clickable" id="summaryLow" onclick="filterByStatus('low')">
-            <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
-            <span id="lowStockCount">0</span> Low
+    <div class="main-container">
+        <!-- SEARCH & FILTER SECTION (STANDARD STRUCTURE) -->
+        <div class="search-filter-section">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search Part Name, Part No, or Location..." onkeyup="filterOrderProducts()">
+            </div>
+            
+            <div class="filter-sort-container">
+                <div class="category-filter-container">
+                    <div class="category-chip active" onclick="setCategoryFilter('all', this)">All</div>
+                    <div class="category-chip" onclick="setCategoryFilter('Maintenance', this)">Maintenance</div>
+                    <div class="category-chip" onclick="setCategoryFilter('Consumable', this)">Consumable</div>
+                    <div class="category-chip" onclick="setCategoryFilter('Tools', this)">Tools</div>
+                    <div class="category-chip" onclick="setCategoryFilter('Safety', this)">Safety</div>
+                    <div class="category-chip" onclick="setCategoryFilter('Kaizen', this)">Kaizen</div>
+                    <div class="category-chip" onclick="setCategoryFilter('5s', this)">5s</div>
+                </div>
+            </div>
         </div>
-        <div class="summary-item clickable" id="summaryMid" onclick="filterByStatus('mid')">
-            <i class="fas fa-exclamation-circle" style="color: #ffc107;"></i>
-            <span id="warningStockCount">0</span> Mid
+
+        <!-- SUMMARY BAR (CLICKABLE) -->
+        <div class="summary-bar">
+            <div class="summary-item clickable" id="summaryLow" onclick="filterByStatus('low')">
+                <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
+                <span id="lowStockCount">0</span> Low
+            </div>
+            <div class="summary-item clickable" id="summaryMid" onclick="filterByStatus('mid')">
+                <i class="fas fa-exclamation-circle" style="color: #ffc107;"></i>
+                <span id="warningStockCount">0</span> Mid
+            </div>
+            <div class="summary-item" id="summaryAll" onclick="filterByStatus('all')">
+                <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                <span id="selectedCount">0</span> Selected
+            </div>
         </div>
-        <div class="summary-item" id="summaryAll" onclick="filterByStatus('all')">
-            <i class="fas fa-check-circle" style="color: #28a745;"></i>
-            <span id="selectedCount">0</span> Selected
+
+        <!-- ORDER LIST -->
+        <div class="order-list-container" id="orderListContainer">
+            <div class="loading-container"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>
         </div>
     </div>
 
-    <!-- Category Filter Chips -->
-    <div class="category-filter-section">
-        <div class="category-chip active" onclick="setCategoryFilter('all', this)">All</div>
-        <div class="category-chip" onclick="setCategoryFilter('Maintenance', this)">Maintenance</div>
-        <div class="category-chip" onclick="setCategoryFilter('Consumable', this)">Consumable</div>
-        <div class="category-chip" onclick="setCategoryFilter('Tools', this)">Tools</div>
-        <div class="category-chip" onclick="setCategoryFilter('Safety', this)">Safety</div>
-        <div class="category-chip" onclick="setCategoryFilter('Kaizen', this)">Kaizen</div>
-        <div class="category-chip" onclick="setCategoryFilter('5s', this)">5s</div>
-    </div>
-
-    <div class="order-list-container" id="orderListContainer">
-        <div class="loading-container"><i class="fas fa-spinner fa-spin"></i><div>Loading products...</div></div>
-    </div>
-
+    <!-- FLOATING ACTION BAR (CART) -->
     <div class="floating-action-bar" id="floatingActionBar" style="display: none;">
         <div class="action-info">
-            <i class="fas fa-check-circle"></i>
-            <span id="floatingSelectedCount">0</span> items | Total: <span id="floatingTotalQty">0</span> units
+            <i class="fas fa-shopping-cart"></i>
+            <span id="floatingSelectedCount">0</span> items | Total: <span id="floatingTotalQty">0</span> units | RM <span id="floatingTotalCost">0.00</span>
         </div>
         <div class="action-buttons">
             <button class="action-btn btn-csv" onclick="downloadCSV()"><i class="fas fa-file-csv"></i> CSV</button>
-            <button class="action-btn btn-picture" onclick="downloadPicture()"><i class="fas fa-image"></i> Picture</button>
-            <button class="action-btn btn-share" onclick="shareText()"><i class="fas fa-share-alt"></i> Share</button>
+            <button class="action-btn btn-checkout" onclick="checkoutToCart()"><i class="fas fa-cart-plus"></i> Add to Cart</button>
         </div>
     </div>
 
@@ -75,7 +87,8 @@
         let orderProducts = [];
         let selectedProducts = new Set();
         let currentCategory = 'all';
-        let currentStatusFilter = 'all'; // 'all', 'low', atau 'mid'
+        let currentStatusFilter = 'all';
+        let currentSearch = '';
 
         document.addEventListener('DOMContentLoaded', function() {
             loadProducts();
@@ -138,70 +151,52 @@
             return 'low';
         }
 
-        // BARU: Fungsi untuk filter by status (Low/Mid/All)
         function filterByStatus(status) {
             currentStatusFilter = status;
             
-            // Update visual active state
             document.getElementById('summaryLow').style.opacity = (status === 'low' || status === 'all') ? '1' : '0.5';
             document.getElementById('summaryMid').style.opacity = (status === 'mid' || status === 'all') ? '1' : '0.5';
             document.getElementById('summaryAll').style.opacity = '1';
             
             filterOrderProducts();
             
-            if (status === 'low') {
-                Utils.showToast('Showing Low stock items only', 'info');
-            } else if (status === 'mid') {
-                Utils.showToast('Showing Mid stock items only', 'info');
-            } else {
-                Utils.showToast('Showing all items', 'info');
-            }
+            if (status === 'low') Utils.showToast('Showing Low stock items only', 'info');
+            else if (status === 'mid') Utils.showToast('Showing Mid stock items only', 'info');
+            else Utils.showToast('Showing all items', 'info');
         }
 
-        // BARU: Fungsi untuk filter by category
         function setCategoryFilter(category, element) {
             currentCategory = category;
-            
-            // Update active chip
             document.querySelectorAll('.category-chip').forEach(chip => chip.classList.remove('active'));
             element.classList.add('active');
-            
             filterOrderProducts();
         }
 
         function filterOrderProducts() {
+            const searchTerm = currentSearch.toLowerCase();
+            
             orderProducts = allProducts.filter(p => {
                 const current = parseInt(p.currentStock) || 0;
                 const minimum = parseInt(p.minimumStock) || 0;
                 const thresholdOK = minimum + (minimum * 0.5);
                 
-                // Check if stock is low or mid (bukan high)
                 const isLowOrMid = current <= thresholdOK;
-                
-                // Check category
                 const matchCategory = currentCategory === 'all' || p.category === currentCategory;
+                const matchSearch = p.partName.toLowerCase().includes(searchTerm) || 
+                                   p.partNo.toLowerCase().includes(searchTerm) ||
+                                   (p.location && p.location.toLowerCase().includes(searchTerm));
                 
-                // Check status filter
                 const status = getStockStatus(current, minimum);
                 let matchStatus = true;
-                if (currentStatusFilter === 'low') {
-                    matchStatus = (status === 'low');
-                } else if (currentStatusFilter === 'mid') {
-                    matchStatus = (status === 'mid');
-                }
+                if (currentStatusFilter === 'low') matchStatus = (status === 'low');
+                else if (currentStatusFilter === 'mid') matchStatus = (status === 'mid');
                 
-                return isLowOrMid && matchCategory && matchStatus;
+                return isLowOrMid && matchCategory && matchSearch && matchStatus;
             });
             
             orderProducts.sort((a, b) => {
-                const aCurrent = parseInt(a.currentStock) || 0;
-                const aMin = parseInt(a.minimumStock) || 1;
-                const bCurrent = parseInt(b.currentStock) || 0;
-                const bMin = parseInt(b.minimumStock) || 1;
-                
-                const aStatus = getStockStatus(aCurrent, aMin);
-                const bStatus = getStockStatus(bCurrent, bMin);
-                
+                const aStatus = getStockStatus(parseInt(a.currentStock) || 0, parseInt(a.minimumStock) || 1);
+                const bStatus = getStockStatus(parseInt(b.currentStock) || 0, parseInt(b.minimumStock) || 1);
                 const order = { 'low': 0, 'mid': 1, 'high': 2 };
                 return order[aStatus] - order[bStatus];
             });
@@ -224,11 +219,13 @@
                 const current = parseInt(product.currentStock) || 0;
                 const minimum = parseInt(product.minimumStock) || 0;
                 const status = getStockStatus(current, minimum);
+                const unitPrice = parseFloat(product.unitPrice) || 0;
                 
                 if (status === 'low') lowCount++;
                 else if (status === 'mid') midCount++;
                 
                 const suggestedQty = Math.max(1, Math.ceil((minimum * 1.5) - current));
+                const estimatedCost = suggestedQty * unitPrice;
                 const isSelected = selectedProducts.has(index);
                 const safePartNo = product.partNo.replace(/[^a-zA-Z0-9]/g, '');
                 
@@ -266,6 +263,10 @@
                                 <span class="stock-current">Current: ${current}</span>
                                 <span class="stock-min">Min: ${minimum}</span>
                             </div>
+                            <div class="order-price-info">
+                                <span class="price-label">Unit Price:</span>
+                                <span class="price-value">RM ${unitPrice.toFixed(2)}</span>
+                            </div>
                             <div class="order-qty-section">
                                 <label>Order Qty:</label>
                                 <div class="qty-control">
@@ -273,6 +274,7 @@
                                     <input type="number" class="qty-input" id="qty-${index}" value="${suggestedQty}" min="0" onchange="updateQty(${index}, this.value)">
                                     <button class="qty-btn" onclick="adjustQty(${index}, 1)">+</button>
                                 </div>
+                                <div class="estimated-cost">Est: RM ${estimatedCost.toFixed(2)}</div>
                             </div>
                         </div>
                         <div class="order-status-badge ${status}">${status === 'low' ? 'LOW' : 'MID'}</div>
@@ -371,6 +373,12 @@
             if (input) {
                 input.value = Math.max(0, (parseInt(input.value) || 0) + change);
                 updateFloatingBar();
+                // Re-render to update estimated cost
+                const product = orderProducts[index];
+                const unitPrice = parseFloat(product.unitPrice) || 0;
+                const newQty = parseInt(input.value) || 0;
+                const costEl = input.parentElement.nextElementSibling;
+                if (costEl) costEl.textContent = `Est: RM ${(newQty * unitPrice).toFixed(2)}`;
             }
         }
 
@@ -385,12 +393,82 @@
             document.getElementById('floatingSelectedCount').textContent = selectedCount;
             
             let totalQty = 0;
+            let totalCost = 0;
             selectedProducts.forEach(index => {
                 const qtyInput = document.getElementById(`qty-${index}`);
-                if (qtyInput) totalQty += parseInt(qtyInput.value) || 0;
+                const qty = parseInt(qtyInput?.value) || 0;
+                const product = orderProducts[index];
+                const unitPrice = parseFloat(product.unitPrice) || 0;
+                totalQty += qty;
+                totalCost += (qty * unitPrice);
             });
+            
             document.getElementById('floatingTotalQty').textContent = totalQty;
+            document.getElementById('floatingTotalCost').textContent = totalCost.toFixed(2);
             floatingBar.style.display = selectedCount > 0 ? 'flex' : 'none';
+        }
+
+        // BARU: Fungsi Checkout ke Cart
+        async function checkoutToCart() {
+            if (selectedProducts.size === 0) {
+                if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Sila pilih item untuk order!', 'warning');
+                return;
+            }
+            
+            if (!confirm(`✅ Anda akan tambah ${selectedProducts.size} item ke dalam Cart. Teruskan?`)) {
+                return;
+            }
+            
+            const selectedData = getSelectedProductsData();
+            let successCount = 0;
+            
+            // Show loading
+            const checkoutBtn = document.querySelector('.btn-checkout');
+            const originalText = checkoutBtn.innerHTML;
+            checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            checkoutBtn.disabled = true;
+            
+            try {
+                for (const item of selectedData) {
+                    const payload = {
+                        action: 'addPurchaseOrder',
+                        data: {
+                            partNo: item.partNo,
+                            partName: item.partName,
+                            orderQty: item.orderQty,
+                            unitPrice: item.unitPrice || 0,
+                            remark: `From Predictive Ordering - ${new Date().toLocaleDateString()}`
+                        }
+                    };
+                    
+                    const response = await fetch(CONFIG.API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        successCount++;
+                    }
+                }
+                
+                if (typeof Utils !== 'undefined') {
+                    Utils.showToast(`✅ Berjaya tambah ${successCount} item ke Cart!`, 'success');
+                }
+                
+                // Clear selection
+                selectedProducts.clear();
+                updateFloatingBar();
+                renderOrderList();
+                
+            } catch (error) {
+                console.error('Checkout error:', error);
+                if (typeof Utils !== 'undefined') Utils.showToast('❌ Ralat semasa checkout', 'error');
+            } finally {
+                checkoutBtn.innerHTML = originalText;
+                checkoutBtn.disabled = false;
+            }
         }
 
         function getSelectedProductsData() {
@@ -399,8 +477,11 @@
                 const product = orderProducts[index];
                 const qtyInput = document.getElementById(`qty-${index}`);
                 selected.push({
-                    partName: product.partName, partNo: product.partNo,
-                    currentStock: product.currentStock, minimumStock: product.minimumStock,
+                    partName: product.partName,
+                    partNo: product.partNo,
+                    currentStock: product.currentStock,
+                    minimumStock: product.minimumStock,
+                    unitPrice: parseFloat(product.unitPrice) || 0,
                     orderQty: parseInt(qtyInput?.value) || 0
                 });
             });
@@ -409,29 +490,41 @@
 
         function downloadCSV() {
             const selected = getSelectedProductsData();
-            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); return; }
-            let csv = 'Part Name,Part No,Current Stock,Minimum Stock,Order Qty\n';
-            selected.forEach(p => { csv += `"${p.partName}","${p.partNo}",${p.currentStock},${p.minimumStock},${p.orderQty}\n`; });
+            if (selected.length === 0) { 
+                if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); 
+                return; 
+            }
+            let csv = 'Part Name,Part No,Current Stock,Minimum Stock,Unit Price (RM),Order Qty,Estimated Cost (RM)\n';
+            selected.forEach(p => { 
+                const cost = p.orderQty * p.unitPrice;
+                csv += `"${p.partName}","${p.partNo}",${p.currentStock},${p.minimumStock},${p.unitPrice.toFixed(2)},${p.orderQty},${cost.toFixed(2)}\n`; 
+            });
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = url; link.download = `Predictive_Order_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click(); URL.revokeObjectURL(url);
+            link.href = url; 
+            link.download = `Predictive_Order_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click(); 
+            URL.revokeObjectURL(url);
             if (typeof Utils !== 'undefined') Utils.showToast(`✅ CSV downloaded with ${selected.length} items`, 'success');
         }
 
         async function downloadPicture() {
             const selected = getSelectedProductsData();
-            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); return; }
+            if (selected.length === 0) { 
+                if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); 
+                return; 
+            }
             if (typeof Utils !== 'undefined') Utils.showToast('⏳ Generating images...', 'info');
             
             const tempContainer = document.createElement('div');
             tempContainer.style.cssText = 'position: fixed; left: -9999px; top: 0; background: white; padding: 20px; width: 800px;';
             let html = '<h2 style="text-align: center; margin-bottom: 20px;">Predictive Order List</h2>';
             html += '<table style="width: 100%; border-collapse: collapse;">';
-            html += '<tr style="background: #f0f0f0;"><th style="padding: 10px; border: 1px solid #ddd;">Part Name</th><th style="padding: 10px; border: 1px solid #ddd;">Part No</th><th style="padding: 10px; border: 1px solid #ddd;">Current</th><th style="padding: 10px; border: 1px solid #ddd;">Min</th><th style="padding: 10px; border: 1px solid #ddd;">Order Qty</th></tr>';
+            html += '<tr style="background: #f0f0f0;"><th style="padding: 10px; border: 1px solid #ddd;">Part Name</th><th style="padding: 10px; border: 1px solid #ddd;">Part No</th><th style="padding: 10px; border: 1px solid #ddd;">Current</th><th style="padding: 10px; border: 1px solid #ddd;">Min</th><th style="padding: 10px; border: 1px solid #ddd;">Unit Price</th><th style="padding: 10px; border: 1px solid #ddd;">Order Qty</th><th style="padding: 10px; border: 1px solid #ddd;">Total Cost</th></tr>';
             selected.forEach(p => {
-                html += `<tr><td style="padding: 10px; border: 1px solid #ddd;">${p.partName}</td><td style="padding: 10px; border: 1px solid #ddd;">${p.partNo}</td><td style="padding: 10px; border: 1px solid #ddd;">${p.currentStock}</td><td style="padding: 10px; border: 1px solid #ddd;">${p.minimumStock}</td><td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">${p.orderQty}</td></tr>`;
+                const cost = p.orderQty * p.unitPrice;
+                html += `<tr><td style="padding: 10px; border: 1px solid #ddd;">${p.partName}</td><td style="padding: 10px; border: 1px solid #ddd;">${p.partNo}</td><td style="padding: 10px; border: 1px solid #ddd;">${p.currentStock}</td><td style="padding: 10px; border: 1px solid #ddd;">${p.minimumStock}</td><td style="padding: 10px; border: 1px solid #ddd;">RM ${p.unitPrice.toFixed(2)}</td><td style="padding: 10px; border: 1px solid #ddd;">${p.orderQty}</td><td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">RM ${cost.toFixed(2)}</td></tr>`;
             });
             html += '</table>';
             tempContainer.innerHTML = html;
@@ -455,13 +548,19 @@
 
         function shareText() {
             const selected = getSelectedProductsData();
-            if (selected.length === 0) { if (typeof Utils !== 'undefined') Utils.showToast('️ Please select at least one product!', 'warning'); return; }
+            if (selected.length === 0) { 
+                if (typeof Utils !== 'undefined') Utils.showToast('⚠️ Please select at least one product!', 'warning'); 
+                return; 
+            }
             let text = '📦 *Predictive Order List*\n\n';
+            let totalCost = 0;
             selected.forEach((p, i) => {
-                text += `${i + 1}. *${p.partName}* (${p.partNo})\nCurrent: ${p.currentStock} | Min: ${p.minimumStock}\nOrder Qty: *${p.orderQty}*\n\n`;
+                const cost = p.orderQty * p.unitPrice;
+                totalCost += cost;
+                text += `${i + 1}. *${p.partName}* (${p.partNo})\nCurrent: ${p.currentStock} | Min: ${p.minimumStock}\nUnit Price: RM ${p.unitPrice.toFixed(2)} | Order Qty: *${p.orderQty}*\nEst. Cost: RM ${cost.toFixed(2)}\n\n`;
             });
-            const totalQty = selected.reduce((sum, p) => sum + p.orderQty, 0);
-            text += `Total Items: ${selected.length}\nTotal Qty: ${totalQty}\n\nPlease confirm availability. Thank you!`;
+            text += `Total Items: ${selected.length}\nTotal Qty: ${selected.reduce((sum, p) => sum + p.orderQty, 0)}\n`;
+            text += `*Total Estimated Cost: RM ${totalCost.toFixed(2)}*\n\nPlease confirm availability. Thank you!`;
             
             if (navigator.share) {
                 navigator.share({ title: 'Predictive Order List', text: text }).catch(() => {
